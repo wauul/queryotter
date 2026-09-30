@@ -532,6 +532,7 @@ def test_oidc_verifies_signature_audience_nonce_issuer_and_expiry():
 
 def test_failed_model_usage_is_visible_and_secrets_are_not_reported(monkeypatch):
     import httpx
+    monkeypatch.setenv("MODEL_API_KEY", "synthetic-fixture-key-never-sent")
     c, uid = client("a")
     monkeypatch.setattr(generation.httpx,"post",lambda *a,**k:httpx.Response(429,json={"error":"Sensitive provider body"}))
     with pytest.raises(AdapterError) as raised:

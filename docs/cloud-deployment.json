@@ -1,6 +1,12 @@
 {
   "status": "Vercel, Railway API/worker and Neon deployed and verified",
   "web_url": "https://queryotter.vercel.app",
+  "vercel": {
+    "deployment_id": "dpl_FHG8xW7SKU8QrW9ZYzvcV4na3ZWU",
+    "deployment_url": "https://queryotter-publbygy0-wauuls-projects.vercel.app",
+    "source_revision": "126ad57ad11c62fa31fc5f8dbae6af44b9fc25ed",
+    "status": "READY"
+  },
   "neon": {
     "project": "queryotter",
     "project_id": "quiet-rice-58196279",
@@ -14,6 +20,7 @@
       "queryotter_experiments": "Disposable synthetic SQL experiments and an owner-only read-only demo fixture"
     },
     "migration": {
+      "scope": "Historical initial migration counts; not current account or job totals",
       "jobs": 8,
       "events": 33,
       "connections": 1,
@@ -43,17 +50,24 @@
     "cost_limit": "Resource limits only; no project-specific dollar cap",
     "architecture": "API and supervised separate on-demand worker process in one container; durable Neon queue; no idle database polling",
     "url": "https://api-worker-production-7d0a.up.railway.app",
-    "deployment_id": "bbb9ac16-fd10-419a-b7d0-bed6887f3a6c",
+    "deployment_id": "06b312da-c3e4-4a3a-b6c2-c85b162fc616",
+    "source_revision": "ecdc2f56c4e059d76420bb86426c945cfd00f8b8",
+    "status": "SUCCESS",
     "financial_approval": "Explicit user approval for the existing metered Hobby workspace received."
   },
   "checks": {
     "python_tests": 76,
     "proxy_tests": 4,
     "linux_docker_startup": "passed",
-    "ci_url": "https://github.com/wauul/queryotter/actions/runs/36719798666",
+    "ci_url": "https://github.com/wauul/queryotter/actions/runs/36747795702",
+    "engine_ci_url": "https://github.com/wauul/queryotter/actions/runs/36743946074",
     "configured_credentials_in_source_or_frontend": false,
     "oauth": "GitHub, Google and Microsoft personal account login verified through production UI; organization publisher restrictions remain explicit",
-    "engine_evidence": "See public/adapter-verification.json, public/nl-evaluation.json and public/neon-verification.json"
+    "engine_evidence": "See public/adapter-verification.json, public/nl-evaluation.json and public/neon-verification.json",
+    "deployed_ui": "public/deployed-ui-verification.json: generation, refinement, explicit run, pagination, save/history, cancellation, exports and approved disposable-account deletion passed",
+    "fresh_postgresql_benchmark": "public/deployed-postgresql-benchmark.json: four correctness fixtures passed, 6.294/0.086 ms medians, 73.19x observed on synthetic data",
+    "final_health": "Both origins healthy; service token enforced; anonymous private connections denied; nine engines, thirteen presets and all three OAuth providers configured",
+    "deleted_disposable_account": "Direct Neon counts verified zero active account/workspace/session/connection/schema/saved/job/history/results; all OAuth identities preserved"
   },
   "cutover": "Vercel production and preview CONNECTOR_URL now point to the live Railway HTTPS origin. No desktop tunnel dependency.",
   "checked": "2026-09-30"

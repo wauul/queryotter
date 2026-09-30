@@ -1,0 +1,136 @@
+{
+  "mode": "authenticated live plan-only",
+  "job_id": "7a53caefd3fd4d30b1cc38f0db312c99",
+  "checks": [
+    "Least-privilege read-only fixture accepted",
+    "Connection stored encrypted server-side",
+    "Real Groq proposals from bounded schema and non-executing JSON EXPLAIN",
+    "No records, execution times, indexes or verified claims"
+  ],
+  "report": {
+    "query": "SELECT\n  id,\n  total\nFROM orders\nWHERE\n  customer_id = 42\nORDER BY\n  id\nLIMIT 50",
+    "diagnosis": "Seq Scan on orders and subsequent Sort are caused by lack of an index that can both filter on customer_id and provide the required ordering by id. This forces a full table scan, filtering, then sorting before applying the LIMIT.",
+    "candidates": [
+      {
+        "name": "idx_orders_customer_id_id",
+        "hypothesis": "An index on (customer_id, id) lets PostgreSQL use an Index Scan that directly satisfies the WHERE clause and the ORDER BY, eliminating the Seq Scan and Sort nodes.",
+        "query": "SELECT id, total FROM orders WHERE customer_id = 42 ORDER BY id LIMIT 50",
+        "indexes": [
+          "CREATE INDEX idx_orders_customer_id_id ON orders (customer_id, id)"
+        ],
+        "status": "unverified",
+        "correctness": {
+          "passed": false,
+          "datasets": []
+        }
+      }
+    ],
+    "best": null,
+    "original": null,
+    "plan_before": [
+      {
+        "Node Type": "Limit",
+        "Plan Rows": 5,
+        "Total Cost": 9.32,
+        "depth": 0
+      },
+      {
+        "Node Type": "Sort",
+        "Plan Rows": 5,
+        "Total Cost": 9.32,
+        "depth": 1
+      },
+      {
+        "Node Type": "Seq Scan",
+        "Relation Name": "orders",
+        "Plan Rows": 5,
+        "Total Cost": 9.25,
+        "depth": 2
+      }
+    ],
+    "schema": {
+      "columns": [
+        [
+          "orders",
+          "id",
+          "integer",
+          "NO"
+        ],
+        [
+          "orders",
+          "customer_id",
+          "integer",
+          "YES"
+        ],
+        [
+          "orders",
+          "total",
+          "numeric",
+          "YES"
+        ]
+      ],
+      "indexes": [
+        [
+          "orders",
+          "CREATE UNIQUE INDEX orders_pkey ON public.orders USING btree (id)"
+        ]
+      ],
+      "constraints": [
+        [
+          "orders",
+          "NOT NULL id"
+        ],
+        [
+          "orders",
+          "PRIMARY KEY (id)"
+        ]
+      ],
+      "statistics": [
+        [
+          "orders",
+          "id",
+          0.0,
+          -1.0,
+          1.0
+        ],
+        [
+          "orders",
+          "customer_id",
+          0.0,
+          -0.2,
+          0.19770078
+        ],
+        [
+          "orders",
+          "total",
+          0.0,
+          -1.0,
+          1.0
+        ]
+      ],
+      "version": "18.4"
+    },
+    "conditions": {
+      "mode": "live plan-only",
+      "equivalence": "Not tested. Query was not executed.",
+      "cache": "Not measured"
+    },
+    "usage": {
+      "provider": "Groq / OpenAI-compatible",
+      "model": "openai/gpt-oss-120b",
+      "calls": 1,
+      "input_tokens": 607,
+      "output_tokens": 466,
+      "seconds": 1.39,
+      "estimated_cost_usd": null,
+      "tool_calls": 3,
+      "runtime_seconds": 1.46,
+      "database_seconds": null
+    },
+    "migration": [],
+    "limitations": [
+      "Live mode only reads bounded metadata and non-executing EXPLAIN.",
+      "No semantic or performance verification; no indexes applied."
+    ]
+  }
+}

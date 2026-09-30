@@ -398,5 +398,5 @@
     }
   ],
   "runtime_seconds": 222.16,
-  "methodology": "Full fixed suite; no favorable-case selection. Original versus Groq-chosen candidates and independent fixed index baseline. PostgreSQL execution time, warm cache only. Seven repetitions after two warm-up rounds with alternating index states and equal warmups. A win must exceed 10% original median, 3\u00d7 maximum MAD, and 0.05 ms. Empirical equality on empty, two edge fixtures and full synthetic data does not prove equivalence. Regressions count tested candidates; selected recommendations cannot be regressions. Pricing and database operation time unavailable in this run."
+  "methodology": "Full fixed suite; no favorable-case selection. Original versus Groq-chosen candidates and independent fixed index baseline. PostgreSQL execution time, warm cache only. Seven repetitions after two warm-up rounds with alternating index states and equal warmups. A win must exceed 10% original median, 3\u00d7 maximum MAD, and 0.05 ms. Empirical equality on empty, two edge fixtures and full synthetic data does not prove equivalence. Regressions count tested candidates; selected recommendations cannot be regressions. Provider pricing unavailable; SQL client operation time is measured."
 }

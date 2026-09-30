@@ -2,7 +2,7 @@
 
 QueryOtter investigates slow PostgreSQL SELECTs using a real Groq model and a deterministic experiment executor. It reads plans, proposes rewrites or indexes, verifies results on independent fixtures, benchmarks surviving candidates, and recommends only measured improvements.
 
-**Live app:** https://queryotter.sappy-cod-9447.chatgpt.site  
+**Live app:** https://queryotter.wauul.chatgpt.site  
 **Repository:** https://github.com/wauul/queryotter
 
 ![QueryOtter measured investigation](docs/queryotter-desktop.png)
@@ -74,6 +74,24 @@ Live connections require a non-superuser role without creation/replication/bypas
 
 ## Correctness and benchmark methodology
 
+The published September 30 evaluation contains **15 fixed cases**: 12 supported and three rejected before execution. Eight supported cases produced verified improvements, two were inconclusive, and two had no justified candidate. There were **zero regressions and zero provider errors** in the final suite. Checks passed for 9/10 cases where the agent proposed candidates; the NULL trap failed an empirical check and was excluded. All eight selected recommendations passed every fixture. The deterministic baseline sometimes outperformed the agent (notably the item join); those results are retained. The evaluation took 222.16 seconds including provider pacing, used 12 model calls, and publishes per-case token counts, SQL calls, runtime and index costs. Rejected candidates are not presented as verified recommendations.
+
+For the customer-orders case, PostgreSQL 18.4 on 120,000 orders measured **4.483 ms → 0.027 ms** median, **166.04×**, with original/candidate MAD **0.115/0.001 ms**. All four fixtures passed. The selected index took **46.85 ms** to build and used **4,898,816 bytes**:
+
+```sql
+SELECT id, customer_id, total, created_at
+FROM orders
+WHERE customer_id = 42
+ORDER BY created_at DESC, id DESC
+LIMIT 50;
+
+-- Reviewable recommendation; never applied to production automatically.
+CREATE INDEX idx_orders_customer_created_id
+ON orders (customer_id, created_at DESC, id DESC);
+```
+
+The SELECT itself was retained. Seven original samples were `[4.410, 4.253, 4.588, 4.483, 4.598, 4.636, 4.238]` ms; candidate samples were `[0.031, 0.029, 0.027, 0.029, 0.027, 0.026, 0.027]` ms. The fixed deterministic baseline measured 0.026 ms in its own run. These are warm-cache measurements on this synthetic workload, not general speedup guarantees.
+
 Independent deterministic checks compare PostgreSQL type OIDs and typed values. Without ORDER BY, rows are compared as multisets including duplicate multiplicity; with ORDER BY, sequences must match. Edge tests specifically prove that a naive NOT IN → NOT EXISTS rewrite with NULLs and a DISTINCT rewrite over duplicates fail. Sample equality is **empirical evidence**, not mathematical equivalence.
 
 Both original and candidate states get warmups. Two warm-up rounds precede seven measured rounds; the order alternates by round, with an additional equal warmup before each measurement. Candidate indexes are rebuilt in rollback transactions. ANALYZE runs consistently after seeding. No parallel query workers. PostgreSQL JSON EXPLAIN ANALYZE provides execution time and buffer counters. Displayed SQL latency is database execution time, excluding model/network overhead. No cold-cache claim is made. Median, minimum, maximum, samples and median absolute deviation (MAD) are exported. A win must beat a margin of `max(10% original median, 3 × max(original MAD, candidate MAD), 0.05 ms)`. Noisy or tiny differences are inconclusive.
@@ -116,3 +134,17 @@ Push the same commit to the configured Sites source remote using a short-lived c
 - **Model budget:** at most three candidates, one model decision plus one transient retry. No iterative follow-up decision or plateau-search loop.
 
 CI builds the frontend and runs deterministic API/SQL/database tests against embedded PostgreSQL; it does not consume model credits. Node and Python dependency lockfiles are committed. See the published evaluation for actual model/SQL usage and outcomes, and `tests/` for reproducible safety, semantic and operations checks.
+
+## Verification evidence
+
+Authenticated live plan-only work was also verified against a dedicated local read-only fixture: encrypted connection storage, a real Groq proposal from metadata and non-executing EXPLAIN, no record reads, no measured latency claims and no experimental indexes. See `docs/live-verification.json`. The fixture remains available as an owner-only saved connection. `scripts/verify-live.py` reproduces it on a local disposable cluster.
+
+**46 tests passed locally**; GitHub CI also passed on Linux, covering parsing, unsafe functions/writes, NULL/duplicate/type/order traps, experiment role restoration, actual statement timeout, cancellation, persisted jobs, cross-session isolation, idempotency, encrypted-connection setup errors, CSRF and report export. Production build passes TypeScript and Vite. There is a dependency deprecation warning from Starlette's TestClient/httpx combination; it does not affect test results.
+
+The deployed flow was tested with real Groq/SQL work: **4.452 ms → 0.025 ms** in a fresh hosted customer-orders investigation. Job history persisted; duplicate submission returned the same job; a separate browser session could not read, cancel or export it. Cancellation reached a persisted terminal state. Unsafe SQL was refused before execution. Owner authentication and redacted invalid connection errors were verified. Full evidence is in `docs/deployed-verification.json` (synthetic SQL and metadata only; no credentials or records).
+
+To repeat deployed verification (requires the worker and tunnel online; consumes one public model run and one cancellable submission):
+
+```powershell
+uv run python scripts/verify-deployed.py https://queryotter.wauul.chatgpt.site
+```

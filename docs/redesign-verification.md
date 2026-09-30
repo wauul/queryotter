@@ -1,0 +1,50 @@
+# Riverbench interface verification
+
+Checked September 30, 2026. The redesign preserves QueryOtter's routes, API contracts, original mascot artwork, engine capability disclosures and measured benchmark data. It replaces both incumbent stylesheets and revises all application surfaces, including the original PostgreSQL experiment portfolio. Impeccable 4.4.0 was installed from its official GitHub repository into the user's skills directory; no automatic hook was installed.
+
+## Design evidence
+
+Three distinct directions were considered: Riverbench, Night watch and Otter atlas. The user's brief authorized choosing and implementing a direction autonomously. Riverbench connects question, reviewed native query and measured evidence through self-hosted IBM Plex typography, cool grounds, ruled data surfaces and compact native controls. The original `web/Otter.tsx` has no diff.
+
+The build is code-led; there is no approved raster comp. Taste, Impeccable and UI UX Pro Max informed the design and accessibility pass. 21st.dev's Campsite theme selector and table collections supplied reference material; the implemented native selector is original code. No generated imagery or animation library was needed. PRODUCT.md, DESIGN.md and the machine-readable design sidecar record the durable constraints and actual tokens.
+
+Impeccable's mechanical detector ran once over the changed TSX and stylesheets and returned no flagged patterns. Its independent finish reviewer identified five material issues: clipped phone report evidence, light control-border contrast, split pagination, dispersed connection metadata and default scrollbar tracks. One coordinated correction pass fixed them; the reviewer cleared all five on the updated captures and source. That verdict covers those corrections, not a general certification of the application.
+
+## Browser coverage
+
+The Codex in-app Chromium browser exercised the local Vite frontend through the authenticated API proxy against the real Neon application store and Groq. The local API/worker used the existing cloud configuration. No mock responses replaced generation, validation, execution, save or benchmark operations.
+
+An initial batch captured landing, query workspace and settings at 360, 768 and 1440 pixels in both themes: 18 combinations, each without page-level horizontal overflow. Additional phone captures covered optimization, saved queries, history, documentation, support, privacy, terms, support matrix, experiments, open navigation and the connection dialog. Populated saved/history captures were taken separately from loading states.
+
+After correction, phone experiments retained diagnosis text, candidate identifiers and timing distributions within the viewport. Phone and tablet pagination stayed grouped; connection engine/version/refresh shared a compact row. Schema fields could expand without constraining the query pane. Connection tabs fit their intended small-screen surface, and dialog/code/table scrollbars followed the palette.
+
+| Workflow or state | Observed result |
+| --- | --- |
+| Actual schema and generation | Groq generated the paid-orders query against SQLite 3.50.4 metadata: 1 model call, 1,868 tokens, 5.58 seconds, estimated $0.00052. The draft was validated and remained separate from Run. |
+| Explicit execution and business meaning | Run returned customers 6, 8, 1, 3 and 5 with paid totals 700, 700, 560, 560 and 560. Syntax, execution and business-meaning claims remained separate. |
+| Copy benchmark | A real synthetic-copy comparison passed its result check; observed baseline/candidate medians were 0.071/0.059 ms, MAD 0.004/0.001 ms, no added index bytes. The 1.20× observation is scoped to that warm-cache fixture, not a general speed claim. |
+| Save and review | A synthetic verification query was saved through the dialog, appeared in the populated list and loaded its original connection/query. Save submission now disables duplicates and shows pending feedback. |
+| Pagination and export | A read-only cross join produced 120 rows in three pages. Page two began with order/comparison IDs 2/7. A downloaded CSV contained the five paid-order rows and expected headers. Tables scrolled inside their bounded container. |
+| Unsafe query | Validating `DELETE FROM orders` displayed the actual read-only rejection; no write was executed. |
+| Cancellation | Cancelling a deliberately long read-only synthetic cross join displayed the completed cancellation state. |
+| Dialog and menu keyboard | Save dialog focus loop passed. Escape closed the connection dialog and restored its trigger. Opening mobile navigation focused its first task link; Escape returned focus to the menu button. |
+| Schema disclosure | Show/Hide fields expanded actual table metadata on the phone; desktop retained the adjacent schema column. |
+| Theme and reduced motion | Native controls selected both themes. System-mode reload preserved the choice, and emulated system changes updated the theme. Reduced-motion emulation yielded 0-second transitions. |
+| Text enlargement | Temporary browser CSS doubled the root text size to 32px for a desktop saved-query surface and phone connection dialog. Both retained equal document/client widths; the dialog's scroll/client widths were also equal. The temporary override was removed. This is a text-sizing check, not certification on physical devices or every browser zoom setting. |
+
+Connection paste, guided form, SQLite upload-copy controls, TLS disclosure and connector enrollment controls remain native and labelled. Removal, history clearing and account deletion confirmations preserve their original authorization flow. Personal-account data was not deleted during the redesign review. Previous production acceptance evidence, including all three OAuth flows, connection rotation, refinement, cancellation, exports and approved disposable-account deletion, remains separately recorded in `public/deployed-ui-verification.json`.
+
+## Automated checks and contrast
+
+- `npm run build`: TypeScript, Vite production bundle and the compatibility hosting build passed.
+- `node --test tests/theme-init.test.mjs tests/vercel-proxy.test.mjs`: 12 passed, including first-visit system preference, explicit overrides, invalid/blocked storage and same-origin blocking initialization under the production CSP.
+- `.venv/Scripts/python.exe -m pytest -q`: 76 passed; three existing dependency deprecation warnings.
+- Source/compiled-frontend credential scan: checked during release preparation.
+
+The tested text token pairs meet 4.5:1: light ranges from 5.42 to 14.35; dark from 7.11 to 14.61. Light control border `#738b9a` measures 3.29:1 against ground, 3.50 against surface and 3.10 against secondary surface. Dark control border measures 4.62/4.14/3.65 respectively. Focus uses a 3px accent outline with offset. Native controls have 44px minimum heights; phone input text is at least 16px. Thematic `color-scheme`, option surfaces, caret, selection, feedback, code diffs and scrolling surfaces share semantic tokens.
+
+## Scope and limits
+
+This pass validates the interface and selected real workflows; it does not rerun all nine engine integrations or every hosted-provider configuration. Their actual tested status remains in the support matrix and public evidence files. Turso/libSQL transport verification and Microsoft organization publisher verification remain explicit external limitations. Native popup rendering can differ by operating system. Physical-device, screen-reader and multi-browser accessibility testing has not been performed in this pass.
+
+Public-demo model budgets are enforced server-side; exhausted quotas display real errors instead of simulated model output. No new paid infrastructure or backend deployment is required for this frontend release. Production deployment metadata and the post-deployment check are recorded in `docs/cloud-deployment.json`.

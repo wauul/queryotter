@@ -1,6 +1,17 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import Studio from "./Studio";
+import { ThemeProvider } from "./Theme";
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-500.css";
+import "@fontsource/ibm-plex-sans/latin-600.css";
+import "@fontsource/ibm-plex-mono/latin-400.css";
 import "./style.css";
 import "./studio.css";
-createRoot(document.getElementById("root")!).render(<React.StrictMode><Studio /></React.StrictMode>);
+createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <ThemeProvider>
+      <Studio />
+    </ThemeProvider>
+  </React.StrictMode>,
+);

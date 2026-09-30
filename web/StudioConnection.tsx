@@ -154,7 +154,6 @@ export default function StudioConnection({
       >
         <div className="q-dialog-head">
           <div>
-            <span className="q-eyebrow">A safe place to start</span>
             <h2 id="q-connect-title">
               {rotate ? "Rotate connection secrets" : "Connect your database"}
             </h2>
@@ -251,6 +250,7 @@ export default function StudioConnection({
                   type="button"
                   key={m}
                   className={mode === m ? "selected" : ""}
+                  aria-pressed={mode === m}
                   onClick={() => {
                     setMode(m);
                     if (m === "connector")
@@ -260,10 +260,10 @@ export default function StudioConnection({
                   }}
                 >
                   {m === "url"
-                    ? "Paste / upload"
+                    ? "URL or file"
                     : m === "form"
                       ? "Guided form"
-                      : "Local connector"}
+                      : "Connector"}
                 </button>
               ))}
           </div>

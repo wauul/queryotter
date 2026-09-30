@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  ArrowRight,
   ArrowUpRight,
   Database,
-  Sparkles,
+  MessageSquare,
   Play,
   Square,
   Plus,
@@ -34,6 +33,8 @@ import {
   FolderOpen,
 } from "lucide-react";
 import { Otter } from "./Otter";
+import Landing from "./Landing";
+import { ThemeControl } from "./Theme";
 import {
   api,
   queryText,
@@ -56,7 +57,7 @@ import Legacy from "./LegacyOptimizer";
 const SAMPLE =
   "Show the five customers with the highest total paid orders last month. Paid means status = 'paid'. Use UTC calendar months and break ties by customer id.";
 const links = [
-  { id: "workspace", name: "Query workspace", icon: Sparkles },
+  { id: "workspace", name: "Query workspace", icon: MessageSquare },
   { id: "connections", name: "Connections", icon: Database },
   { id: "optimization", name: "Optimization", icon: FlaskConical },
   { id: "saved", name: "Saved queries", icon: FolderOpen },
@@ -67,9 +68,7 @@ function Brand() {
   return (
     <a className="q-brand" href="#home">
       <Otter small />
-      <span>
-        QueryOtter<span className="q-brand-dot">.</span>
-      </span>
+      <span>QueryOtter</span>
     </a>
   );
 }
@@ -126,6 +125,8 @@ export default function Studio() {
   const [connectionDialog, setConnectionDialog] = useState(false);
   const [rotation, setRotation] = useState<Connection | undefined>();
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [schemaOpen, setSchemaOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
   const [prompt, setPrompt] = useState(SAMPLE);
   const [query, setQuery] = useState("");
   const [draft, setDraft] = useState<AssistantReport | null>(null);
@@ -146,6 +147,7 @@ export default function Studio() {
   const [listLoading, setListLoading] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [saveDialog, setSaveDialog] = useState(false);
+  const [savingQuery, setSavingQuery] = useState(false);
   const [confirm, setConfirm] = useState<{
     title: string;
     body: string;
@@ -175,6 +177,19 @@ export default function Studio() {
   const sessionRevision = useRef(0);
   const connection = connections.find((c) => c.id === selected);
   const engine = catalog?.engines.find((e) => e.id === connection?.engine);
+  useEffect(() => {
+    if (!mobileMenu) return;
+    const navigation = document.getElementById("q-workspace-navigation");
+    navigation?.querySelector<HTMLAnchorElement>("nav a")?.focus();
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileMenu(false);
+        menuButton.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", escape);
+    return () => document.removeEventListener("keydown", escape);
+  }, [mobileMenu]);
   useEffect(() => {
     mounted.current = true;
     const change = () => {
@@ -311,7 +326,7 @@ export default function Studio() {
       location.assign(r.url);
     });
   }
-  async function startDemo() {
+  async function startDemo(example = SAMPLE) {
     setBusy(true);
     await safely(async () => {
       await api("/demo/start", {});
@@ -326,6 +341,7 @@ export default function Studio() {
       const c = cs[0] || (await api<Connection>("/connections/demo", {}));
       setConnections(cs.length ? cs : [c]);
       choose(c.id);
+      setPrompt(example);
       setAuth(false);
       location.hash = "workspace";
       setNotice(
@@ -509,14 +525,14 @@ export default function Studio() {
           GitHub <ArrowUpRight size={13} />
         </a>
       </nav>
+      <ThemeControl />
       <button
         className="q-button"
         onClick={() =>
           session?.user ? (location.hash = "workspace") : setAuth(true)
         }
       >
-        {session?.user ? "Open workspace" : "Sign in"}
-        <ArrowRight size={15} />
+        {session?.user ? "Workspace" : "Sign in"}
       </button>
     </header>
   );
@@ -546,201 +562,52 @@ export default function Studio() {
     return (
       <>
         <div className="q-legacy-return">
-          <a href="#workspace">← Back to QueryOtter workspace</a>
+          <a href="#workspace">← Back to workspace</a>
           <span>Controlled synthetic PostgreSQL experiments</span>
+          <ThemeControl />
         </div>
         <Legacy portfolioOnly />
       </>
     );
   return (
     <div className="q-studio">
-      {page === "home" || documentPages.includes(page) || !session?.user ? (
+      <a
+        className="q-skip"
+        href="#q-main"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById("q-main")?.focus();
+        }}
+      >
+        Skip to content
+      </a>
+      {page === "home" ||
+      documentPages.includes(page) ||
+      ![
+        "workspace",
+        "connections",
+        "optimization",
+        "saved",
+        "history",
+        "settings",
+      ].includes(page) ||
+      !session?.user ? (
         <>
           {header}
           {feedback}
           {page === "home" ? (
-            <main className="q-landing">
-              <section className="q-hero">
-                <div className="q-hero-copy">
-                  <span className="q-eyebrow">
-                    <span className="q-status-dot" />A curious companion for
-                    your database
-                  </span>
-                  <h1>
-                    Ask a better question.
-                    <br />
-                    <em>Find a better query.</em>
-                  </h1>
-                  <p>
-                    Connect your database, turn plain language into native
-                    queries, and investigate performance with evidence you can
-                    inspect.
-                  </p>
-                  <div className="q-hero-actions">
-                    <button
-                      className="q-button large"
-                      onClick={() => void startDemo()}
-                      disabled={busy || loading}
-                    >
-                      Try the safe demo <ArrowRight size={17} />
-                    </button>
-                    <button
-                      className="q-button secondary large"
-                      onClick={() =>
-                        session?.user
-                          ? (location.hash = "connections")
-                          : setAuth(true)
-                      }
-                    >
-                      Connect a database <Database size={16} />
-                    </button>
-                  </div>
-                  <div className="q-hero-facts">
-                    <span>
-                      <ShieldCheck size={15} />
-                      Read-only by default
-                    </span>
-                    <span>
-                      <LockKeyhole size={15} />
-                      Credentials stay out of the model
-                    </span>
-                  </div>
-                </div>
-                <div className="q-hero-window">
-                  <div className="q-window-top">
-                    <span className="q-window-dots">● ● ●</span>
-                    <span>otter_shop · SQLite copy</span>
-                    <span className="q-tag">Synthetic example</span>
-                  </div>
-                  <div className="q-example-prompt">
-                    <span className="q-ai-avatar">
-                      <Sparkles size={17} />
-                    </span>
-                    <p>
-                      “Show the five customers with the highest total paid
-                      orders last month.”
-                    </p>
-                  </div>
-                  <div className="q-example-query">
-                    <span className="q-eyebrow">A query you can review</span>
-                    <pre>
-                      <code>
-                        <span>SELECT</span> c.name, SUM(o.total) AS paid_total
-                        <br />
-                        <span>FROM</span> customers c<br />
-                        <span>JOIN</span> orders o ON o.customer_id = c.id
-                        <br />
-                        <span>WHERE</span> o.status = 'paid'
-                        <br /> AND o.created_at &gt;= :month_start
-                        <br /> AND o.created_at &lt; :month_end
-                        <br />
-                        <span>GROUP BY</span> c.id, c.name
-                        <br />
-                        <span>ORDER BY</span> paid_total DESC, c.id
-                        <br />
-                        <span>LIMIT</span> 5;
-                      </code>
-                    </pre>
-                    <div>
-                      <CheckCircle2 size={14} />
-                      <span>
-                        Actual fields · explicit dates · review before Run
-                      </span>
-                    </div>
-                  </div>
-                  <div className="q-example-foot">
-                    <Otter small />
-                    <p>
-                      “Let’s check the assumptions
-                      <br />
-                      before diving in.”
-                    </p>
-                    <button onClick={() => void startDemo()} disabled={busy}>
-                      Explore the example <ArrowRight size={14} />
-                    </button>
-                  </div>
-                </div>
-              </section>
-              <section className="q-pillars">
-                {[
-                  {
-                    n: "01",
-                    icon: Database,
-                    title: "A connection, without the guesswork.",
-                    body: "Provider guides, verified TLS, actionable connection tests and an explorer built from actual metadata.",
-                  },
-                  {
-                    n: "02",
-                    icon: Sparkles,
-                    title: "Your question, in the right dialect.",
-                    body: "Schema-grounded SQL and native document queries. Clarify, refine and review before you choose Run.",
-                  },
-                  {
-                    n: "03",
-                    icon: Activity,
-                    title: "A faster query, with receipts.",
-                    body: "Inspect plans and index evidence. Supported copy benchmarks show correctness scope, timings and variability.",
-                  },
-                ].map((p) => (
-                  <article key={p.n}>
-                    <div>
-                      <p.icon size={23} />
-                      <span>{p.n}</span>
-                    </div>
-                    <h2>{p.title}</h2>
-                    <p>{p.body}</p>
-                  </article>
-                ))}
-              </section>
-              <section className="q-engine-section">
-                <div>
-                  <span className="q-eyebrow">Know what’s supported</span>
-                  <h2>
-                    Nine engines.
-                    <br />
-                    Different capabilities.
-                  </h2>
-                  <p>
-                    Local services and official emulators are tested separately
-                    from hosted providers. Every engine exposes its limits.
-                  </p>
-                  <a href="#matrix" className="q-inline-link">
-                    Inspect the evidence <ArrowRight size={15} />
-                  </a>
-                </div>
-                <div className="q-engine-grid">
-                  {catalog?.engines.map((e) => (
-                    <a href="#matrix" key={e.id}>
-                      <Database size={18} />
-                      <strong>{e.name}</strong>
-                      <small>
-                        {e.verification.status.startsWith("Verified")
-                          ? "Local / emulator checks passed"
-                          : "Verification pending"}
-                      </small>
-                    </a>
-                  )) || <p>Loading support evidence…</p>}
-                </div>
-              </section>
-              <section className="q-benchmark-teaser">
-                <FlaskConical size={27} />
-                <div>
-                  <span className="q-eyebrow">Reproducible experiments</span>
-                  <h2>Performance claims should come with a method.</h2>
-                  <p>
-                    Explore the PostgreSQL benchmark portfolio, its independent
-                    fixtures, result comparisons and actual measured reports.
-                  </p>
-                </div>
-                <a className="q-button secondary" href="#experiments">
-                  Open experiments <ArrowRight size={15} />
-                </a>
-              </section>
-            </main>
+            <Landing
+              catalog={catalog}
+              busy={busy}
+              loading={loading}
+              onDemo={(example) => void startDemo(example)}
+              onConnect={() =>
+                session?.user ? (location.hash = "connections") : setAuth(true)
+              }
+            />
           ) : page === "matrix" ? (
-            <main className="q-prose q-matrix">
-              <span className="q-eyebrow">Evidence, not logos</span>
-              <h1>The support matrix.</h1>
+            <main className="q-prose q-matrix" id="q-main" tabIndex={-1}>
+              <h1>Support matrix</h1>
               <p>
                 Each adapter exposes different controls. Local verification does
                 not imply hosted access. Your own configuration still needs
@@ -799,14 +666,35 @@ export default function Studio() {
             </main>
           ) : documentPages.includes(page) ? (
             <StudioDocs page={page} catalog={catalog} />
+          ) : ![
+              "workspace",
+              "connections",
+              "optimization",
+              "saved",
+              "history",
+              "settings",
+            ].includes(page) ? (
+            <main className="q-prose" id="q-main" tabIndex={-1}>
+              <h1>Page not found</h1>
+              <p>This address does not match a QueryOtter page.</p>
+              <a className="q-button" href="#home">
+                Go to the home page
+              </a>
+            </main>
           ) : loading ? (
-            <main className="q-prose" role="status" aria-live="polite">
+            <main
+              className="q-prose"
+              id="q-main"
+              tabIndex={-1}
+              role="status"
+              aria-live="polite"
+            >
               <h1>Restoring your workspace…</h1>
               <p>Checking your session and loading your connections.</p>
             </main>
           ) : (
-            <main className="q-prose">
-              <h1>Your personal query workspace.</h1>
+            <main className="q-prose" id="q-main" tabIndex={-1}>
+              <h1>Your query workspace</h1>
               <p>
                 Sign in to save connections, queries and history. A synthetic
                 public demo is available without database credentials.
@@ -824,7 +712,7 @@ export default function Studio() {
           )}
           <footer className="q-public-footer">
             <Brand />
-            <span>A little curiosity. A lot of evidence.</span>
+            <span>Queries grounded in schema and evidence</span>
             <nav>
               <a href="#docs">Docs & FAQ</a>
               <a href="#support">Support</a>
@@ -835,7 +723,11 @@ export default function Studio() {
         </>
       ) : (
         <div className="q-workspace-shell">
-          <aside className={"q-sidebar " + (mobileMenu ? "open" : "")}>
+          <aside
+            id="q-workspace-navigation"
+            aria-label="Workspace navigation"
+            className={"q-sidebar " + (mobileMenu ? "open" : "")}
+          >
             <Brand />
             <div className="q-workspace-label">
               <span className="q-workspace-avatar">
@@ -852,6 +744,7 @@ export default function Studio() {
               {links.map((l) => (
                 <a
                   className={page === l.id ? "active" : ""}
+                  aria-current={page === l.id ? "page" : undefined}
                   href={"#" + l.id}
                   key={l.id}
                 >
@@ -863,14 +756,12 @@ export default function Studio() {
             </nav>
             <div className="q-sidebar-tip">
               <Otter small />
-              <strong>Let the evidence lead.</strong>
+              <strong>Review the business meaning</strong>
               <p>
                 A valid query can still answer the wrong question. Review its
                 meaning.
               </p>
-              <a href="#docs">
-                Read the field guide <ArrowUpRight size={12} />
-              </a>
+              <a href="#docs">Read the field guide</a>
             </div>
             <nav className="q-sidebar-bottom">
               <a href="#experiments">
@@ -915,8 +806,11 @@ export default function Studio() {
           <div className="q-workspace-main">
             <header className="q-topbar">
               <button
+                ref={menuButton}
                 className="q-mobile-menu"
                 aria-label="Toggle workspace menu"
+                aria-expanded={mobileMenu}
+                aria-controls="q-workspace-navigation"
                 onClick={() => setMobileMenu(!mobileMenu)}
               >
                 <Menu size={21} />
@@ -932,17 +826,18 @@ export default function Studio() {
                 <ShieldCheck size={14} />
                 Support evidence
               </a>
+              <ThemeControl />
               <span className="q-tag">
                 {session.demo ? "Synthetic data" : "Read-only by default"}
               </span>
             </header>
-            <main className="q-workspace-content">
+            <main className="q-workspace-content" id="q-main" tabIndex={-1}>
               {feedback}
               {!session.workspace?.onboarded && (
                 <section className="q-onboarding">
                   <Otter small />
                   <div>
-                    <strong>Welcome to your riverbank.</strong>
+                    <strong>Set up your workspace</strong>
                     <p>
                       Choose a time zone, then explore a safe demo or connect
                       your read-only database.
@@ -980,32 +875,23 @@ export default function Studio() {
                       }).finally(() => setBusy(false));
                     }}
                   >
-                    Get started <ArrowRight size={14} />
+                    Get started
                   </button>
                 </section>
               )}
               <div className="q-page-head">
                 <div>
-                  <span className="q-eyebrow">
-                    {page === "connections"
-                      ? "A clear view of your data"
-                      : page === "optimization"
-                        ? "Follow the evidence"
-                        : page === "settings"
-                          ? "Your workspace, your rules"
-                          : "A little curiosity goes a long way"}
-                  </span>
                   <h1>
                     {page === "workspace"
-                      ? "What would you like to know?"
+                      ? "Query workspace"
                       : page === "connections"
                         ? "Your connections"
                         : page === "optimization"
-                          ? "Make the next query better."
+                          ? "Optimization"
                           : page === "history"
-                            ? "The trail you’ve followed."
+                            ? "Query history"
                             : page === "saved"
-                              ? "Good queries, kept close."
+                              ? "Saved queries"
                               : "Settings & usage"}
                   </h1>
                   <p>
@@ -1060,7 +946,7 @@ export default function Studio() {
                     </select>
                   </label>
                   {connection && (
-                    <>
+                    <div className="q-connection-meta">
                       <span className="q-tag">{engine?.name}</span>
                       <span className="q-muted">
                         {metadata?.version?.split(" ").slice(0, 3).join(" ") ||
@@ -1074,7 +960,7 @@ export default function Studio() {
                       >
                         <RefreshCw size={16} />
                       </button>
-                    </>
+                    </div>
                   )}
                 </div>
               )}
@@ -1108,12 +994,12 @@ export default function Studio() {
               )}
               {page === "workspace" &&
                 (!connection ? (
-                  <Empty title="A connection is the first step.">
+                  <Empty title="Choose a database to begin">
                     <p>
                       Use a safe synthetic copy or add a read-only database.
                     </p>
                     <button className="q-button" onClick={() => void addSeed()}>
-                      Open a demo copy <ArrowRight size={15} />
+                      Open a demo copy
                     </button>
                     <a href="#connections">Manage connections</a>
                   </Empty>
@@ -1122,7 +1008,7 @@ export default function Studio() {
                     <section className="q-query-main">
                       <div className="q-card q-question-card">
                         <div className="q-card-heading">
-                          <Sparkles size={18} />
+                          <MessageSquare size={18} />
                           <h2>Ask your database</h2>
                           <span className="q-tag">Groq · metadata only</span>
                         </div>
@@ -1161,13 +1047,13 @@ export default function Studio() {
                             onClick={() => void run("generate")}
                             disabled={busy || !prompt.trim()}
                           >
-                            <Sparkles size={15} />
+                            <MessageSquare size={15} />
                             {previous ? "Refine query" : "Generate query"}
                           </button>
                         </div>
                         {draft?.clarification && (
                           <div className="q-clarification">
-                            <strong>One detail before we dive in</strong>
+                            <strong>Clarify your request</strong>
                             <p>{draft.clarification}</p>
                             <small>
                               Edit your request above to answer, then refine.
@@ -1272,7 +1158,7 @@ export default function Studio() {
                         <div className="q-card q-explanation">
                           <div className="q-card-heading">
                             <GitBranch size={17} />
-                            <h2>Why this query?</h2>
+                            <h2>Query explanation</h2>
                           </div>
                           <p>{draft.explanation}</p>
                           {draft.assumptions?.length ? (
@@ -1341,10 +1227,7 @@ export default function Studio() {
                           )}
                         </div>
                         {!result ? (
-                          <Empty
-                            title="Your results will appear here."
-                            icon={Play}
-                          >
+                          <Empty title="Run a query to see results" icon={Play}>
                             <p>
                               Review or edit the query, then select Run.
                               Generating a draft never executes it.
@@ -1395,24 +1278,39 @@ export default function Studio() {
                                   : ""}
                                 Bounded snapshot · expires after 15 minutes
                               </span>
-                              <button
-                                aria-label="Previous results page"
-                                disabled={result.page <= 1}
-                                onClick={() => void resultPage(result.page - 1)}
+                              <div
+                                className="q-pagination"
+                                role="group"
+                                aria-label="Results pagination"
                               >
-                                <ChevronLeft size={17} />
-                              </button>
-                              <span>
-                                Page {result.page} of{" "}
-                                {Math.max(1, Math.ceil(result.row_count / 50))}
-                              </span>
-                              <button
-                                aria-label="Next results page"
-                                disabled={result.page * 50 >= result.row_count}
-                                onClick={() => void resultPage(result.page + 1)}
-                              >
-                                <ChevronRight size={17} />
-                              </button>
+                                <button
+                                  aria-label="Previous results page"
+                                  disabled={result.page <= 1}
+                                  onClick={() =>
+                                    void resultPage(result.page - 1)
+                                  }
+                                >
+                                  <ChevronLeft size={17} />
+                                </button>
+                                <span>
+                                  Page {result.page} of{" "}
+                                  {Math.max(
+                                    1,
+                                    Math.ceil(result.row_count / 50),
+                                  )}
+                                </span>
+                                <button
+                                  aria-label="Next results page"
+                                  disabled={
+                                    result.page * 50 >= result.row_count
+                                  }
+                                  onClick={() =>
+                                    void resultPage(result.page + 1)
+                                  }
+                                >
+                                  <ChevronRight size={17} />
+                                </button>
+                              </div>
                             </div>
                             <p className="q-note">
                               Execution succeeded. Business meaning remains
@@ -1423,10 +1321,22 @@ export default function Studio() {
                         )}
                       </div>
                     </section>
-                    <aside className="q-schema-panel">
+                    <aside
+                      className={
+                        "q-schema-panel " + (schemaOpen ? "expanded" : "")
+                      }
+                    >
                       <div className="q-card-heading">
                         <Database size={17} />
                         <h2>Schema explorer</h2>
+                        <button
+                          className="q-schema-toggle"
+                          aria-expanded={schemaOpen}
+                          aria-controls="q-schema-content"
+                          onClick={() => setSchemaOpen(!schemaOpen)}
+                        >
+                          {schemaOpen ? "Hide fields" : "Show fields"}
+                        </button>
                         <button
                           aria-label="Refresh schema"
                           className="q-icon-button"
@@ -1436,123 +1346,129 @@ export default function Studio() {
                           <RefreshCw size={14} />
                         </button>
                       </div>
-                      <div className="q-schema-search">
-                        <Search size={14} />
-                        <input
-                          aria-label="Search schema"
-                          value={schemaSearch}
-                          onChange={(e) => setSchemaSearch(e.target.value)}
-                          placeholder="Find a table or field…"
-                        />
-                      </div>
-                      {!metadata ? (
-                        <Empty title="Let’s see what’s there.">
-                          <p>
-                            Test or refresh the selected connection to discover
-                            actual tables and fields.
-                          </p>
-                          <button
-                            className="q-button secondary"
-                            onClick={() => void run("test")}
-                            disabled={busy}
-                          >
-                            Test & discover
-                          </button>
-                        </Empty>
-                      ) : (
-                        <>
-                          <p className="q-schema-note">
-                            {metadata.tables.length} tables / collections ·{" "}
-                            {metadata.complete
-                              ? "Discovered metadata"
-                              : "Sampled, incomplete schema"}
-                          </p>
-                          {metadata.tables
-                            .filter((t) =>
-                              [t.name, ...t.columns.map((c) => c.name)].some(
-                                (n) =>
-                                  n
-                                    .toLowerCase()
-                                    .includes(schemaSearch.toLowerCase()),
-                              ),
-                            )
-                            .map((t) => (
-                              <details
-                                className="q-schema-table"
-                                key={t.name}
-                                open={
-                                  !!schemaSearch || metadata.tables.length <= 3
-                                }
-                              >
-                                <summary>
-                                  <Database size={13} />
-                                  <strong>{t.name}</strong>
-                                  <span>{t.columns.length}</span>
-                                </summary>
-                                {t.inferred && (
-                                  <p className="q-note">
-                                    Inferred from {t.sampled_documents || 0}{" "}
-                                    documents; sparse fields may be missing.
-                                  </p>
-                                )}
-                                {t.columns.map((c) => (
-                                  <div className="q-schema-column" key={c.name}>
-                                    <span>
-                                      {c.name}
-                                      {c.nullable && <small> ?</small>}
-                                    </span>
-                                    <code>{c.type}</code>
-                                  </div>
-                                ))}
-                              </details>
-                            ))}
-                          <details>
-                            <summary>Relationships & indexes</summary>
-                            <pre>
-                              {JSON.stringify(
-                                {
-                                  relationships: metadata.relationships,
-                                  indexes: metadata.indexes,
-                                },
-                                null,
-                                2,
-                              )}
-                            </pre>
-                          </details>
-                          <p className="q-note">
-                            Metadata is cached for five minutes. Refresh after
-                            schema changes. No raw record values enter model
-                            context.
-                          </p>
-                          <details>
-                            <summary>Import Prisma context</summary>
-                            <textarea
-                              aria-label="Prisma schema"
-                              rows={5}
-                              value={prisma}
-                              onChange={(e) => setPrisma(e.target.value)}
-                              placeholder="model Customer { … }"
-                            />
+                      <div id="q-schema-content" className="q-schema-content">
+                        <div className="q-schema-search">
+                          <Search size={14} />
+                          <input
+                            aria-label="Search schema"
+                            value={schemaSearch}
+                            onChange={(e) => setSchemaSearch(e.target.value)}
+                            placeholder="Find a table or field…"
+                          />
+                        </div>
+                        {!metadata ? (
+                          <Empty title="Discover your schema">
+                            <p>
+                              Test or refresh the selected connection to
+                              discover actual tables and fields.
+                            </p>
                             <button
                               className="q-button secondary"
-                              disabled={busy || !prisma.trim()}
-                              onClick={() =>
-                                void safely(async () => {
-                                  const r = await api<{ models: unknown[] }>(
-                                    `/connections/${selected}/prisma`,
-                                    { source: prisma },
-                                  );
-                                  setNotice(
-                                    `Imported ${r.models.length} models as optional context. Actual database metadata remains authoritative.`,
-                                  );
-                                })
-                              }
+                              onClick={() => void run("test")}
+                              disabled={busy}
                             >
-                              Import & compare
+                              Test & discover
                             </button>
-                          </details>
-                        </>
-                      )}
+                          </Empty>
+                        ) : (
+                          <>
+                            <p className="q-schema-note">
+                              {metadata.tables.length} tables / collections ·{" "}
+                              {metadata.complete
+                                ? "Discovered metadata"
+                                : "Sampled, incomplete schema"}
+                            </p>
+                            {metadata.tables
+                              .filter((t) =>
+                                [t.name, ...t.columns.map((c) => c.name)].some(
+                                  (n) =>
+                                    n
+                                      .toLowerCase()
+                                      .includes(schemaSearch.toLowerCase()),
+                                ),
+                              )
+                              .map((t) => (
+                                <details
+                                  className="q-schema-table"
+                                  key={t.name}
+                                  open={
+                                    !!schemaSearch ||
+                                    metadata.tables.length <= 3
+                                  }
+                                >
+                                  <summary>
+                                    <Database size={13} />
+                                    <strong>{t.name}</strong>
+                                    <span>{t.columns.length}</span>
+                                  </summary>
+                                  {t.inferred && (
+                                    <p className="q-note">
+                                      Inferred from {t.sampled_documents || 0}{" "}
+                                      documents; sparse fields may be missing.
+                                    </p>
+                                  )}
+                                  {t.columns.map((c) => (
+                                    <div
+                                      className="q-schema-column"
+                                      key={c.name}
+                                    >
+                                      <span>
+                                        {c.name}
+                                        {c.nullable && <small> ?</small>}
+                                      </span>
+                                      <code>{c.type}</code>
+                                    </div>
+                                  ))}
+                                </details>
+                              ))}
+                            <details>
+                              <summary>Relationships & indexes</summary>
+                              <pre>
+                                {JSON.stringify(
+                                  {
+                                    relationships: metadata.relationships,
+                                    indexes: metadata.indexes,
+                                  },
+                                  null,
+                                  2,
+                                )}
+                              </pre>
+                            </details>
+                            <p className="q-note">
+                              Metadata is cached for five minutes. Refresh after
+                              schema changes. No raw record values enter model
+                              context.
+                            </p>
+                            <details>
+                              <summary>Import Prisma context</summary>
+                              <textarea
+                                aria-label="Prisma schema"
+                                rows={5}
+                                value={prisma}
+                                onChange={(e) => setPrisma(e.target.value)}
+                                placeholder="model Customer { … }"
+                              />
+                              <button
+                                className="q-button secondary"
+                                disabled={busy || !prisma.trim()}
+                                onClick={() =>
+                                  void safely(async () => {
+                                    const r = await api<{ models: unknown[] }>(
+                                      `/connections/${selected}/prisma`,
+                                      { source: prisma },
+                                    );
+                                    setNotice(
+                                      `Imported ${r.models.length} models as optional context. Actual database metadata remains authoritative.`,
+                                    );
+                                  })
+                                }
+                              >
+                                Import & compare
+                              </button>
+                            </details>
+                          </>
+                        )}
+                      </div>
                     </aside>
                   </div>
                 ))}
@@ -1561,7 +1477,7 @@ export default function Studio() {
                   <div className="q-demo-banner">
                     <Otter small />
                     <div>
-                      <strong>A safe place to try things.</strong>
+                      <strong>Start with a synthetic database</strong>
                       <p>
                         Add a synthetic shop database copy. No customer
                         credentials or records needed.
@@ -1577,7 +1493,7 @@ export default function Studio() {
                     </button>
                   </div>
                   {connections.length === 0 ? (
-                    <Empty title="No connections yet.">
+                    <Empty title="Add your first connection">
                       <p>
                         Choose a provider or start with a synthetic SQLite copy.
                       </p>
@@ -1640,7 +1556,7 @@ export default function Studio() {
                                 location.hash = "workspace";
                               }}
                             >
-                              Explore <ArrowRight size={14} />
+                              Explore
                             </button>
                             <button
                               aria-label={`Rotate ${c.label} secrets`}
@@ -1673,7 +1589,7 @@ export default function Studio() {
               )}
               {page === "optimization" &&
                 (!connection ? (
-                  <Empty title="Select a database to investigate.">
+                  <Empty title="Select a database to investigate">
                     <p>Start with a connection or a synthetic copy.</p>
                     <a href="#connections">Open connections</a>
                   </Empty>
@@ -1707,7 +1623,7 @@ export default function Studio() {
                           disabled={busy || !query}
                           onClick={() => void run("optimize")}
                         >
-                          <Sparkles size={15} />
+                          <MessageSquare size={15} />
                           Investigate
                         </button>
                       </div>
@@ -1733,7 +1649,7 @@ export default function Studio() {
                         <div className="q-candidate-grid">
                           {optimization.candidates?.map((c, i) => (
                             <article className="q-card q-candidate" key={i}>
-                              <span className="q-eyebrow">
+                              <span className="q-entry-meta">
                                 Candidate {i + 1} · ranked hypothesis
                               </span>
                               <h2>{c.name}</h2>
@@ -1761,7 +1677,7 @@ export default function Studio() {
                                     location.hash = "workspace";
                                   }}
                                 >
-                                  Review query <ArrowRight size={14} />
+                                  Review query
                                 </button>
                                 <button
                                   className="q-button"
@@ -1786,7 +1702,7 @@ export default function Studio() {
                         </div>
                         {!optimization.candidates?.length && (
                           <Empty
-                            title="No validated candidates were proposed."
+                            title="No validated candidates"
                             icon={ShieldCheck}
                           >
                             <p>
@@ -1911,7 +1827,6 @@ export default function Studio() {
                     )}
                     <a className="q-inline-link" href="#experiments">
                       Explore the controlled PostgreSQL benchmark portfolio{" "}
-                      <ArrowRight size={15} />
                     </a>
                   </>
                 ))}
@@ -1942,7 +1857,7 @@ export default function Studio() {
                       <LoaderCircle className="q-spin" /> Loading history…
                     </div>
                   ) : history.length === 0 ? (
-                    <Empty title="A fresh trail.">
+                    <Empty title="No query history yet">
                       <p>
                         Your completed queries and investigations will appear
                         here.
@@ -1955,13 +1870,13 @@ export default function Studio() {
                         <article className="q-card" key={h.id}>
                           <span className="q-history-icon">
                             {h.kind === "generate" ? (
-                              <Sparkles size={18} />
+                              <MessageSquare size={18} />
                             ) : (
                               <Code2 size={18} />
                             )}
                           </span>
                           <div>
-                            <span className="q-eyebrow">
+                            <span className="q-entry-meta">
                               {h.kind} · {when(h.created)}
                             </span>
                             <h3>
@@ -1984,7 +1899,7 @@ export default function Studio() {
                             disabled={!h.query}
                             onClick={() => load(h, true)}
                           >
-                            Open <ArrowRight size={14} />
+                            Open
                           </button>
                         </article>
                       ))}
@@ -1998,7 +1913,7 @@ export default function Studio() {
                     <LoaderCircle className="q-spin" /> Loading saved queries…
                   </div>
                 ) : saved.length === 0 ? (
-                  <Empty title="Keep a good query close.">
+                  <Empty title="Save a query for later">
                     <p>
                       Select Save in the native editor. It stays linked to the
                       original database.
@@ -2023,7 +1938,7 @@ export default function Studio() {
                             className="q-button secondary"
                             onClick={() => load(s)}
                           >
-                            Review query <ArrowRight size={14} />
+                            Review query
                           </button>
                           <button
                             aria-label={`Delete saved query ${s.name}`}
@@ -2323,7 +2238,7 @@ export default function Studio() {
               )}
             </main>
             <footer className="q-workspace-footer">
-              <span>QueryOtter · curiosity with evidence</span>
+              <span>QueryOtter · reviewed queries, measured changes</span>
               <a href="#privacy">Privacy</a>
               <a href="#terms">Terms</a>
               <a href="#support">Support</a>
@@ -2347,9 +2262,12 @@ export default function Studio() {
               <X size={20} />
             </button>
             <Otter />
-            <span className="q-eyebrow">Welcome to the riverbank</span>
-            <h2 id="q-signin-title">A workspace of your own.</h2>
-            <p>Keep your connections, queries and discoveries together.</p>
+
+            <h2 id="q-signin-title">Sign in to QueryOtter</h2>
+            <p>
+              Use your own workspace for connections, saved queries and private
+              history.
+            </p>
             {(catalog?.authentication || session?.authentication || []).map(
               (p) => (
                 <button
@@ -2371,15 +2289,16 @@ export default function Studio() {
               ),
             )}
             <p className="q-note">
-              Sign-in providers are enabled when server credentials are
-              configured. Hosted verification status is shown separately.
+              Provider status shows the sign-in flows that have been checked.
+              Microsoft organization accounts may require publisher
+              verification.
             </p>
             <button
               className="q-button secondary"
               onClick={() => void startDemo()}
               disabled={busy}
             >
-              Try the synthetic demo <ArrowRight size={14} />
+              Try the synthetic demo
             </button>
             <details className="q-owner-login">
               <summary>Owner access</summary>
@@ -2455,15 +2374,40 @@ export default function Studio() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                if (savingQuery) return;
+                setSavingQuery(true);
+                const revision = sessionRevision.current;
                 void safely(async () => {
-                  await api("/saved", {
-                    connection_id: selected,
-                    name: saveName,
-                    query,
-                    prompt,
-                  });
-                  setSaveDialog(false);
-                  setNotice("Query saved to this workspace.");
+                  try {
+                    const item = await api<{ id: string }>("/saved", {
+                      connection_id: selected,
+                      name: saveName,
+                      query,
+                      prompt,
+                    });
+                    if (
+                      !mounted.current ||
+                      revision !== sessionRevision.current
+                    )
+                      return;
+                    setSaved((old) =>
+                      [
+                        {
+                          id: item.id,
+                          connection_id: selected,
+                          name: saveName,
+                          query,
+                          prompt,
+                          updated: Date.now() / 1000,
+                        },
+                        ...old,
+                      ].slice(0, 100),
+                    );
+                    setSaveDialog(false);
+                    setNotice("Query saved to this workspace.");
+                  } finally {
+                    if (mounted.current) setSavingQuery(false);
+                  }
                 });
               }}
             >
@@ -2471,6 +2415,7 @@ export default function Studio() {
                 Query name
                 <input
                   autoFocus
+                  disabled={savingQuery}
                   value={saveName}
                   onChange={(e) => setSaveName(e.target.value)}
                   required
@@ -2485,7 +2430,9 @@ export default function Studio() {
                 >
                   Cancel
                 </button>
-                <button className="q-button">Save query</button>
+                <button className="q-button" disabled={savingQuery}>
+                  {savingQuery ? "Saving query…" : "Save query"}
+                </button>
               </footer>
             </form>
           </section>

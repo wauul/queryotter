@@ -1,0 +1,680 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-30T17:58:56.232Z",
+  "title": "Design System: QueryOtter",
+  "extensions": {
+    "colorMeta": {
+      "ground": {
+        "role": "neutral",
+        "displayName": "Pearl",
+        "tonalRamp": [
+          "oklch(15% 0.0042 236.50)",
+          "oklch(26% 0.0042 236.50)",
+          "oklch(38% 0.0042 236.50)",
+          "oklch(49% 0.0042 236.50)",
+          "oklch(61% 0.0042 236.50)",
+          "oklch(72% 0.0042 236.50)",
+          "oklch(84% 0.0042 236.50)",
+          "oklch(95% 0.0042 236.50)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Clear Paper",
+        "tonalRamp": [
+          "oklch(15% 0.0017 247.84)",
+          "oklch(26% 0.0017 247.84)",
+          "oklch(38% 0.0017 247.84)",
+          "oklch(49% 0.0017 247.84)",
+          "oklch(61% 0.0017 247.84)",
+          "oklch(72% 0.0017 247.84)",
+          "oklch(84% 0.0017 247.84)",
+          "oklch(95% 0.0017 247.84)"
+        ]
+      },
+      "surface-alt": {
+        "role": "neutral",
+        "displayName": "Cool Wash",
+        "tonalRamp": [
+          "oklch(15% 0.0084 236.56)",
+          "oklch(26% 0.0084 236.56)",
+          "oklch(38% 0.0084 236.56)",
+          "oklch(49% 0.0084 236.56)",
+          "oklch(61% 0.0084 236.56)",
+          "oklch(72% 0.0084 236.56)",
+          "oklch(84% 0.0084 236.56)",
+          "oklch(95% 0.0084 236.56)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "River Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0362 237.22)",
+          "oklch(26% 0.0362 237.22)",
+          "oklch(38% 0.0362 237.22)",
+          "oklch(49% 0.0362 237.22)",
+          "oklch(61% 0.0362 237.22)",
+          "oklch(72% 0.0362 237.22)",
+          "oklch(84% 0.0362 237.22)",
+          "oklch(95% 0.0362 237.22)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Slate",
+        "tonalRamp": [
+          "oklch(15% 0.0364 234.08)",
+          "oklch(26% 0.0364 234.08)",
+          "oklch(38% 0.0364 234.08)",
+          "oklch(49% 0.0364 234.08)",
+          "oklch(61% 0.0364 234.08)",
+          "oklch(72% 0.0364 234.08)",
+          "oklch(84% 0.0364 234.08)",
+          "oklch(95% 0.0364 234.08)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Fine Rule",
+        "tonalRamp": [
+          "oklch(15% 0.0179 234.53)",
+          "oklch(26% 0.0179 234.53)",
+          "oklch(38% 0.0179 234.53)",
+          "oklch(49% 0.0179 234.53)",
+          "oklch(61% 0.0179 234.53)",
+          "oklch(72% 0.0179 234.53)",
+          "oklch(84% 0.0179 234.53)",
+          "oklch(95% 0.0179 234.53)"
+        ]
+      },
+      "control-border": {
+        "role": "neutral",
+        "displayName": "Control Rule",
+        "tonalRamp": [
+          "oklch(15% 0.0356 235.58)",
+          "oklch(26% 0.0356 235.58)",
+          "oklch(38% 0.0356 235.58)",
+          "oklch(49% 0.0356 235.58)",
+          "oklch(61% 0.0356 235.58)",
+          "oklch(72% 0.0356 235.58)",
+          "oklch(84% 0.0356 235.58)",
+          "oklch(95% 0.0356 235.58)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "River Blue",
+        "tonalRamp": [
+          "oklch(15% 0.0801 230.90)",
+          "oklch(26% 0.0801 230.90)",
+          "oklch(38% 0.0801 230.90)",
+          "oklch(49% 0.0801 230.90)",
+          "oklch(61% 0.0801 230.90)",
+          "oklch(72% 0.0801 230.90)",
+          "oklch(84% 0.0801 230.90)",
+          "oklch(95% 0.0801 230.90)"
+        ]
+      },
+      "accent-hover": {
+        "role": "primary",
+        "displayName": "Deep River",
+        "tonalRamp": [
+          "oklch(15% 0.0704 233.57)",
+          "oklch(26% 0.0704 233.57)",
+          "oklch(38% 0.0704 233.57)",
+          "oklch(49% 0.0704 233.57)",
+          "oklch(61% 0.0704 233.57)",
+          "oklch(72% 0.0704 233.57)",
+          "oklch(84% 0.0704 233.57)",
+          "oklch(95% 0.0704 233.57)"
+        ]
+      },
+      "on-accent": {
+        "role": "primary",
+        "displayName": "Action Contrast",
+        "tonalRamp": [
+          "oklch(15% 0.0017 247.84)",
+          "oklch(26% 0.0017 247.84)",
+          "oklch(38% 0.0017 247.84)",
+          "oklch(49% 0.0017 247.84)",
+          "oklch(61% 0.0017 247.84)",
+          "oklch(72% 0.0017 247.84)",
+          "oklch(84% 0.0017 247.84)",
+          "oklch(95% 0.0017 247.84)"
+        ]
+      },
+      "selected": {
+        "role": "primary",
+        "displayName": "River Wash",
+        "tonalRamp": [
+          "oklch(15% 0.0177 229.01)",
+          "oklch(26% 0.0177 229.01)",
+          "oklch(38% 0.0177 229.01)",
+          "oklch(49% 0.0177 229.01)",
+          "oklch(61% 0.0177 229.01)",
+          "oklch(72% 0.0177 229.01)",
+          "oklch(84% 0.0177 229.01)",
+          "oklch(95% 0.0177 229.01)"
+        ]
+      },
+      "success": {
+        "role": "secondary",
+        "displayName": "Verification Green",
+        "tonalRamp": [
+          "oklch(15% 0.0755 164.60)",
+          "oklch(26% 0.0755 164.60)",
+          "oklch(38% 0.0755 164.60)",
+          "oklch(49% 0.0755 164.60)",
+          "oklch(61% 0.0755 164.60)",
+          "oklch(72% 0.0755 164.60)",
+          "oklch(84% 0.0755 164.60)",
+          "oklch(95% 0.0755 164.60)"
+        ]
+      },
+      "success-bg": {
+        "role": "secondary",
+        "displayName": "Verification Wash",
+        "tonalRamp": [
+          "oklch(15% 0.0175 164.65)",
+          "oklch(26% 0.0175 164.65)",
+          "oklch(38% 0.0175 164.65)",
+          "oklch(49% 0.0175 164.65)",
+          "oklch(61% 0.0175 164.65)",
+          "oklch(72% 0.0175 164.65)",
+          "oklch(84% 0.0175 164.65)",
+          "oklch(95% 0.0175 164.65)"
+        ]
+      },
+      "warning": {
+        "role": "secondary",
+        "displayName": "Review Amber",
+        "tonalRamp": [
+          "oklch(15% 0.0940 64.87)",
+          "oklch(26% 0.0940 64.87)",
+          "oklch(38% 0.0940 64.87)",
+          "oklch(49% 0.0940 64.87)",
+          "oklch(61% 0.0940 64.87)",
+          "oklch(72% 0.0940 64.87)",
+          "oklch(84% 0.0940 64.87)",
+          "oklch(95% 0.0940 64.87)"
+        ]
+      },
+      "warning-bg": {
+        "role": "secondary",
+        "displayName": "Review Wash",
+        "tonalRamp": [
+          "oklch(15% 0.0343 78.68)",
+          "oklch(26% 0.0343 78.68)",
+          "oklch(38% 0.0343 78.68)",
+          "oklch(49% 0.0343 78.68)",
+          "oklch(61% 0.0343 78.68)",
+          "oklch(72% 0.0343 78.68)",
+          "oklch(84% 0.0343 78.68)",
+          "oklch(95% 0.0343 78.68)"
+        ]
+      },
+      "danger": {
+        "role": "secondary",
+        "displayName": "Error Rose",
+        "tonalRamp": [
+          "oklch(15% 0.1522 17.05)",
+          "oklch(26% 0.1522 17.05)",
+          "oklch(38% 0.1522 17.05)",
+          "oklch(49% 0.1522 17.05)",
+          "oklch(61% 0.1522 17.05)",
+          "oklch(72% 0.1522 17.05)",
+          "oklch(84% 0.1522 17.05)",
+          "oklch(95% 0.1522 17.05)"
+        ]
+      },
+      "danger-bg": {
+        "role": "secondary",
+        "displayName": "Error Wash",
+        "tonalRamp": [
+          "oklch(15% 0.0213 3.08)",
+          "oklch(26% 0.0213 3.08)",
+          "oklch(38% 0.0213 3.08)",
+          "oklch(49% 0.0213 3.08)",
+          "oklch(61% 0.0213 3.08)",
+          "oklch(72% 0.0213 3.08)",
+          "oklch(84% 0.0213 3.08)",
+          "oklch(95% 0.0213 3.08)"
+        ]
+      },
+      "dark-ground": {
+        "role": "neutral",
+        "displayName": "Dark Pearl",
+        "tonalRamp": [
+          "oklch(15% 0.0232 238.40)",
+          "oklch(26% 0.0232 238.40)",
+          "oklch(38% 0.0232 238.40)",
+          "oklch(49% 0.0232 238.40)",
+          "oklch(61% 0.0232 238.40)",
+          "oklch(72% 0.0232 238.40)",
+          "oklch(84% 0.0232 238.40)",
+          "oklch(95% 0.0232 238.40)"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark Clear Paper",
+        "tonalRamp": [
+          "oklch(15% 0.0286 236.83)",
+          "oklch(26% 0.0286 236.83)",
+          "oklch(38% 0.0286 236.83)",
+          "oklch(49% 0.0286 236.83)",
+          "oklch(61% 0.0286 236.83)",
+          "oklch(72% 0.0286 236.83)",
+          "oklch(84% 0.0286 236.83)",
+          "oklch(95% 0.0286 236.83)"
+        ]
+      },
+      "dark-surface-alt": {
+        "role": "neutral",
+        "displayName": "Dark Cool Wash",
+        "tonalRamp": [
+          "oklch(15% 0.0327 233.49)",
+          "oklch(26% 0.0327 233.49)",
+          "oklch(38% 0.0327 233.49)",
+          "oklch(49% 0.0327 233.49)",
+          "oklch(61% 0.0327 233.49)",
+          "oklch(72% 0.0327 233.49)",
+          "oklch(84% 0.0327 233.49)",
+          "oklch(95% 0.0327 233.49)"
+        ]
+      },
+      "dark-ink": {
+        "role": "neutral",
+        "displayName": "Dark River Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0109 234.82)",
+          "oklch(26% 0.0109 234.82)",
+          "oklch(38% 0.0109 234.82)",
+          "oklch(49% 0.0109 234.82)",
+          "oklch(61% 0.0109 234.82)",
+          "oklch(72% 0.0109 234.82)",
+          "oklch(84% 0.0109 234.82)",
+          "oklch(95% 0.0109 234.82)"
+        ]
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Dark Slate",
+        "tonalRamp": [
+          "oklch(15% 0.0312 235.75)",
+          "oklch(26% 0.0312 235.75)",
+          "oklch(38% 0.0312 235.75)",
+          "oklch(49% 0.0312 235.75)",
+          "oklch(61% 0.0312 235.75)",
+          "oklch(72% 0.0312 235.75)",
+          "oklch(84% 0.0312 235.75)",
+          "oklch(95% 0.0312 235.75)"
+        ]
+      },
+      "dark-border": {
+        "role": "neutral",
+        "displayName": "Dark Fine Rule",
+        "tonalRamp": [
+          "oklch(15% 0.0392 232.47)",
+          "oklch(26% 0.0392 232.47)",
+          "oklch(38% 0.0392 232.47)",
+          "oklch(49% 0.0392 232.47)",
+          "oklch(61% 0.0392 232.47)",
+          "oklch(72% 0.0392 232.47)",
+          "oklch(84% 0.0392 232.47)",
+          "oklch(95% 0.0392 232.47)"
+        ]
+      },
+      "dark-control-border": {
+        "role": "neutral",
+        "displayName": "Dark Control Rule",
+        "tonalRamp": [
+          "oklch(15% 0.0392 231.60)",
+          "oklch(26% 0.0392 231.60)",
+          "oklch(38% 0.0392 231.60)",
+          "oklch(49% 0.0392 231.60)",
+          "oklch(61% 0.0392 231.60)",
+          "oklch(72% 0.0392 231.60)",
+          "oklch(84% 0.0392 231.60)",
+          "oklch(95% 0.0392 231.60)"
+        ]
+      },
+      "dark-accent": {
+        "role": "primary",
+        "displayName": "Dark River Blue",
+        "tonalRamp": [
+          "oklch(15% 0.0576 223.73)",
+          "oklch(26% 0.0576 223.73)",
+          "oklch(38% 0.0576 223.73)",
+          "oklch(49% 0.0576 223.73)",
+          "oklch(61% 0.0576 223.73)",
+          "oklch(72% 0.0576 223.73)",
+          "oklch(84% 0.0576 223.73)",
+          "oklch(95% 0.0576 223.73)"
+        ]
+      },
+      "dark-accent-hover": {
+        "role": "primary",
+        "displayName": "Dark Deep River",
+        "tonalRamp": [
+          "oklch(15% 0.0385 221.79)",
+          "oklch(26% 0.0385 221.79)",
+          "oklch(38% 0.0385 221.79)",
+          "oklch(49% 0.0385 221.79)",
+          "oklch(61% 0.0385 221.79)",
+          "oklch(72% 0.0385 221.79)",
+          "oklch(84% 0.0385 221.79)",
+          "oklch(95% 0.0385 221.79)"
+        ]
+      },
+      "dark-on-accent": {
+        "role": "primary",
+        "displayName": "Dark Action Contrast",
+        "tonalRamp": [
+          "oklch(15% 0.0360 234.43)",
+          "oklch(26% 0.0360 234.43)",
+          "oklch(38% 0.0360 234.43)",
+          "oklch(49% 0.0360 234.43)",
+          "oklch(61% 0.0360 234.43)",
+          "oklch(72% 0.0360 234.43)",
+          "oklch(84% 0.0360 234.43)",
+          "oklch(95% 0.0360 234.43)"
+        ]
+      },
+      "dark-selected": {
+        "role": "primary",
+        "displayName": "Dark River Wash",
+        "tonalRamp": [
+          "oklch(15% 0.0408 229.41)",
+          "oklch(26% 0.0408 229.41)",
+          "oklch(38% 0.0408 229.41)",
+          "oklch(49% 0.0408 229.41)",
+          "oklch(61% 0.0408 229.41)",
+          "oklch(72% 0.0408 229.41)",
+          "oklch(84% 0.0408 229.41)",
+          "oklch(95% 0.0408 229.41)"
+        ]
+      },
+      "dark-success": {
+        "role": "secondary",
+        "displayName": "Dark Verification Green",
+        "tonalRamp": [
+          "oklch(15% 0.0722 161.37)",
+          "oklch(26% 0.0722 161.37)",
+          "oklch(38% 0.0722 161.37)",
+          "oklch(49% 0.0722 161.37)",
+          "oklch(61% 0.0722 161.37)",
+          "oklch(72% 0.0722 161.37)",
+          "oklch(84% 0.0722 161.37)",
+          "oklch(95% 0.0722 161.37)"
+        ]
+      },
+      "dark-success-bg": {
+        "role": "secondary",
+        "displayName": "Dark Verification Wash",
+        "tonalRamp": [
+          "oklch(15% 0.0472 169.10)",
+          "oklch(26% 0.0472 169.10)",
+          "oklch(38% 0.0472 169.10)",
+          "oklch(49% 0.0472 169.10)",
+          "oklch(61% 0.0472 169.10)",
+          "oklch(72% 0.0472 169.10)",
+          "oklch(84% 0.0472 169.10)",
+          "oklch(95% 0.0472 169.10)"
+        ]
+      },
+      "dark-warning": {
+        "role": "secondary",
+        "displayName": "Dark Review Amber",
+        "tonalRamp": [
+          "oklch(15% 0.0826 77.14)",
+          "oklch(26% 0.0826 77.14)",
+          "oklch(38% 0.0826 77.14)",
+          "oklch(49% 0.0826 77.14)",
+          "oklch(61% 0.0826 77.14)",
+          "oklch(72% 0.0826 77.14)",
+          "oklch(84% 0.0826 77.14)",
+          "oklch(95% 0.0826 77.14)"
+        ]
+      },
+      "dark-warning-bg": {
+        "role": "secondary",
+        "displayName": "Dark Review Wash",
+        "tonalRamp": [
+          "oklch(15% 0.0470 70.27)",
+          "oklch(26% 0.0470 70.27)",
+          "oklch(38% 0.0470 70.27)",
+          "oklch(49% 0.0470 70.27)",
+          "oklch(61% 0.0470 70.27)",
+          "oklch(72% 0.0470 70.27)",
+          "oklch(84% 0.0470 70.27)",
+          "oklch(95% 0.0470 70.27)"
+        ]
+      },
+      "dark-danger": {
+        "role": "secondary",
+        "displayName": "Dark Error Rose",
+        "tonalRamp": [
+          "oklch(15% 0.0782 7.88)",
+          "oklch(26% 0.0782 7.88)",
+          "oklch(38% 0.0782 7.88)",
+          "oklch(49% 0.0782 7.88)",
+          "oklch(61% 0.0782 7.88)",
+          "oklch(72% 0.0782 7.88)",
+          "oklch(84% 0.0782 7.88)",
+          "oklch(95% 0.0782 7.88)"
+        ]
+      },
+      "dark-danger-bg": {
+        "role": "secondary",
+        "displayName": "Dark Error Wash",
+        "tonalRamp": [
+          "oklch(15% 0.0536 357.96)",
+          "oklch(26% 0.0536 357.96)",
+          "oklch(38% 0.0536 357.96)",
+          "oklch(49% 0.0536 357.96)",
+          "oklch(61% 0.0536 357.96)",
+          "oklch(72% 0.0536 357.96)",
+          "oklch(84% 0.0536 357.96)",
+          "oklch(95% 0.0536 357.96)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Landing proposition with responsive size overrides."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Workspace page headings."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section titles; contextual size overrides appear in DESIGN.md."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default instructions and prose."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Controls and actions."
+      },
+      "metadata": {
+        "displayName": "Metadata",
+        "purpose": "Compact secondary context."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "Queries, schema identifiers and measurements."
+      }
+    },
+    "shadows": [
+      {
+        "name": "overlay-light",
+        "value": "0 20px 60px #162b3826",
+        "purpose": "Dialogs and mobile rail in light theme."
+      },
+      {
+        "name": "overlay-dark",
+        "value": "0 20px 60px #06101780",
+        "purpose": "Dialogs and mobile rail in dark theme."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state-transition",
+        "value": "background-color 160ms, color 160ms, border-color 160ms",
+        "purpose": "Button and link state feedback; disabled under reduced motion."
+      },
+      {
+        "name": "busy-rotation",
+        "value": "q-spin 1s linear infinite",
+        "purpose": "Existing loading indicator only; disabled under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-desktop",
+        "value": "1150px"
+      },
+      {
+        "name": "mobile-workspace",
+        "value": "900px"
+      },
+      {
+        "name": "small-studio",
+        "value": "680px"
+      },
+      {
+        "name": "small-experiments",
+        "value": "640px"
+      }
+    ],
+    "focus": {
+      "value": "3px solid var(--accent)",
+      "offset": "3px",
+      "purpose": "Visible keyboard focus; embedded editors use inward offsets."
+    },
+    "layers": {
+      "navigation": 10,
+      "header": 20,
+      "dialog": 50,
+      "skipNavigation": 60
+    },
+    "tonalRampNote": "Synthesized OKLCH preview strips, eight lightness steps; they are not additional shipped palette tokens."
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Explicit next action.",
+      "html": "<button class=\"ds-primary\">Run query</button>",
+      "css": ".ds-primary{font-family:var(--font,'IBM Plex Sans',sans-serif);font-size:.875rem;font-weight:500;min-height:44px;padding:10px 16px;border:1px solid var(--accent,#236582);border-radius:6px;background:var(--accent,#236582);color:var(--on-accent,#fcfdfe);transition:background-color 160ms,color 160ms,border-color 160ms;}.ds-primary:hover{background:var(--accent-hover,#184e68)}.ds-primary:disabled{opacity:.48;cursor:not-allowed}.ds-primary:focus-visible,.ds-secondary:focus-visible,.ds-field:focus-visible,.ds-nav a:focus-visible,.ds-tabs button:focus-visible,.ds-pagination button:focus-visible{outline:3px solid var(--accent,#236582);outline-offset:3px}@media(prefers-reduced-motion:reduce){button,a{transition:none}}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Parallel or supporting action.",
+      "html": "<button class=\"ds-secondary\">Save query</button>",
+      "css": ".ds-secondary{font-family:var(--font,'IBM Plex Sans',sans-serif);font-size:.875rem;font-weight:500;min-height:44px;padding:10px 16px;border:1px solid var(--control-border,#738b9a);border-radius:6px;background:var(--surface,#fcfdfe);color:var(--ink,#162b38);transition:background-color 160ms,color 160ms,border-color 160ms;}.ds-secondary:hover{background:var(--surface-alt,#eaf0f4)}.ds-secondary:disabled{opacity:.48;cursor:not-allowed}.ds-primary:focus-visible,.ds-secondary:focus-visible,.ds-field:focus-visible,.ds-nav a:focus-visible,.ds-tabs button:focus-visible,.ds-pagination button:focus-visible{outline:3px solid var(--accent,#236582);outline-offset:3px}@media(prefers-reduced-motion:reduce){button,a{transition:none}}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Labelled native connection field.",
+      "html": "<label class=\"ds-label\">Hostname<input class=\"ds-field\" placeholder=\"db.example.com\"></label>",
+      "css": ".ds-label{font-family:var(--font,'IBM Plex Sans',sans-serif);display:grid;gap:7px;font-size:.875rem;font-weight:500;color:var(--ink,#162b38)}.ds-field{font-family:var(--font,'IBM Plex Sans',sans-serif);font-size:1rem;min-height:44px;padding:10px 12px;border:1px solid var(--control-border,#738b9a);border-radius:6px;background:var(--surface,#fcfdfe);color:var(--ink,#162b38);caret-color:var(--accent,#236582)}.ds-field::placeholder{color:var(--muted,#4c6472);opacity:1}.ds-field:disabled{opacity:.6}.ds-primary:focus-visible,.ds-secondary:focus-visible,.ds-field:focus-visible,.ds-nav a:focus-visible,.ds-tabs button:focus-visible,.ds-pagination button:focus-visible{outline:3px solid var(--accent,#236582);outline-offset:3px}"
+    },
+    {
+      "name": "Workspace Navigation",
+      "kind": "nav",
+      "refersTo": "navigation-selected",
+      "description": "Selected work surface in the rail.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Workspace\"><a class=\"ds-active\" href=\"#workspace\" aria-current=\"page\">Query workspace</a><a href=\"#history\">History</a></nav>",
+      "css": ".ds-nav{display:grid;gap:4px}.ds-nav a{font-family:var(--font,'IBM Plex Sans',sans-serif);display:flex;align-items:center;min-height:44px;padding:10px 12px;border-radius:6px;color:var(--muted,#4c6472);font-size:.875rem;text-decoration:none;transition:background-color 160ms,color 160ms,border-color 160ms;}.ds-nav a.ds-active{background:var(--selected,#dfedf4);color:var(--accent,#236582);font-weight:500}.ds-nav a:hover{background:var(--surface-alt,#eaf0f4);color:var(--ink,#162b38)}.ds-primary:focus-visible,.ds-secondary:focus-visible,.ds-field:focus-visible,.ds-nav a:focus-visible,.ds-tabs button:focus-visible,.ds-pagination button:focus-visible{outline:3px solid var(--accent,#236582);outline-offset:3px}@media(prefers-reduced-motion:reduce){button,a{transition:none}}"
+    },
+    {
+      "name": "Status Tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Noninteractive context and verified status.",
+      "html": "<span class=\"ds-tag\">SQLite demo schema</span> <span class=\"ds-tag ds-good\">Connected</span>",
+      "css": ".ds-tag{font-family:var(--font,'IBM Plex Sans',sans-serif);display:inline-flex;align-items:center;gap:4px;padding:4px 8px;font-size:.75rem;line-height:1.5;border-radius:4px;background:var(--surface-alt,#eaf0f4);color:var(--muted,#4c6472)}.ds-tag.ds-good{background:var(--success-bg,#e4f2eb);color:var(--success,#24624a)}"
+    },
+    {
+      "name": "Work Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Outlined container for one work step.",
+      "html": "<section class=\"ds-panel\"><header class=\"ds-panel-head\"><h2>Review the native query</h2></header><pre class=\"ds-code\">SELECT status, COUNT(*)\\nFROM orders\\nGROUP BY status;</pre></section>",
+      "css": ".ds-panel{font-family:var(--font,'IBM Plex Sans',sans-serif);min-width:0;border:1px solid var(--border,#cad7df);background:var(--surface,#fcfdfe);color:var(--ink,#162b38);border-radius:12px}.ds-panel-head{padding:16px 20px;border-bottom:1px solid var(--border,#cad7df)}.ds-panel-head h2{margin:0;font-size:1rem;font-weight:600;line-height:1.2}.ds-code{margin:0;padding:16px;font-family:var(--mono,'IBM Plex Mono',monospace);font-size:.8125rem;line-height:1.7;background:var(--surface-alt,#eaf0f4);overflow:auto}"
+    },
+    {
+      "name": "Example Selectors",
+      "kind": "custom",
+      "description": "Actual landing example-selection geometry.",
+      "html": "<div class=\"ds-tabs\" role=\"group\" aria-label=\"Choose an example\"><button aria-pressed=\"true\">Paid customers</button><button aria-pressed=\"false\">Recent orders</button></div>",
+      "css": ".ds-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border,#cad7df);padding:0 16px;overflow:auto}.ds-tabs button{font-family:var(--font,'IBM Plex Sans',sans-serif);min-height:44px;padding:8px 10px;font-size:.8125rem;background:transparent;color:var(--ink,#162b38);border:0;border-bottom:2px solid transparent;flex-shrink:0;cursor:pointer;transition:background-color 160ms,color 160ms,border-color 160ms;}.ds-tabs button[aria-pressed=true]{color:var(--accent,#236582);border-bottom-color:var(--accent,#236582)}.ds-primary:focus-visible,.ds-secondary:focus-visible,.ds-field:focus-visible,.ds-nav a:focus-visible,.ds-tabs button:focus-visible,.ds-pagination button:focus-visible{outline:3px solid var(--accent,#236582);outline-offset:3px}@media(prefers-reduced-motion:reduce){button,a{transition:none}}"
+    },
+    {
+      "name": "Results Pagination",
+      "kind": "custom",
+      "description": "Previous, page count and next remain one labelled group.",
+      "html": "<div class=\"ds-pagination\" role=\"group\" aria-label=\"Results pagination\"><button aria-label=\"Previous results page\" disabled><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"m15 18-6-6 6-6\"/></svg></button><span>Page 1 of 3</span><button aria-label=\"Next results page\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"m9 18 6-6-6-6\"/></svg></button></div>",
+      "css": ".ds-pagination{font-family:var(--font,'IBM Plex Sans',sans-serif);display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-size:.75rem;color:var(--muted,#4c6472)}.ds-pagination button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 12px;border:1px solid var(--control-border,#738b9a);border-radius:6px;background:var(--surface,#fcfdfe);color:var(--ink,#162b38);cursor:pointer;transition:background-color 160ms,color 160ms,border-color 160ms;}.ds-pagination button:disabled{opacity:.48;cursor:not-allowed}.ds-primary:focus-visible,.ds-secondary:focus-visible,.ds-field:focus-visible,.ds-nav a:focus-visible,.ds-tabs button:focus-visible,.ds-pagination button:focus-visible{outline:3px solid var(--accent,#236582);outline-offset:3px}@media(prefers-reduced-motion:reduce){button,a{transition:none}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Riverbench",
+    "overview": "Riverbench is a cool, readable measurement workbench. The preserved otter provides warmth; native controls, actual schema names and ruled evidence provide technical confidence. Comfortable prose and denser query surfaces share the same palette, fonts and interaction vocabulary.\n\nThe QueryOtter name and original artwork, geometry and colors in `web/Otter.tsx` are binding user decisions: preserve the file unchanged, including in dark mode. [PRODUCT.md](PRODUCT.md) informs explicit review, scope and action labels without prescribing every page composition. Visual ground truth is `web/style.css`, `web/studio.css` and the sampled landing, workspace, connection, documentation, theme and experiment components. The direction contract is [redesign-direction.md](.data/redesign-direction.md); verification belongs in [redesign-verification.md](docs/redesign-verification.md).",
+    "keyCharacteristics": [
+      "Cool paired themes with a warm, unchanged original mascot.",
+      "Flat ruled evidence and restrained outlined panels.",
+      "Humanist technical type with monospace for code and measurements.",
+      "Explicit actions, labelled native controls and purposeful mobile disclosure."
+    ],
+    "rules": [
+      {
+        "name": "The Paired Register Rule",
+        "body": "Resolve semantic roles through the theme; do not simulate dark mode by inverting the light palette.",
+        "section": "colors"
+      },
+      {
+        "name": "The Evidence Color Rule",
+        "body": "Use status colors for actual status and query differences, with words or icons carrying their meaning.",
+        "section": "colors"
+      },
+      {
+        "name": "The Measurement Type Rule",
+        "body": "Reserve monospace for queries, schema identifiers, counts and measurements; use Sans for instructions and actions.",
+        "section": "typography"
+      },
+      {
+        "name": "The Working Surface Rule",
+        "body": "Keep query, schema and evidence surfaces flat; use overlay elevation when a layer temporarily covers the workspace.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** preserve the exact original otter artwork and colors in both themes.",
+      "**Do** use semantic theme roles and distinguish control boundaries from structural dividers.",
+      "**Do** keep review, execution and measured scope visually explicit.",
+      "**Do** preserve visible keyboard focus, native labels and reduced-motion behavior.",
+      "**Do** use mobile schema disclosure and local table scrolling to retain readable work surfaces.",
+      "**Do** keep numeric evidence aligned and explanations within bounded prose."
+    ],
+    "donts": [
+      "**Don't** recolor, redraw or replace the original mascot.",
+      "**Don't** invert the light palette to create dark mode.",
+      "**Don't** introduce ornamental entrance animation or an animation dependency for native control states.",
+      "**Don't** turn illustrative SQL or a scoped benchmark into fabricated universal evidence.",
+      "**Don't** use decorative metric tiles, physical-material imitation or river puns as substitutes for useful context."
+    ]
+  }
+}

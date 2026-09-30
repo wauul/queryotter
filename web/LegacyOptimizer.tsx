@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Activity,
   ArrowDown,
-  ArrowRight,
   ArrowUpRight,
   Check,
   CheckCircle2,
@@ -24,7 +23,6 @@ import {
   Plus,
   Settings2,
   ShieldCheck,
-  Sparkles,
   Square,
   Terminal,
   Unplug,
@@ -94,8 +92,8 @@ function Distribution({ a, b }: { a: Latency; b?: Latency }) {
   return (
     <div className="distribution">
       {[
-        { label: "Original", data: a, color: "#a0acaa" },
-        { label: "Optimized", data: b, color: "#218575" },
+        { label: "Original", data: a, color: "var(--muted)" },
+        { label: "Optimized", data: b, color: "var(--accent)" },
       ].map(
         (s, i) =>
           s.data && (
@@ -304,7 +302,7 @@ export default function LegacyOptimizer({
   return (
     <div className="app-shell">
       <aside className={"sidebar " + (mobile ? "open" : "")}>
-        <a className="brand" href="/" onClick={(e) => e.preventDefault()}>
+        <a className="brand" href="#home">
           <Otter small />
           <span>
             Query<span className="brand-otter">Otter</span>
@@ -317,7 +315,7 @@ export default function LegacyOptimizer({
           </div>
           <ChevronDown size={15} />
         </div>
-        <div className="nav-label">WORKSPACE</div>
+        <div className="nav-label">Experiments</div>
         <nav>
           {[
             { name: "Investigate", icon: FlaskConical },
@@ -341,7 +339,7 @@ export default function LegacyOptimizer({
           ))}
         </nav>
         <div className="nav-label database-label">
-          DATABASES{" "}
+          Databases{" "}
           {!portfolioOnly && (
             <button
               aria-label="Add database"
@@ -389,7 +387,7 @@ export default function LegacyOptimizer({
               stays yours.
             </p>
             <button onClick={() => setPage("Evaluation")}>
-              Explore our methodology <ArrowUpRight size={14} />
+              Explore our methodology
             </button>
           </div>
           <button
@@ -441,13 +439,10 @@ export default function LegacyOptimizer({
             <>
               <div className="page-heading">
                 <div>
-                  <div className="eyebrow">
-                    <span /> POSTGRESQL QUERY INVESTIGATOR
-                  </div>
-                  <h1>A little curiosity. A faster query.</h1>
+                  <h1>PostgreSQL experiments</h1>
                   <p>
-                    Find the bottleneck. Test the possibilities. Follow the
-                    evidence.
+                    Compare query plans, measured latency and result checks on
+                    disposable PostgreSQL data.
                   </p>
                 </div>
                 {!portfolioOnly && (
@@ -552,7 +547,7 @@ export default function LegacyOptimizer({
                           onClick={investigate}
                           disabled={busy || !sql}
                         >
-                          <Sparkles size={16} />
+                          <Activity size={16} />
                           {busy ? "Starting…" : "Investigate query"}
                           <span>⌘ ↵</span>
                         </button>
@@ -609,7 +604,7 @@ export default function LegacyOptimizer({
                         ).map((c) => (
                           <div key={c[1]}>
                             <span>
-                              {c[1] === "id" ? "⌑" : "·"} {c[1]}
+                              {c[1]} {c[1] === "id" && <small>PK</small>}
                             </span>
                             <small>{c[2]}</small>
                           </div>
@@ -701,7 +696,7 @@ export default function LegacyOptimizer({
                     </div>
                     <div className="metric-card optimized">
                       <span>
-                        <Sparkles size={15} />
+                        <Activity size={15} />
                         Optimized latency
                       </span>
                       <strong>{ms(best?.optimized?.median_ms)}</strong>
@@ -791,7 +786,7 @@ export default function LegacyOptimizer({
                           <div>
                             <div className="section-title">
                               <span className="icon-box">
-                                <Sparkles size={18} />
+                                <Activity size={18} />
                               </span>
                               <div>
                                 <h3>
@@ -1081,7 +1076,6 @@ export default function LegacyOptimizer({
             <>
               <div className="page-heading">
                 <div>
-                  <div className="eyebrow">YOUR INVESTIGATIONS</div>
                   <h1>Every experiment leaves a trail.</h1>
                   <p>
                     Reports and events persist in the worker's durable job
@@ -1131,7 +1125,7 @@ export default function LegacyOptimizer({
                       className="primary"
                       onClick={() => setPage("Investigate")}
                     >
-                      Investigate a query <ArrowRight size={15} />
+                      Investigate a query
                     </button>
                   </div>
                 )}
@@ -1141,7 +1135,6 @@ export default function LegacyOptimizer({
             <>
               <div className="page-heading">
                 <div>
-                  <div className="eyebrow">REPRODUCIBLE BY DESIGN</div>
                   <h1>Evidence. Including the awkward bits.</h1>
                   <p>
                     All cases are published, including regressions, rejections
@@ -1253,7 +1246,7 @@ export default function LegacyOptimizer({
           )}
           <footer className="app-footer">
             <span>
-              QueryOtter <span>·</span> Curiosity, with receipts.
+              QueryOtter <span>·</span> Reviewed queries, measured changes
             </span>
             <span>
               Built for PostgreSQL <span>·</span> Never changes production
@@ -1307,7 +1300,7 @@ export default function LegacyOptimizer({
                   />
                 </label>
                 <button className="primary full" onClick={login}>
-                  Sign in <ArrowRight size={16} />
+                  Sign in
                 </button>
                 <small className="modal-help">
                   Self-hosted owner password is configured in the worker's
@@ -1347,7 +1340,6 @@ export default function LegacyOptimizer({
                   disabled={busy || !connUrl || !connLabel}
                 >
                   {busy ? "Checking connection…" : "Validate & save connection"}
-                  <ArrowRight size={16} />
                 </button>
                 <button
                   className="text-button"

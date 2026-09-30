@@ -8,10 +8,13 @@
     "build": "tsc --noEmit && vite build && node scripts/build-hosting.mjs",
     "build:web": "tsc --noEmit && vite build",
     "test:proxy": "node --test tests/vercel-proxy.test.mjs",
+    "test:theme": "node --test tests/theme-init.test.mjs",
     "postgres": "node scripts/postgres.mjs",
     "test:web": "playwright test"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans": "^5.3.0",
     "diff": "^9.0.0",
     "lucide-react": "^0.468.0",
     "react": "^19.1.1",

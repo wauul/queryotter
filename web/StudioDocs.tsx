@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  BookOpen,
-  ShieldCheck,
-  ExternalLink,
-  Database,
-  ArrowRight,
-} from "lucide-react";
+import { BookOpen, ShieldCheck, ExternalLink, Database } from "lucide-react";
 import type { Catalog } from "./studio-api";
 
 export default function StudioDocs({
@@ -15,11 +9,60 @@ export default function StudioDocs({
   page: string;
   catalog: Catalog | null;
 }) {
+  if (page === "support")
+    return (
+      <article className="q-prose" id="q-main" tabIndex={-1}>
+        <h1>Help with your next step</h1>
+        <p>
+          Start with the field guide for connection setup, query review and the
+          limits of each engine. The support matrix records which configurations
+          have actually been tested.
+        </p>
+        <a className="q-button" href="#docs">
+          Open the field guide
+        </a>{" "}
+        <a className="q-button secondary" href="#matrix">
+          Check engine support
+        </a>
+        <h2>Connection not working?</h2>
+        <p>
+          Check the selected engine, URL encoding, public network allowlist, TLS
+          certificate and read-only permissions. A private or local database
+          needs the authenticated outbound connector. Copy the error category,
+          not the credentials.
+        </p>
+        <h2>Query results look wrong?</h2>
+        <p>
+          Review joins, date boundaries, NULLs, duplicates and ordering. Refresh
+          metadata after schema changes. Successful execution does not prove
+          that the query matches your business meaning.
+        </p>
+        <h2>Report a defect</h2>
+        <p>
+          Include the engine and version, the affected step and a synthetic
+          example that reproduces the problem. Remove database URLs, passwords,
+          tokens and private records before posting.
+        </p>
+        <a
+          href="https://github.com/wauul/queryotter/issues"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Open the GitHub issue tracker <ExternalLink size={14} />
+        </a>
+        <h2>Support availability</h2>
+        <p>
+          QueryOtter is a portfolio application. Support uses the public
+          repository issue tracker; no private support email or response-time
+          guarantee is configured.
+        </p>
+      </article>
+    );
   if (page === "privacy")
     return (
-      <article className="q-prose">
-        <span className="q-eyebrow">Privacy · updated 30 September 2026</span>
-        <h1>Your database, your decisions.</h1>
+      <article className="q-prose" id="q-main" tabIndex={-1}>
+        <span className="q-doc-meta">Privacy · updated 30 September 2026</span>
+        <h1>Privacy policy</h1>
         <p>
           QueryOtter stores the account identifier, display name and email
           supplied by your sign-in provider, your workspace settings, encrypted
@@ -68,14 +111,14 @@ export default function StudioDocs({
         </p>
         <h2>Third-party services</h2>
         <p>
-          The deployed application uses Vercel for the web application,
-          Neon for durable application and disposable experiment databases,
-          Railway for the Python API and worker, and Groq for model inference.
-          Your chosen database provider and GitHub, Google or Microsoft also
-          process their respective requests. See the visible deployment and
-          support status for what is currently active. Standard operational logs
-          record job IDs, stages, timings and error categories; provider
-          response bodies and database credentials are excluded.
+          The deployed application uses Vercel for the web application, Neon for
+          durable application and disposable experiment databases, Railway for
+          the Python API and worker, and Groq for model inference. Your chosen
+          database provider and GitHub, Google or Microsoft also process their
+          respective requests. See the visible deployment and support status for
+          what is currently active. Standard operational logs record job IDs,
+          stages, timings and error categories; provider response bodies and
+          database credentials are excluded.
         </p>
         <h2>Choices and support</h2>
         <p>
@@ -96,9 +139,9 @@ export default function StudioDocs({
     );
   if (page === "terms")
     return (
-      <article className="q-prose">
-        <span className="q-eyebrow">Terms · updated 30 September 2026</span>
-        <h1>Use QueryOtter thoughtfully.</h1>
+      <article className="q-prose" id="q-main" tabIndex={-1}>
+        <span className="q-doc-meta">Terms · updated 30 September 2026</span>
+        <h1>Terms of use</h1>
         <p>
           QueryOtter is a portfolio database assistant. Use it only with
           databases and data you are authorized to access. Keep credentials
@@ -159,9 +202,8 @@ export default function StudioDocs({
       </article>
     );
   return (
-    <article className="q-prose">
-      <span className="q-eyebrow">The field guide</span>
-      <h1>From a connection to a confident query.</h1>
+    <article className="q-prose" id="q-main" tabIndex={-1}>
+      <h1>The QueryOtter field guide</h1>
       <p>
         Start with a safe synthetic demo or connect a read-only database.
         Explore what is actually there, ask in plain language, review the native
@@ -240,7 +282,7 @@ export default function StudioDocs({
         target="_blank"
         rel="noreferrer"
       >
-        Connector installation instructions <ArrowRight size={14} />
+        Connector installation instructions <ExternalLink size={14} />
       </a>
       <h2>Frequently asked questions</h2>
       {[

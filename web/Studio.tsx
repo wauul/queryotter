@@ -237,7 +237,7 @@ export default function Studio() {
     return () => {
       active = false;
     };
-  }, [selected]);
+  }, [selected, connection?.configuration_revision]);
   useEffect(() => {
     if (!session?.user) return;
     let active = true;
@@ -763,6 +763,11 @@ export default function Studio() {
             </main>
           ) : documentPages.includes(page) ? (
             <StudioDocs page={page} catalog={catalog} />
+          ) : loading ? (
+            <main className="q-prose" role="status" aria-live="polite">
+              <h1>Restoring your workspace…</h1>
+              <p>Checking your session and loading your connections.</p>
+            </main>
           ) : (
             <main className="q-prose">
               <h1>Your personal query workspace.</h1>

@@ -53,6 +53,7 @@ export interface Session {
 }
 export interface Connection {
   id: string;
+  configuration_revision?: string;
   label: string;
   engine: string;
   provider: string;

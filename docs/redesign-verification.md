@@ -29,6 +29,8 @@ After correction, phone experiments retained diagnosis text, candidate identifie
 | Cancellation | Cancelling a deliberately long read-only synthetic cross join displayed the completed cancellation state. |
 | Dialog and menu keyboard | Save dialog focus loop passed. Escape closed the connection dialog and restored its trigger. Opening mobile navigation focused its first task link; Escape returned focus to the menu button. |
 | Schema disclosure | Show/Hide fields expanded actual table metadata on the phone; desktop retained the adjacent schema column. |
+| Public example and onboarding | Recent orders opened a new synthetic workspace with the matching request and an empty editor/result state. First-run time-zone setup was visible and Get started initiated real discovery. No query ran from the landing click. |
+| Logout and deletion confirmation | Logout cleared the workspace and displayed session revocation. The personal-account deletion dialog opened with initial focus on Keep it, then was cancelled with Escape; no account was deleted. |
 | Theme and reduced motion | Native controls selected both themes. System-mode reload preserved the choice, and emulated system changes updated the theme. Reduced-motion emulation yielded 0-second transitions. |
 | Text enlargement | Temporary browser CSS doubled the root text size to 32px for a desktop saved-query surface and phone connection dialog. Both retained equal document/client widths; the dialog's scroll/client widths were also equal. The temporary override was removed. This is a text-sizing check, not certification on physical devices or every browser zoom setting. |
 

@@ -636,7 +636,7 @@ export default function LegacyOptimizer({
                 <section className="panel running-panel">
                   <div>
                     <span className="spinner" />
-                    <h2>Following the evidence…</h2>
+                    <h2>Running the experiment</h2>
                     <Badge kind="teal">{job?.state}</Badge>
                   </div>
                   <div className="stages">
@@ -1061,7 +1061,7 @@ export default function LegacyOptimizer({
                 !active && (
                   <div className="empty-state">
                     <Otter />
-                    <h3>Good questions lead to better queries.</h3>
+                    <h3>Choose a query to investigate</h3>
                     <p>
                       Choose a slow-query example and let QueryOtter
                       investigate.
@@ -1076,7 +1076,7 @@ export default function LegacyOptimizer({
             <>
               <div className="page-heading">
                 <div>
-                  <h1>Every experiment leaves a trail.</h1>
+                  <h1>Experiment history</h1>
                   <p>
                     Reports and events persist in the worker's durable job
                     store.
@@ -1119,7 +1119,7 @@ export default function LegacyOptimizer({
                 ) : (
                   <div className="empty-state">
                     <History size={36} />
-                    <h3>Your investigation trail starts here.</h3>
+                    <h3>No experiments yet</h3>
                     <p>Run an example to create a persisted report.</p>
                     <button
                       className="primary"
@@ -1135,7 +1135,7 @@ export default function LegacyOptimizer({
             <>
               <div className="page-heading">
                 <div>
-                  <h1>Evidence. Including the awkward bits.</h1>
+                  <h1>Evaluation methodology</h1>
                   <p>
                     All cases are published, including regressions, rejections
                     and inconclusive runs.
@@ -1165,7 +1165,7 @@ export default function LegacyOptimizer({
                 </div>
                 <div>
                   <Code2 size={24} />
-                  <h3>Two honest baselines</h3>
+                  <h3>Two defined baselines</h3>
                   <p>
                     The original SELECT and a fixed, deterministic index
                     recommendation defined in the case manifest.
@@ -1279,7 +1279,7 @@ export default function LegacyOptimizer({
             <h2>
               {authenticated
                 ? "Connect a read-only database"
-                : "Your database. Your workspace."}
+                : "Owner sign-in"}
             </h2>
             <p>
               {authenticated

@@ -18,3 +18,20 @@ jobs:
       - run: uv run pytest -q
       - run: npm run build
       - run: npm run test:proxy
+      - name: Build and exercise cloud container
+        run: |
+          docker build -t queryotter-worker .
+          uv run python - <<'PY'
+          from dotenv import dotenv_values
+          from pathlib import Path
+          values = dotenv_values('.env')
+          values['JOB_DATABASE_URL'] = values['EXPERIMENT_DATABASE_URL']
+          values['PORT'] = '8001'
+          Path('.data/container.env').write_text(''.join(f'{k}={v}\n' for k,v in values.items()))
+          PY
+          docker run --detach --network host --env-file .data/container.env --name queryotter-health queryotter-worker
+          for i in $(seq 1 45); do curl --fail --silent http://127.0.0.1:8001/healthz && break; sleep 1; done
+          curl --fail --silent http://127.0.0.1:8001/healthz
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8001/api/jobs)" = "401"
+          docker logs queryotter-health
+          docker stop queryotter-health

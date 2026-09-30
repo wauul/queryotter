@@ -92,7 +92,7 @@ export async function proxy(request, env = process.env, fetchUpstream = fetch) {
     });
   } catch {
     return json(
-      "The local worker connector is unavailable. Published reports can still be explored.",
+      "The investigation service is unavailable. Published reports can still be explored.",
       503,
     );
   }

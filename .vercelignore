@@ -19,3 +19,8 @@ __pycache__/
 pyproject.toml
 uv.lock
 scripts/
+Dockerfile
+.dockerignore
+railway.json
+.railway/
+.railwayignore

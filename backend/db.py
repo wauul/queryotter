@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import psycopg
 from psycopg import sql
 from dotenv import load_dotenv
+from backend.connections import tls_options
 
 load_dotenv()
 METRICS = contextvars.ContextVar("database_metrics", default=None)
@@ -22,11 +23,25 @@ class MeasuredConnection(psycopg.Connection):
 
 def connect():
     c = MeasuredConnection.connect(
-        os.environ["EXPERIMENT_DATABASE_URL"], autocommit=True, connect_timeout=5
+        os.environ["EXPERIMENT_DATABASE_URL"],
+        autocommit=True,
+        connect_timeout=10,
+        **tls_options(os.environ["EXPERIMENT_DATABASE_URL"]),
     )
     c.execute("SET statement_timeout='3s'")
     c.execute("SET lock_timeout='500ms'")
     return c
+
+
+def cleanup_abandoned():
+    """Call only while holding the global worker lock in the disposable DB."""
+    with connect() as c:
+        schemas = c.execute(
+            "SELECT nspname FROM pg_namespace WHERE nspname ~ '^qot_[a-f0-9]{16}$' AND nspowner=(SELECT oid FROM pg_roles WHERE rolname=current_user)"
+        ).fetchall()
+        c.execute("SET statement_timeout='15s'")
+        for (name,) in schemas:
+            c.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(name)))
 
 
 def seed(conn, schema, size=120000, seed=17, edge=False):

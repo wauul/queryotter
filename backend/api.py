@@ -17,6 +17,8 @@ app = FastAPI(title="QueryOtter", docs_url=None, redoc_url=None)
 
 @app.middleware("http")
 async def guard(request, call_next):
+    if request.url.path == "/healthz" and request.method == "GET":
+        return await call_next(request)
     expected = os.environ.get("SERVICE_TOKEN")
     if not expected or not hmac.compare_digest(
         request.headers.get("x-service-token", ""), expected
@@ -112,6 +114,11 @@ def session(request: Request, response: Response):
         id = "anon_" + secrets.token_hex(16)
     cookie(response, request, id)
     return {"authenticated": id == "admin", "live_enabled": True}
+
+
+@app.get("/healthz", include_in_schema=False)
+def platform_health():
+    return {"status": "ok"}
 
 
 class Login(BaseModel):
@@ -241,7 +248,10 @@ def create(data: JobInput, request: Request):
             429,
             "Today’s public model-run budget is used. Published reports remain available.",
         )
-    return store.create(who, data.request_key, data.case_id, query)
+    try:
+        return store.create(who, data.request_key, data.case_id, query)
+    except store.ActiveJob:
+        raise HTTPException(429, "One active investigation per session.") from None
 
 
 @app.get("/api/jobs")

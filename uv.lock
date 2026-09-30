@@ -507,6 +507,7 @@ name = "queryotter"
 version = "1.0.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "certifi" },
     { name = "cryptography" },
     { name = "fastapi" },
     { name = "httpx" },
@@ -524,6 +525,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "certifi", specifier = ">=2025,<2027" },
     { name = "cryptography", specifier = ">=45,<47" },
     { name = "fastapi", specifier = ">=0.116,<1" },
     { name = "httpx", specifier = ">=0.28,<1" },

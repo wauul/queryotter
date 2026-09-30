@@ -5,10 +5,11 @@ from backend import store
 from backend.db import metadata, compact
 from backend.model import propose
 from backend.safety import validate_query
+from backend.connections import tls_options
 
 
 def inspect_connection(url):
-    conn = psycopg.connect(url, connect_timeout=5, autocommit=True)
+    conn = psycopg.connect(url, connect_timeout=10, autocommit=True, **tls_options(url))
     try:
         role = conn.execute(
             "SELECT rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls FROM pg_roles WHERE rolname=current_user"

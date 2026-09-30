@@ -1,0 +1,12 @@
+.git/
+.env
+.env.*
+.data/
+.venv/
+.vercel/
+node_modules/
+dist/
+artifacts/
+__pycache__/
+.pytest_cache/
+*.log

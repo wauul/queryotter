@@ -10,3 +10,6 @@ dist/
 artifacts/
 .vercel/
 *.log
+
+.vercel
+.env*

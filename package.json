@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build && node scripts/build-hosting.mjs",
+    "build:web": "tsc --noEmit && vite build",
+    "test:proxy": "node --test tests/vercel-proxy.test.mjs",
     "postgres": "node scripts/postgres.mjs",
     "test:web": "playwright test"
   },

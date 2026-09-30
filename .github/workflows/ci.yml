@@ -17,3 +17,4 @@ jobs:
           for i in $(seq 1 30); do test -f .data/postgres/postmaster.pid && break; sleep 1; done
       - run: uv run pytest -q
       - run: npm run build
+      - run: npm run test:proxy

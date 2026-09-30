@@ -172,6 +172,7 @@ export default function Studio() {
     setConfirm(null);
   });
   const mounted = useRef(true);
+  const sessionRevision = useRef(0);
   const connection = connections.find((c) => c.id === selected);
   const engine = catalog?.engines.find((e) => e.id === connection?.engine);
   useEffect(() => {
@@ -226,7 +227,7 @@ export default function Studio() {
   useEffect(() => {
     let active = true;
     setMetadata(null);
-    if (selected)
+    if (selected && session?.user)
       api<{ metadata: Metadata | null }>(`/connections/${selected}/schema`)
         .then((r) => {
           if (active) setMetadata(r.metadata);
@@ -237,7 +238,7 @@ export default function Studio() {
     return () => {
       active = false;
     };
-  }, [selected, connection?.configuration_revision]);
+  }, [selected, connection?.configuration_revision, session?.user?.id]);
   useEffect(() => {
     if (!session?.user) return;
     let active = true;
@@ -278,6 +279,21 @@ export default function Studio() {
     setManualCandidate("");
     setManualIndexes("");
     setError("");
+  }
+  function clearWorkspace() {
+    sessionRevision.current += 1;
+    choose("");
+    setSession(null);
+    setConnections([]);
+    setMetadata(null);
+    setSaved([]);
+    setHistory([]);
+    setConnectors([]);
+    setEnrollment(null);
+    setJob(null);
+    setPrompt(SAMPLE);
+    setBusy(false);
+    setDeleteText("");
   }
   async function safely(fn: () => Promise<void>) {
     setError("");
@@ -320,6 +336,8 @@ export default function Studio() {
     setError("");
     setNotice("");
     setJob(null);
+    const revision = sessionRevision.current;
+    const current = () => mounted.current && revision === sessionRevision.current;
     try {
       let j = await api<Job>("/jobs", {
         connection_id: selected,
@@ -330,11 +348,13 @@ export default function Studio() {
           : { query }),
         ...extra,
       });
+      if (!current()) return;
       setJob(j);
       while (["queued", "running"].includes(j.state)) {
         await new Promise((resolve) => setTimeout(resolve, 700));
-        if (!mounted.current) return;
+        if (!current()) return;
         j = await api<Job>("/jobs/" + j.id);
+        if (!current()) return;
         setJob(j);
       }
       if (j.state === "cancelled") {
@@ -379,8 +399,10 @@ export default function Studio() {
         );
       }
       if (action === "run") {
+        const rows = await api<Result>(`/results/${r.run_id}`);
+        if (!current()) return;
         setResultId(r.run_id);
-        setResult(await api<Result>(`/results/${r.run_id}`));
+        setResult(rows);
         setDraft((old) =>
           old
             ? {
@@ -401,13 +423,14 @@ export default function Studio() {
         api<Session>("/session"),
         api<{ metadata: Metadata | null }>(`/connections/${selected}/schema`),
       ]);
+      if (!current()) return;
       setConnections(cs);
       setSession(s);
       setMetadata(cache.metadata);
     } catch (e) {
-      setError((e as Error).message);
+      if (current()) setError((e as Error).message);
     } finally {
-      setBusy(false);
+      if (current()) setBusy(false);
     }
   }
   async function cancel() {
@@ -854,9 +877,7 @@ export default function Studio() {
                 onClick={() =>
                   void safely(async () => {
                     await api("/logout", {});
-                    setSession(null);
-                    setConnections([]);
-                    setEnrollment(null);
+                    clearWorkspace();
                     location.hash = "home";
                     setNotice("Signed out. This session was revoked.");
                   })
@@ -2265,10 +2286,7 @@ export default function Studio() {
                               await api("/account/delete", {
                                 confirmation: deleteText,
                               });
-                              setSession(null);
-                              setConnections([]);
-                              setResult(null);
-                              setEnrollment(null);
+                              clearWorkspace();
                               location.hash = "home";
                               setNotice(
                                 "Account deleted and access revoked. Hosting backups follow provider retention.",

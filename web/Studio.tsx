@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -52,7 +52,7 @@ import {
 import StudioConnection from "./StudioConnection";
 import StudioDocs from "./StudioDocs";
 import { useModal } from "./useModal";
-const Legacy = lazy(() => import("./LegacyOptimizer"));
+import Legacy from "./LegacyOptimizer";
 const SAMPLE =
   "Show the five customers with the highest total paid orders last month. Paid means status = 'paid'. Use UTC calendar months and break ties by customer id.";
 const links = [
@@ -518,9 +518,7 @@ export default function Studio() {
           <a href="#workspace">← Back to QueryOtter workspace</a>
           <span>Controlled synthetic PostgreSQL experiments</span>
         </div>
-        <Suspense fallback={<p>Loading measured experiments…</p>}>
-          <Legacy portfolioOnly />
-        </Suspense>
+        <Legacy portfolioOnly />
       </>
     );
   return (

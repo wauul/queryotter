@@ -317,6 +317,11 @@ export default function Studio() {
       await api("/demo/start", {});
       const s = await api<Session>("/session");
       setSession(s);
+      if (s.workspace) {
+        setWorkspaceName(s.workspace.name);
+        setTimezone(s.workspace.timezone);
+        setRetention(s.workspace.retention_days);
+      }
       const cs = await api<Connection[]>("/connections");
       const c = cs[0] || (await api<Connection>("/connections/demo", {}));
       setConnections(cs.length ? cs : [c]);
@@ -339,7 +344,8 @@ export default function Studio() {
     setNotice("");
     setJob(null);
     const revision = sessionRevision.current;
-    const current = () => mounted.current && revision === sessionRevision.current;
+    const current = () =>
+      mounted.current && revision === sessionRevision.current;
     try {
       let j = await api<Job>("/jobs", {
         connection_id: selected,
@@ -758,7 +764,14 @@ export default function Studio() {
                   <div className="q-capabilities">
                     {Object.entries(e.capabilities).map(([k, v]) => (
                       <span className={v ? "available" : "unavailable"} key={k}>
-                        {v ? <Check size={13} /> : <X size={13} />}{" "}
+                        <span className="q-sr-only">
+                          {v ? "Supported: " : "Unsupported: "}
+                        </span>
+                        {v ? (
+                          <Check size={13} aria-hidden="true" />
+                        ) : (
+                          <X size={13} aria-hidden="true" />
+                        )}{" "}
                         {k.replaceAll("_", " ")}
                       </span>
                     ))}

@@ -2,9 +2,9 @@
   "status": "Vercel, Railway API/worker and Neon deployed and verified",
   "web_url": "https://queryotter.vercel.app",
   "vercel": {
-    "deployment_id": "dpl_FHG8xW7SKU8QrW9ZYzvcV4na3ZWU",
-    "deployment_url": "https://queryotter-publbygy0-wauuls-projects.vercel.app",
-    "source_revision": "126ad57ad11c62fa31fc5f8dbae6af44b9fc25ed",
+    "deployment_id": "dpl_DPTgJdN7ABBZDFDs9VruJ2sB76gk",
+    "deployment_url": "https://queryotter-d3r0w4j5o-wauuls-projects.vercel.app",
+    "source_revision": "f8d871ab6de95a6e5d3fee5494779ab7fab6483d",
     "status": "READY"
   },
   "neon": {
@@ -59,7 +59,7 @@
     "python_tests": 76,
     "proxy_tests": 4,
     "linux_docker_startup": "passed",
-    "ci_url": "https://github.com/wauul/queryotter/actions/runs/36747795702",
+    "ci_url": "https://github.com/wauul/queryotter/actions/runs/36760167926",
     "engine_ci_url": "https://github.com/wauul/queryotter/actions/runs/36743946074",
     "configured_credentials_in_source_or_frontend": false,
     "oauth": "GitHub, Google and Microsoft personal account login verified through production UI; organization publisher restrictions remain explicit",
@@ -67,7 +67,17 @@
     "deployed_ui": "public/deployed-ui-verification.json: generation, refinement, explicit run, pagination, save/history, cancellation, exports and approved disposable-account deletion passed",
     "fresh_postgresql_benchmark": "public/deployed-postgresql-benchmark.json: four correctness fixtures passed, 6.294/0.086 ms medians, 73.19x observed on synthetic data",
     "final_health": "Both origins healthy; service token enforced; anonymous private connections denied; nine engines, thirteen presets and all three OAuth providers configured",
-    "deleted_disposable_account": "Direct Neon counts verified zero active account/workspace/session/connection/schema/saved/job/history/results; all OAuth identities preserved"
+    "deleted_disposable_account": "Direct Neon counts verified zero active account/workspace/session/connection/schema/saved/job/history/results; all OAuth identities preserved",
+    "preference_initialization_tests": 11,
+    "localization_tests": 4,
+    "redesign_review": "ship; bounded follow-up review also shipped icon-only theme toggle and custom English/French popup",
+    "redesign_ui": "docs/redesign-verification.md: paired themes, responsive task routes, custom dropdown keyboard/focus, locale and theme persistence, original logo unchanged",
+    "fresh_french_generation": "Vercel UI + real Groq + Railway SQLite 3.46.1 synthetic copy: one call, 1805 tokens, 2.93 seconds, estimated $0.00047; no automatic execution",
+    "fresh_french_execution": "Explicit Run returned customers 6/8/1/3/5 with totals 700/700/560/560/560; UI locale/theme switches preserved exact query, prompt, connection and cells",
+    "fresh_github_signin": "Logout and existing GitHub OAuth sign-in through deployed French UI verified; existing Google/Microsoft acceptance evidence retained",
+    "language_form": "French Supabase guide and guided form displayed on production; 360px dialog client/scroll widths both 326px; Escape restored Add connection focus",
+    "frontend_browser_console": "No warnings or errors in final production check",
+    "preference_control": "Custom styled listbox with English/Français and 44px icon-only Sun/Moon theme button; no native language select"
   },
   "cutover": "Vercel production and preview CONNECTOR_URL now point to the live Railway HTTPS origin. No desktop tunnel dependency.",
   "checked": "2026-09-30"

@@ -22,13 +22,13 @@ The Python suite has **76 passing tests** and the Vercel proxy has **4**. Separa
 
 [Deployed UI verification](public/deployed-ui-verification.json) covers all three personal-account sign-in flows, connection rotation/discovery, real generation/refinement, explicit execution, pagination, saved queries/history, cancellation, exports, controlled benchmarks and approved disposable-account deletion. The fresh hosted PostgreSQL report measured 6.294 ms versus 0.086 ms (73.19×) on the synthetic fixture with all four correctness checks passing; copy reports also preserve a separate no-gain outcome. See the actual reports and their methodology before interpreting either measurement.
 
-## Interface and theme
+## Interface, theme and language
 
 The Riverbench redesign keeps the original QueryOtter mascot unchanged. Cool pearl and river-ink surfaces, self-hosted IBM Plex fonts, ruled evidence rows and explicit review/run actions carry the identity across the landing page, assistant, connections, settings, documentation and PostgreSQL experiments. [DESIGN.md](DESIGN.md) records the implemented system and the three directions considered; [PRODUCT.md](PRODUCT.md) records product constraints.
 
-The native Color theme selector offers System, Light and Dark. System follows the device preference; an explicit choice persists in local browser storage. A blocking same-origin script resolves it before React renders, without changing the script CSP. Reduced motion removes transitions and loading rotations. On smaller screens, schema fields expand above the query; wide tables and code scroll inside their own surfaces.
+A single icon-only Sun/Moon button switches light and dark mode. The first visit follows the device preference; a click saves an explicit override in local browser storage. The styled English/Français dropdown supports arrow keys, Home/End, Enter, Escape, Tab and click-outside dismissal. Language defaults to the browser’s French preference or English and persists independently. Changing either preference preserves the connection, prompt, native query and results. UI copy, provider guides, help and legal pages are translated; schema identifiers, records, user content and model output keep their original content. A blocking same-origin script resolves it before React renders, without changing the script CSP. Reduced motion removes transitions and loading rotations. On smaller screens, schema fields expand above the query; wide tables and code scroll inside their own surfaces.
 
-[Redesign verification](docs/redesign-verification.md) records browser coverage, contrast, real workflows and limits. CI runs eight theme-initialization checks alongside the existing proxy and backend suites.
+[Redesign verification](docs/redesign-verification.md) records browser coverage, contrast, real workflows and limits. CI runs eleven preference-initialization checks and four localization checks alongside the existing proxy and backend suites.
 
 ## Run locally
 
@@ -58,6 +58,7 @@ OAuth development callbacks must be explicitly registered for the chosen local o
 uv run pytest -q
 npm run test:proxy
 npm run test:theme
+npm run test:i18n
 npm run build:web
 docker compose -p qot-adapters -f integration/compose.yml up -d --build
 uv run python integration/verify.py --output artifacts/local-adapters.json

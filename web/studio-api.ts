@@ -174,8 +174,10 @@ export const queryText = (query: unknown) =>
     : query
       ? JSON.stringify(query, null, 2)
       : "";
-export const when = (seconds?: number) =>
-  seconds ? new Date(seconds * 1000).toLocaleString() : "Not yet validated";
+export const when = (seconds?: number, locale = "en-GB") =>
+  seconds
+    ? new Date(seconds * 1000).toLocaleString(locale)
+    : "Not yet validated";
 export async function api<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch("/api/assistant" + path, {
     method: body === undefined ? "GET" : "POST",

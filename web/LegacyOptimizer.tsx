@@ -1,3 +1,4 @@
+import { useLanguage } from "./Language";
 import React, { useState, useEffect, useRef } from "react";
 import {
   Activity,
@@ -65,6 +66,8 @@ function Badge({
   return <span className={"badge " + kind}>{children}</span>;
 }
 function Plan({ nodes }: { nodes: PlanNode[] }) {
+  const { t: tr } = useLanguage();
+
   return (
     <div className="plan-tree">
       {nodes.map((n, i) => (
@@ -73,14 +76,19 @@ function Plan({ nodes }: { nodes: PlanNode[] }) {
           <div>
             <strong>{n["Node Type"]}</strong>
             <span>
-              {n["Relation Name"] || n["Index Name"] || "PostgreSQL plan node"}
+              {n["Relation Name"] ||
+                n["Index Name"] ||
+                tr("PostgreSQL plan node")}
             </span>
           </div>
           <div className="node-number">
             {n["Actual Total Time"] !== undefined
               ? ms(n["Actual Total Time"])
               : "cost " + n["Total Cost"]}
-            <span>{n["Actual Rows"] ?? n["Plan Rows"]} rows</span>
+            <span>
+              {n["Actual Rows"] ?? n["Plan Rows"]}
+              {tr(" rows")}
+            </span>
           </div>
         </div>
       ))}
@@ -88,6 +96,8 @@ function Plan({ nodes }: { nodes: PlanNode[] }) {
   );
 }
 function Distribution({ a, b }: { a: Latency; b?: Latency }) {
+  const { t: tr } = useLanguage();
+
   const max = Math.max(...a.samples_ms, ...(b?.samples_ms || [])) || 1;
   return (
     <div className="distribution">
@@ -97,8 +107,8 @@ function Distribution({ a, b }: { a: Latency; b?: Latency }) {
       ].map(
         (s, i) =>
           s.data && (
-            <div className="distribution-row" key={s.label}>
-              <span>{s.label}</span>
+            <div className="distribution-row" key={tr(s.label)}>
+              <span>{tr(s.label)}</span>
               <div className="dot-track">
                 {s.data.samples_ms.map((n, j) => (
                   <i
@@ -123,10 +133,15 @@ function Distribution({ a, b }: { a: Latency; b?: Latency }) {
           ),
       )}
       <div className="distribution-axis">
-        <span>0 ms</span>
-        <span>{max.toFixed(2)} ms</span>
+        <span>{tr("0 ms")}</span>
+        <span>
+          {max.toFixed(2)}
+          {tr(" ms")}
+        </span>
       </div>
-      <small>Each dot is a measured run. Vertical marks show medians.</small>
+      <small>
+        {tr("Each dot is a measured run. Vertical marks show medians.")}
+      </small>
     </div>
   );
 }
@@ -135,6 +150,9 @@ export default function LegacyOptimizer({
 }: {
   portfolioOnly?: boolean;
 }) {
+  const { t: tr, language } = useLanguage();
+  const locale = language === "fr" ? "fr-FR" : "en-GB";
+
   const [examples, setExamples] = useState<Example[]>([]),
     [selected, setSelected] = useState("customer-orders"),
     [sql, setSql] = useState(""),
@@ -165,6 +183,22 @@ export default function LegacyOptimizer({
   const current = examples.find((e) => e.id === selected),
     active = job && ["queued", "running"].includes(job.state);
   const reportRef = useRef(0);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!mobile) return;
+    document
+      .getElementById("q-experiment-navigation")
+      ?.querySelector<HTMLButtonElement>("nav button")
+      ?.focus();
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobile(false);
+        menuButton.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", escape);
+    return () => document.removeEventListener("keydown", escape);
+  }, [mobile]);
   useEffect(() => {
     fetch("/examples.json")
       .then((r) => r.json())
@@ -301,7 +335,11 @@ export default function LegacyOptimizer({
   const stageIndex = stages.indexOf(last || "");
   return (
     <div className="app-shell">
-      <aside className={"sidebar " + (mobile ? "open" : "")}>
+      <aside
+        id="q-experiment-navigation"
+        aria-label={tr("Experiment navigation")}
+        className={"sidebar " + (mobile ? "open" : "")}
+      >
         <a className="brand" href="#home">
           <Otter small />
           <span>
@@ -311,11 +349,12 @@ export default function LegacyOptimizer({
         <div className="workspace">
           <span className="workspace-icon">Q</span>
           <div>
-            QueryOtter experiments<small>Synthetic benchmark portfolio</small>
+            {tr("QueryOtter experiments")}
+            <small>{tr("Synthetic benchmark portfolio")}</small>
           </div>
           <ChevronDown size={15} />
         </div>
-        <div className="nav-label">Experiments</div>
+        <div className="nav-label">{tr("Experiments")}</div>
         <nav>
           {[
             { name: "Investigate", icon: FlaskConical },
@@ -323,7 +362,7 @@ export default function LegacyOptimizer({
             { name: "Evaluation", icon: Gauge },
           ].map((n) => (
             <button
-              key={n.name}
+              key={tr(n.name)}
               className={page === n.name ? "selected" : ""}
               onClick={() => {
                 setPage(n.name);
@@ -331,18 +370,18 @@ export default function LegacyOptimizer({
               }}
             >
               <n.icon size={18} />
-              {n.name}
+              {tr(n.name)}
               {n.name === "Investigate" && (
-                <span className="nav-pill">⌘ K</span>
+                <span className="nav-pill">{tr("⌘ K")}</span>
               )}
             </button>
           ))}
         </nav>
         <div className="nav-label database-label">
-          Databases{" "}
+          {tr("Databases")}{" "}
           {!portfolioOnly && (
             <button
-              aria-label="Add database"
+              aria-label={tr("Add database")}
               onClick={() => setConnectionOpen(true)}
             >
               <Plus size={15} />
@@ -358,9 +397,10 @@ export default function LegacyOptimizer({
         >
           <span className="status-dot" />
           <div>
-            OtterMart<small>Synthetic PostgreSQL</small>
+            {tr("OtterMart")}
+            <small>{tr("Synthetic PostgreSQL")}</small>
           </div>
-          <Badge kind="neutral">DEMO</Badge>
+          <Badge kind="neutral">{tr("DEMO")}</Badge>
         </button>
         {connections.map((c) => (
           <button
@@ -374,20 +414,21 @@ export default function LegacyOptimizer({
             <Database size={16} />
             <div>
               {c.label}
-              <small>Live · plans only</small>
+              <small>{tr("Live · plans only")}</small>
             </div>
           </button>
         ))}
         <div className="sidebar-bottom">
           <div className="safety-note">
             <ShieldCheck size={20} />
-            <strong>A safe place to experiment</strong>
+            <strong>{tr("A safe place to experiment")}</strong>
             <p>
-              Every index is tested in a disposable database. Your production
-              stays yours.
+              {tr(
+                "Every index is tested in a disposable database. Your production stays yours.",
+              )}
             </p>
             <button onClick={() => setPage("Evaluation")}>
-              Explore our methodology
+              {tr("Explore our methodology")}
             </button>
           </div>
           <button
@@ -395,11 +436,13 @@ export default function LegacyOptimizer({
             disabled={portfolioOnly}
             onClick={() => setConnectionOpen(true)}
           >
-            <span className="avatar">{authenticated ? "W" : "G"}</span>
+            <span className="avatar">{authenticated ? "W" : tr("G")}</span>
             <div>
-              {authenticated ? "Workspace owner" : "Demo explorer"}
+              {authenticated ? tr("Workspace owner") : tr("Demo explorer")}
               <small>
-                {authenticated ? "Authenticated session" : "No sign-in needed"}
+                {authenticated
+                  ? tr("Authenticated session")
+                  : tr("No sign-in needed")}
               </small>
             </div>
             <Settings2 size={17} />
@@ -410,27 +453,33 @@ export default function LegacyOptimizer({
         <header className="topbar">
           <div>
             <button
+              ref={menuButton}
               className="mobile-menu"
-              aria-label="Open navigation"
+              aria-expanded={mobile}
+              aria-controls="q-experiment-navigation"
+              aria-label={tr("Open navigation")}
               onClick={() => setMobile(!mobile)}
             >
               <Menu size={20} />
             </button>
-            <span>Workspace</span>
+            <span>{tr("Workspace")}</span>
             <ChevronRight size={14} />
-            <strong>{page}</strong>
+            <strong>{tr(page)}</strong>
           </div>
           <div>
             <span className={"worker-status " + (online ? "" : "offline")}>
               <i />
-              {online ? "Worker connected" : "Published reports available"}
+              {online
+                ? tr("Worker connected")
+                : tr("Published reports available")}
             </span>
             <a
               href="https://github.com/wauul/queryotter"
               target="_blank"
               rel="noreferrer"
             >
-              Source <ExternalLink size={13} />
+              {tr("Source ")}
+              <ExternalLink size={13} />
             </a>
           </div>
         </header>
@@ -439,10 +488,11 @@ export default function LegacyOptimizer({
             <>
               <div className="page-heading">
                 <div>
-                  <h1>PostgreSQL experiments</h1>
+                  <h1>{tr("PostgreSQL experiments")}</h1>
                   <p>
-                    Compare query plans, measured latency and result checks on
-                    disposable PostgreSQL data.
+                    {tr(
+                      "Compare query plans, measured latency and result checks on disposable PostgreSQL data.",
+                    )}
                   </p>
                 </div>
                 {!portfolioOnly && (
@@ -452,8 +502,8 @@ export default function LegacyOptimizer({
                   >
                     <Database size={16} />
                     {authenticated
-                      ? "Connect database"
-                      : "Connect your database"}
+                      ? tr("Connect database")
+                      : tr("Connect your database")}
                     <ArrowUpRight size={15} />
                   </button>
                 )}
@@ -465,17 +515,21 @@ export default function LegacyOptimizer({
                 <div>
                   <strong>
                     {connectionId
-                      ? "Live connection · estimates only"
-                      : "You're in the OtterMart sandbox"}
+                      ? tr("Live connection · estimates only")
+                      : tr("You're in the OtterMart sandbox")}
                   </strong>
                   <span>
                     {connectionId
-                      ? "Metadata and non-executing EXPLAIN. No measurements or indexes."
-                      : "370,000 synthetic records. Real PostgreSQL. Real measurements."}
+                      ? tr(
+                          "Metadata and non-executing EXPLAIN. No measurements or indexes.",
+                        )
+                      : tr(
+                          "370,000 synthetic records. Real PostgreSQL. Real measurements.",
+                        )}
                   </span>
                 </div>
                 <Badge kind="teal">
-                  {connectionId ? "Read-only" : "Safe to explore"}
+                  {connectionId ? tr("Read-only") : tr("Safe to explore")}
                 </Badge>
               </div>
               <div className="editor-grid">
@@ -483,21 +537,21 @@ export default function LegacyOptimizer({
                   <div className="panel-heading">
                     <div>
                       <Code2 size={18} />
-                      <h2>Query workspace</h2>
+                      <h2>{tr("Query workspace")}</h2>
                     </div>
-                    <span className="tiny-label">PostgreSQL</span>
+                    <span className="tiny-label">{tr("PostgreSQL")}</span>
                   </div>
                   <div className="editor-toolbar">
-                    <span>Try an example</span>
+                    <span>{tr("Try an example")}</span>
                     <select
-                      aria-label="Slow query example"
+                      aria-label={tr("Slow query example")}
                       disabled={!!active}
                       value={selected}
                       onChange={(e) => setSelected(e.target.value)}
                     >
                       {examples.map((e) => (
                         <option key={e.id} value={e.id}>
-                          {e.title}
+                          {tr(e.title)}
                         </option>
                       ))}
                     </select>
@@ -509,7 +563,7 @@ export default function LegacyOptimizer({
                       ))}
                     </div>
                     <textarea
-                      aria-label="SQL editor"
+                      aria-label={tr("SQL editor")}
                       spellCheck={false}
                       value={sql}
                       onChange={(e) => setSql(e.target.value)}
@@ -525,8 +579,8 @@ export default function LegacyOptimizer({
                     <span>
                       <ShieldCheck size={14} />{" "}
                       {connectionId
-                        ? "Live · non-executing EXPLAIN"
-                        : "SELECT only · disposable experiments"}
+                        ? tr("Live · non-executing EXPLAIN")
+                        : tr("SELECT only · disposable experiments")}
                     </span>
                     <div>
                       {!!active ? (
@@ -539,7 +593,7 @@ export default function LegacyOptimizer({
                           }
                         >
                           <Square size={13} />
-                          Cancel
+                          {tr("Cancel")}
                         </button>
                       ) : (
                         <button
@@ -548,7 +602,7 @@ export default function LegacyOptimizer({
                           disabled={busy || !sql}
                         >
                           <Activity size={16} />
-                          {busy ? "Starting…" : "Investigate query"}
+                          {busy ? tr("Starting…") : tr("Investigate query")}
                           <span>⌘ ↵</span>
                         </button>
                       )}
@@ -563,19 +617,19 @@ export default function LegacyOptimizer({
                         {connectionId
                           ? connections.find((c) => c.id === connectionId)
                               ?.label
-                          : "OtterMart"}
+                          : tr("OtterMart")}
                       </h2>
                     </div>
                     <span className="status-dot" />
                   </div>
                   <div className="db-meta">
                     <span>
-                      PostgreSQL{" "}
+                      {tr("PostgreSQL")}{" "}
                       {report?.schema.version ||
-                        (connectionId ? "Not inspected" : "18")}
+                        (connectionId ? tr("Not inspected") : "18")}
                     </span>
                     <Badge kind="neutral">
-                      {connectionId ? "LIVE" : "SEEDED"}
+                      {connectionId ? tr("LIVE") : tr("SEEDED")}
                     </Badge>
                   </div>
                   {schemaNames.map((name, i) => (
@@ -586,7 +640,7 @@ export default function LegacyOptimizer({
                         <strong>{name}</strong>
                         <span>
                           {connectionId
-                            ? "Size not measured"
+                            ? tr("Size not measured")
                             : ["10k", "120k", "240k"][i] + " rows"}
                         </span>
                       </summary>
@@ -604,7 +658,8 @@ export default function LegacyOptimizer({
                         ).map((c) => (
                           <div key={c[1]}>
                             <span>
-                              {c[1]} {c[1] === "id" && <small>PK</small>}
+                              {c[1]}{" "}
+                              {c[1] === "id" && <small>{tr("PK")}</small>}
                             </span>
                             <small>{c[2]}</small>
                           </div>
@@ -615,17 +670,17 @@ export default function LegacyOptimizer({
                   <div className="schema-foot">
                     <LockKeyhole size={13} />
                     {connectionId
-                      ? "No execution or schema changes"
-                      : "Seed 17 · isolated per investigation"}
+                      ? tr("No execution or schema changes")
+                      : tr("Seed 17 · isolated per investigation")}
                   </div>
                 </section>
               </div>
               {error && (
                 <div className="error" role="alert">
                   <Unplug size={18} />
-                  <span>{error}</span>
+                  <span>{tr(error)}</span>
                   <button
-                    aria-label="Dismiss error"
+                    aria-label={tr("Dismiss error")}
                     onClick={() => setError("")}
                   >
                     <X size={16} />
@@ -636,8 +691,8 @@ export default function LegacyOptimizer({
                 <section className="panel running-panel">
                   <div>
                     <span className="spinner" />
-                    <h2>Running the experiment</h2>
-                    <Badge kind="teal">{job?.state}</Badge>
+                    <h2>{tr("Running the experiment")}</h2>
+                    <Badge kind="teal">{tr(job?.state || "")}</Badge>
                   </div>
                   <div className="stages">
                     {stages.map((s, i) => (
@@ -647,13 +702,15 @@ export default function LegacyOptimizer({
                         ) : (
                           <span className="stage-dot" />
                         )}
-                        {s}
+                        {tr(s)}
                       </span>
                     ))}
                   </div>
                   <p>
-                    {job?.events.at(-1)?.message ||
-                      "Queued for the single-concurrency investigation worker."}
+                    {tr(
+                      job?.events.at(-1)?.message ||
+                        "Queued for the single-concurrency investigation worker.",
+                    )}
                   </p>
                 </section>
               )}
@@ -661,27 +718,27 @@ export default function LegacyOptimizer({
                 <>
                   <div className="results-heading">
                     <div>
-                      <h2>Investigation results</h2>
+                      <h2>{tr("Investigation results")}</h2>
                       <Badge kind={best ? "green" : "amber"}>
                         {best ? (
                           <>
                             <CheckCircle2 size={12} />
-                            Verified improvement
+                            {tr("Verified improvement")}
                           </>
                         ) : (
-                          "No verified improvement"
+                          tr("No verified improvement")
                         )}
                       </Badge>
                     </div>
                     <div>
                       <span className="report-origin">
                         {job?.report === report
-                          ? "Fresh investigation"
-                          : "Published measured report"}
+                          ? tr("Fresh investigation")
+                          : tr("Published measured report")}
                       </span>
                       <button className="outline small" onClick={download}>
                         <Download size={14} />
-                        Export report
+                        {tr("Export report")}
                       </button>
                     </div>
                   </div>
@@ -689,27 +746,27 @@ export default function LegacyOptimizer({
                     <div className="metric-card">
                       <span>
                         <Clock3 size={15} />
-                        Original latency
+                        {tr("Original latency")}
                       </span>
-                      <strong>{ms(report.original?.median_ms)}</strong>
-                      <small>Median PostgreSQL execution time</small>
+                      <strong>{tr(ms(report.original?.median_ms))}</strong>
+                      <small>{tr("Median PostgreSQL execution time")}</small>
                     </div>
                     <div className="metric-card optimized">
                       <span>
                         <Activity size={15} />
-                        Optimized latency
+                        {tr("Optimized latency")}
                       </span>
-                      <strong>{ms(best?.optimized?.median_ms)}</strong>
+                      <strong>{tr(ms(best?.optimized?.median_ms))}</strong>
                       <small>
                         {best
-                          ? "Warm cache · 7 measured repetitions"
-                          : "No candidate selected"}
+                          ? tr("Warm cache · 7 measured repetitions")
+                          : tr("No candidate selected")}
                       </small>
                     </div>
                     <div className="metric-card">
                       <span>
                         <Gauge size={15} />
-                        Measured speedup
+                        {tr("Measured speedup")}
                       </span>
                       <strong>
                         {best?.speedup ? (
@@ -733,14 +790,19 @@ export default function LegacyOptimizer({
                       </strong>
                       <small>
                         {best
-                          ? `${ms(report.original!.median_ms - best.optimized!.median_ms)} saved per execution`
-                          : "No reliable gain established"}
+                          ? tr("{value0} saved per execution", {
+                              value0: ms(
+                                report.original!.median_ms -
+                                  best.optimized!.median_ms,
+                              ),
+                            })
+                          : tr("No reliable gain established")}
                       </small>
                     </div>
                     <div className="metric-card">
                       <span>
                         <ShieldCheck size={15} />
-                        Correctness checks
+                        {tr("Correctness checks")}
                       </span>
                       <strong>
                         {best ? (
@@ -755,8 +817,8 @@ export default function LegacyOptimizer({
                       </strong>
                       <small>
                         {best
-                          ? "Seeded & edge fixtures passed"
-                          : "See candidate validation details"}
+                          ? tr("Seeded & edge fixtures passed")
+                          : tr("See candidate validation details")}
                       </small>
                     </div>
                   </div>
@@ -772,11 +834,11 @@ export default function LegacyOptimizer({
                         <button
                           role="tab"
                           aria-selected={t === tab}
-                          key={t}
+                          key={tr(t)}
                           onClick={() => setTab(t)}
                           className={tab === t ? "active" : ""}
                         >
-                          {t}
+                          {tr(t)}
                         </button>
                       ))}
                     </div>
@@ -791,11 +853,11 @@ export default function LegacyOptimizer({
                               <div>
                                 <h3>
                                   {best
-                                    ? "A better path through your data"
-                                    : "What the investigation found"}
+                                    ? tr("A better path through your data")
+                                    : tr("What the investigation found")}
                                 </h3>
                                 <span>
-                                  Model hypothesis, tested by PostgreSQL
+                                  {tr("Model hypothesis, tested by PostgreSQL")}
                                 </span>
                               </div>
                             </div>
@@ -810,7 +872,7 @@ export default function LegacyOptimizer({
                               </div>
                             )}
                             <div className="candidate-list">
-                              <h4>Candidates tested</h4>
+                              <h4>{tr("Candidates tested")}</h4>
                               {report.candidates.length ? (
                                 report.candidates.map((c) => (
                                   <div key={c.name}>
@@ -830,15 +892,18 @@ export default function LegacyOptimizer({
                                 ))
                               ) : (
                                 <p>
-                                  The agent proposed no justified improvement.
-                                  Retain the original query.
+                                  {tr(
+                                    "The agent proposed no justified improvement. Retain the original query.",
+                                  )}
                                 </p>
                               )}
                             </div>
                           </div>
                           <div className="benchmark-box">
-                            <h3>Latency, with the spread</h3>
-                            <p>Execution time · milliseconds · warm cache</p>
+                            <h3>{tr("Latency, with the spread")}</h3>
+                            <p>
+                              {tr("Execution time · milliseconds · warm cache")}
+                            </p>
                             {report.original && (
                               <Distribution
                                 a={report.original}
@@ -847,7 +912,7 @@ export default function LegacyOptimizer({
                             )}
                             <div className="benchmark-facts">
                               <span>
-                                Measured runs
+                                {tr("Measured runs")}
                                 <strong>
                                   {String(
                                     report.conditions.repetitions ||
@@ -856,20 +921,22 @@ export default function LegacyOptimizer({
                                 </strong>
                               </span>
                               <span>
-                                Original MAD
+                                {tr("Original MAD")}
                                 <strong>{ms(report.original?.mad_ms)}</strong>
                               </span>
                               <span>
-                                Optimized MAD
+                                {tr("Optimized MAD")}
                                 <strong>{ms(best?.optimized?.mad_ms)}</strong>
                               </span>
                             </div>
                             <div className="quiet-note">
                               <Activity size={15} />
                               <span>
-                                End-to-end investigation:{" "}
-                                {report.usage.runtime_seconds}s. SQL latency
-                                excludes model and network time.
+                                {tr("End-to-end investigation:")}{" "}
+                                {report.usage.runtime_seconds}
+                                {tr(
+                                  "s. SQL latency excludes model and network time.",
+                                )}
                               </span>
                             </div>
                           </div>
@@ -879,21 +946,26 @@ export default function LegacyOptimizer({
                         <div className="plans-grid">
                           <div>
                             <h3>
-                              Before <Badge kind="neutral">Original</Badge>
+                              {tr("Before ")}
+                              <Badge kind="neutral">{tr("Original")}</Badge>
                             </h3>
                             <Plan nodes={report.plan_before} />
                           </div>
                           <div>
                             <h3>
-                              After{" "}
+                              {tr("After")}{" "}
                               <Badge>
-                                {best ? "Selected candidate" : "Not available"}
+                                {best
+                                  ? tr("Selected candidate")
+                                  : tr("Not available")}
                               </Badge>
                             </h3>
                             {best?.plan ? (
                               <Plan nodes={best.plan} />
                             ) : (
-                              <p>No verified candidate plan to display.</p>
+                              <p>
+                                {tr("No verified candidate plan to display.")}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -906,7 +978,7 @@ export default function LegacyOptimizer({
                             verified={!!best}
                           />
                           <h3 className="migration-title">
-                            Reviewable index migration
+                            {tr("Reviewable index migration")}
                           </h3>
                           {best?.indexes.length ? (
                             <>
@@ -919,26 +991,27 @@ export default function LegacyOptimizer({
                                     {(best.index_bytes! / 1024 / 1024).toFixed(
                                       2,
                                     )}{" "}
-                                    MB
+                                    {tr("MB")}
                                   </strong>
-                                  Additional index storage
+                                  {tr("Additional index storage")}
                                 </span>
                                 <span>
                                   <strong>{ms(best.index_build_ms)}</strong>
-                                  Index construction time
+                                  {tr("Index construction time")}
                                 </span>
                                 <p>
-                                  {best.tradeoff} Review names and deployment
-                                  locks. For production, schedule separately and
-                                  consider CREATE INDEX CONCURRENTLY outside a
-                                  transaction.
+                                  {best.tradeoff}
+                                  {tr(
+                                    " Review names and deployment locks. For production, schedule separately and consider CREATE INDEX CONCURRENTLY outside a transaction.",
+                                  )}
                                 </p>
                               </div>
                             </>
                           ) : (
                             <p>
-                              No verified index migration. Unverified
-                              suggestions are available in the report export.
+                              {tr(
+                                "No verified index migration. Unverified suggestions are available in the report export.",
+                              )}
                             </p>
                           )}
                         </>
@@ -948,10 +1021,13 @@ export default function LegacyOptimizer({
                           <div className="section-title">
                             <ShieldCheck size={22} />
                             <div>
-                              <h3>Test the meaning, then test the speed</h3>
+                              <h3>
+                                {tr("Test the meaning, then test the speed")}
+                              </h3>
                               <span>
-                                Types, values, NULLs, duplicates and ordered
-                                output
+                                {tr(
+                                  "Types, values, NULLs, duplicates and ordered output",
+                                )}
                               </span>
                             </div>
                           </div>
@@ -965,25 +1041,28 @@ export default function LegacyOptimizer({
                                   }
                                 >
                                   {c.correctness.passed
-                                    ? "Passed"
-                                    : "Not verified"}
+                                    ? tr("Passed")
+                                    : tr("Not verified")}
                                 </Badge>
                               </h4>
                               {c.correctness.datasets.map((d, i) => (
                                 <div key={i}>
                                   <span>
                                     {d.size === 0
-                                      ? "Empty tables"
+                                      ? tr("Empty tables")
                                       : d.edges
-                                        ? "NULLs, duplicates, skew & boundary values"
-                                        : "Benchmark dataset"}
+                                        ? tr(
+                                            "NULLs, duplicates, skew & boundary values",
+                                          )
+                                        : tr("Benchmark dataset")}
                                   </span>
                                   <span>
-                                    Seed {d.seed} · {d.size.toLocaleString()}{" "}
-                                    orders
+                                    {tr("Seed ")}
+                                    {d.seed} · {d.size.toLocaleString(locale)}{" "}
+                                    {tr("orders")}
                                   </span>
                                   <Badge kind={d.passed ? "green" : "red"}>
-                                    {d.passed ? "Passed" : "Failed"}
+                                    {d.passed ? tr("Passed") : tr("Failed")}
                                   </Badge>
                                 </div>
                               ))}
@@ -993,9 +1072,10 @@ export default function LegacyOptimizer({
                           <div className="empirical-note">
                             <ShieldCheck size={17} />
                             <p>
-                              {String(report.conditions.equivalence)} Equality
-                              on these fixtures is evidence, not a proof over
-                              all possible databases.
+                              {String(report.conditions.equivalence)}
+                              {tr(
+                                " Equality on these fixtures is evidence, not a proof over all possible databases.",
+                              )}
                             </p>
                           </div>
                         </>
@@ -1006,10 +1086,10 @@ export default function LegacyOptimizer({
                             {Object.entries(report.usage).map(
                               ([key, value]) => (
                                 <div key={key}>
-                                  <span>{key.replaceAll("_", " ")}</span>
+                                  <span>{tr(key.replaceAll("_", " "))}</span>
                                   <strong>
                                     {value === null
-                                      ? "Unavailable"
+                                      ? tr("Unavailable")
                                       : String(value)}
                                   </strong>
                                 </div>
@@ -1021,18 +1101,20 @@ export default function LegacyOptimizer({
                               (e, i) => (
                                 <div key={i}>
                                   <CheckCircle2 size={15} />
-                                  <span>{e.stage}</span>
-                                  <p>{e.message}</p>
+                                  <span>{tr(e.stage)}</span>
+                                  <p>{tr(e.message)}</p>
                                 </div>
                               ),
                             )}
                           </div>
-                          <h3>Experiment conditions</h3>
+                          <h3>{tr("Experiment conditions")}</h3>
                           <div className="conditions">
                             {Object.entries(report.conditions).map(
                               ([key, value]) => (
                                 <div key={key}>
-                                  <strong>{key.replaceAll("_", " ")}</strong>
+                                  <strong>
+                                    {tr(key.replaceAll("_", " "))}
+                                  </strong>
                                   <span>
                                     {typeof value === "object"
                                       ? JSON.stringify(value)
@@ -1049,8 +1131,9 @@ export default function LegacyOptimizer({
                   <div className="results-footer">
                     <ShieldCheck size={15} />
                     <span>
-                      Measured on synthetic data. Empirical checks are not a
-                      proof of SQL equivalence.
+                      {tr(
+                        "Measured on synthetic data. Empirical checks are not a proof of SQL equivalence.",
+                      )}
                     </span>
                     <span>
                       {report.usage.provider} · {report.usage.model}
@@ -1061,12 +1144,13 @@ export default function LegacyOptimizer({
                 !active && (
                   <div className="empty-state">
                     <Otter />
-                    <h3>Choose a query to investigate</h3>
+                    <h3>{tr("Choose a query to investigate")}</h3>
                     <p>
-                      Choose a slow-query example and let QueryOtter
-                      investigate.
+                      {tr(
+                        "Choose a slow-query example and let QueryOtter investigate.",
+                      )}
                       <br />
-                      Findings appear here as measured evidence.
+                      {tr("Findings appear here as measured evidence.")}
                     </p>
                   </div>
                 )
@@ -1076,10 +1160,11 @@ export default function LegacyOptimizer({
             <>
               <div className="page-heading">
                 <div>
-                  <h1>Experiment history</h1>
+                  <h1>{tr("Experiment history")}</h1>
                   <p>
-                    Reports and events persist in the worker's durable job
-                    store.
+                    {tr(
+                      "Reports and events persist in the worker's durable job store.",
+                    )}
                   </p>
                 </div>
               </div>
@@ -1102,16 +1187,18 @@ export default function LegacyOptimizer({
                       </span>
                       <div>
                         <strong>
-                          {examples.find((e) => e.id === j.case_id)?.title ||
-                            "Custom investigation"}
+                          {tr(
+                            examples.find((e) => e.id === j.case_id)?.title ||
+                              "Custom investigation",
+                          )}
                         </strong>
                         <small>
-                          {new Date(j.created * 1000).toLocaleString()} ·{" "}
+                          {new Date(j.created * 1000).toLocaleString(locale)} ·{" "}
                           {j.id.slice(0, 8)}
                         </small>
                       </div>
                       <Badge kind={j.state === "completed" ? "green" : "amber"}>
-                        {j.state}
+                        {tr(j.state)}
                       </Badge>
                       <ChevronRight size={18} />
                     </button>
@@ -1119,13 +1206,13 @@ export default function LegacyOptimizer({
                 ) : (
                   <div className="empty-state">
                     <History size={36} />
-                    <h3>No experiments yet</h3>
-                    <p>Run an example to create a persisted report.</p>
+                    <h3>{tr("No experiments yet")}</h3>
+                    <p>{tr("Run an example to create a persisted report.")}</p>
                     <button
                       className="primary"
                       onClick={() => setPage("Investigate")}
                     >
-                      Investigate a query
+                      {tr("Investigate a query")}
                     </button>
                   </div>
                 )}
@@ -1135,40 +1222,44 @@ export default function LegacyOptimizer({
             <>
               <div className="page-heading">
                 <div>
-                  <h1>Evaluation methodology</h1>
+                  <h1>{tr("Evaluation methodology")}</h1>
                   <p>
-                    All cases are published, including regressions, rejections
-                    and inconclusive runs.
+                    {tr(
+                      "All cases are published, including regressions, rejections and inconclusive runs.",
+                    )}
                   </p>
                 </div>
                 <a className="outline" href="/evaluation.json" download>
                   <Download size={15} />
-                  Evaluation data
+                  {tr("Evaluation data")}
                 </a>
               </div>
               <div className="evaluation-intro">
                 <div>
                   <ShieldCheck size={24} />
-                  <h3>Independent semantic checks</h3>
+                  <h3>{tr("Independent semantic checks")}</h3>
                   <p>
-                    Result types, multisets and ordered sequences are compared
-                    by deterministic code on four fixtures.
+                    {tr(
+                      "Result types, multisets and ordered sequences are compared by deterministic code on four fixtures.",
+                    )}
                   </p>
                 </div>
                 <div>
                   <Gauge size={24} />
-                  <h3>Comparable measurements</h3>
+                  <h3>{tr("Comparable measurements")}</h3>
                   <p>
-                    Two warm-up rounds, seven measured repetitions, alternating
-                    execution order, medians and MAD.
+                    {tr(
+                      "Two warm-up rounds, seven measured repetitions, alternating execution order, medians and MAD.",
+                    )}
                   </p>
                 </div>
                 <div>
                   <Code2 size={24} />
-                  <h3>Two defined baselines</h3>
+                  <h3>{tr("Two defined baselines")}</h3>
                   <p>
-                    The original SELECT and a fixed, deterministic index
-                    recommendation defined in the case manifest.
+                    {tr(
+                      "The original SELECT and a fixed, deterministic index recommendation defined in the case manifest.",
+                    )}
                   </p>
                 </div>
               </div>
@@ -1179,10 +1270,10 @@ export default function LegacyOptimizer({
                       <div key={k}>
                         <strong>
                           {typeof v === "number"
-                            ? v.toLocaleString()
+                            ? v.toLocaleString(locale)
                             : String(v)}
                         </strong>
-                        <span>{k.replaceAll("_", " ")}</span>
+                        <span>{tr(k.replaceAll("_", " "))}</span>
                       </div>
                     ))}
                   </div>
@@ -1190,20 +1281,20 @@ export default function LegacyOptimizer({
                     <table>
                       <thead>
                         <tr>
-                          <th>Benchmark case</th>
-                          <th>Outcome</th>
-                          <th>Original</th>
-                          <th>Selected</th>
-                          <th>Baseline</th>
-                          <th>Correctness</th>
+                          <th>{tr("Benchmark case")}</th>
+                          <th>{tr("Outcome")}</th>
+                          <th>{tr("Original")}</th>
+                          <th>{tr("Selected")}</th>
+                          <th>{tr("Baseline")}</th>
+                          <th>{tr("Correctness")}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {evaluation.cases.map((c: any) => (
                           <tr key={c.id}>
                             <td>
-                              <strong>{c.title}</strong>
-                              <small>{c.category}</small>
+                              <strong>{tr(c.title)}</strong>
+                              <small>{tr(c.category)}</small>
                             </td>
                             <td>
                               <Badge
@@ -1215,7 +1306,7 @@ export default function LegacyOptimizer({
                                       : "amber"
                                 }
                               >
-                                {c.outcome}
+                                {tr(c.outcome)}
                               </Badge>
                             </td>
                             <td>{ms(c.original_ms)}</td>
@@ -1223,10 +1314,10 @@ export default function LegacyOptimizer({
                             <td>{ms(c.baseline_ms)}</td>
                             <td>
                               {c.correctness === null
-                                ? "Not executed"
+                                ? tr("Not executed")
                                 : c.correctness
-                                  ? "Passed"
-                                  : "Failed"}
+                                  ? tr("Passed")
+                                  : tr("Failed")}
                             </td>
                           </tr>
                         ))}
@@ -1239,17 +1330,20 @@ export default function LegacyOptimizer({
                 </>
               ) : (
                 <div className="empty-state">
-                  <p>Evaluation data has not been published yet.</p>
+                  <p>{tr("Evaluation data has not been published yet.")}</p>
                 </div>
               )}
             </>
           )}
           <footer className="app-footer">
             <span>
-              QueryOtter <span>·</span> Reviewed queries, measured changes
+              QueryOtter <span>·</span>
+              {tr(" Reviewed queries, measured changes")}
             </span>
             <span>
-              Built for PostgreSQL <span>·</span> Never changes production
+              {tr("Built for PostgreSQL ")}
+              <span>·</span>
+              {tr(" Never changes production")}
             </span>
           </footer>
         </main>
@@ -1263,12 +1357,12 @@ export default function LegacyOptimizer({
             className="modal"
             role="dialog"
             aria-modal="true"
-            aria-label="Database connection setup"
+            aria-label={tr("Database connection setup")}
             onClick={(e) => e.stopPropagation()}
           >
             <button
               className="modal-close"
-              aria-label="Close setup"
+              aria-label={tr("Close setup")}
               onClick={() => setConnectionOpen(false)}
             >
               <X size={20} />
@@ -1278,20 +1372,24 @@ export default function LegacyOptimizer({
             </span>
             <h2>
               {authenticated
-                ? "Connect a read-only database"
-                : "Owner sign-in"}
+                ? tr("Connect a read-only database")
+                : tr("Owner sign-in")}
             </h2>
             <p>
               {authenticated
-                ? "Live connections inspect metadata and non-executing plans. For measured experiments, use sanitized data in the disposable worker."
-                : "The public sandbox needs no account. Owner sign-in unlocks private queries and encrypted connections."}
+                ? tr(
+                    "Live connections inspect metadata and non-executing plans. For measured experiments, use sanitized data in the disposable worker.",
+                  )
+                : tr(
+                    "The public sandbox needs no account. Owner sign-in unlocks private queries and encrypted connections.",
+                  )}
             </p>
             {!authenticated ? (
               <>
                 <label>
-                  Owner password
+                  {tr("Owner password")}
                   <input
-                    aria-label="Owner password"
+                    aria-label={tr("Owner password")}
                     type="password"
                     autoComplete="current-password"
                     value={password}
@@ -1300,25 +1398,26 @@ export default function LegacyOptimizer({
                   />
                 </label>
                 <button className="primary full" onClick={login}>
-                  Sign in
+                  {tr("Sign in")}
                 </button>
                 <small className="modal-help">
-                  Self-hosted owner password is configured in the worker's
-                  private environment. Public registration is not enabled.
+                  {tr(
+                    "Self-hosted owner password is configured in the worker's private environment. Public registration is not enabled.",
+                  )}
                 </small>
               </>
             ) : (
               <>
                 <label>
-                  Connection name
+                  {tr("Connection name")}
                   <input
                     value={connLabel}
                     onChange={(e) => setConnLabel(e.target.value)}
-                    placeholder="Analytics replica"
+                    placeholder={tr("Analytics replica")}
                   />
                 </label>
                 <label>
-                  PostgreSQL connection URL
+                  {tr("PostgreSQL connection URL")}
                   <input
                     type="password"
                     autoComplete="off"
@@ -1330,8 +1429,9 @@ export default function LegacyOptimizer({
                 <div className="quiet-note">
                   <LockKeyhole size={18} />
                   <span>
-                    Encrypted at rest. Read-only role required. Remote
-                    connections must verify TLS certificates.
+                    {tr(
+                      "Encrypted at rest. Read-only role required. Remote connections must verify TLS certificates.",
+                    )}
                   </span>
                 </div>
                 <button
@@ -1339,7 +1439,9 @@ export default function LegacyOptimizer({
                   onClick={addConnection}
                   disabled={busy || !connUrl || !connLabel}
                 >
-                  {busy ? "Checking connection…" : "Validate & save connection"}
+                  {busy
+                    ? tr("Checking connection…")
+                    : tr("Validate & save connection")}
                 </button>
                 <button
                   className="text-button"
@@ -1351,13 +1453,13 @@ export default function LegacyOptimizer({
                     })
                   }
                 >
-                  Sign out
+                  {tr("Sign out")}
                 </button>
               </>
             )}
             {error && (
               <p className="modal-error" role="alert">
-                {error}
+                {tr(error)}
               </p>
             )}
           </section>

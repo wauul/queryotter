@@ -19,6 +19,7 @@ jobs:
       - run: npm run build
       - run: npm run test:proxy
       - run: npm run test:theme
+      - run: npm run test:i18n
       - name: Build and exercise cloud container
         run: |
           docker build -t queryotter-worker .

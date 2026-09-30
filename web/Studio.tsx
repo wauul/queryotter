@@ -1,3 +1,4 @@
+import { useLanguage } from "./Language";
 import React, { useState, useEffect, useRef } from "react";
 import {
   ArrowUpRight,
@@ -34,11 +35,11 @@ import {
 } from "lucide-react";
 import { Otter } from "./Otter";
 import Landing from "./Landing";
-import { ThemeControl } from "./Theme";
+import { Preferences } from "./Theme";
 import {
   api,
   queryText,
-  when,
+  when as formatWhen,
   type Catalog,
   type Session,
   type Connection,
@@ -100,16 +101,21 @@ function Metric({
   value: React.ReactNode;
   note?: string;
 }) {
+  const { t: tr } = useLanguage();
   return (
     <div className="q-metric">
-      <span>{label}</span>
-      <strong>{value}</strong>
-      {note && <small>{note}</small>}
+      <span>{tr(label)}</span>
+      <strong>{typeof value === "string" ? tr(value) : value}</strong>
+      {note && <small>{tr(note)}</small>}
     </div>
   );
 }
 
 export default function Studio() {
+  const { t: tr, language } = useLanguage();
+  const locale = language === "fr" ? "fr-FR" : "en-GB";
+  const when = (seconds?: number) => tr(formatWhen(seconds, locale));
+
   const [page, setPage] = useState(location.hash.slice(1) || "home");
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -127,7 +133,7 @@ export default function Studio() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [schemaOpen, setSchemaOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
-  const [prompt, setPrompt] = useState(SAMPLE);
+  const [prompt, setPrompt] = useState(() => tr(SAMPLE));
   const [query, setQuery] = useState("");
   const [draft, setDraft] = useState<AssistantReport | null>(null);
   const [previous, setPrevious] = useState<string | null>(null);
@@ -154,10 +160,12 @@ export default function Studio() {
     action: () => Promise<void>;
   } | null>(null);
   const [deleteText, setDeleteText] = useState("");
-  const [workspaceName, setWorkspaceName] = useState("My workspace");
+  const [workspaceName, setWorkspaceName] = useState(() => tr("My workspace"));
   const [timezone, setTimezone] = useState("UTC");
   const [retention, setRetention] = useState(30);
-  const [connectorLabel, setConnectorLabel] = useState("My local connector");
+  const [connectorLabel, setConnectorLabel] = useState(() =>
+    tr("My local connector"),
+  );
   const [connectors, setConnectors] = useState<
     { id: string; label: string; last_seen?: number }[]
   >([]);
@@ -326,7 +334,7 @@ export default function Studio() {
       location.assign(r.url);
     });
   }
-  async function startDemo(example = SAMPLE) {
+  async function startDemo(example = tr(SAMPLE)) {
     setBusy(true);
     await safely(async () => {
       await api("/demo/start", {});
@@ -515,24 +523,25 @@ export default function Studio() {
     <header className="q-public-header">
       <Brand />
       <nav>
-        <a href="#docs">Field guide</a>
-        <a href="#matrix">Support matrix</a>
+        <a href="#docs">{tr("Field guide")}</a>
+        <a href="#matrix">{tr("Support matrix")}</a>
         <a
           href="https://github.com/wauul/queryotter"
           target="_blank"
           rel="noreferrer"
         >
-          GitHub <ArrowUpRight size={13} />
+          {tr("GitHub ")}
+          <ArrowUpRight size={13} />
         </a>
       </nav>
-      <ThemeControl />
+      <Preferences />
       <button
         className="q-button"
         onClick={() =>
           session?.user ? (location.hash = "workspace") : setAuth(true)
         }
       >
-        {session?.user ? "Workspace" : "Sign in"}
+        {session?.user ? tr("Workspace") : tr("Sign in")}
       </button>
     </header>
   );
@@ -541,8 +550,8 @@ export default function Studio() {
       {error && (
         <div className="q-feedback error" role="alert">
           <AlertCircle size={17} />
-          <span>{error}</span>
-          <button aria-label="Dismiss error" onClick={() => setError("")}>
+          <span>{tr(error)}</span>
+          <button aria-label={tr("Dismiss error")} onClick={() => setError("")}>
             <X size={16} />
           </button>
         </div>
@@ -550,8 +559,11 @@ export default function Studio() {
       {notice && (
         <div className="q-feedback success" role="status">
           <CheckCircle2 size={17} />
-          <span>{notice}</span>
-          <button aria-label="Dismiss notice" onClick={() => setNotice("")}>
+          <span>{tr(notice)}</span>
+          <button
+            aria-label={tr("Dismiss notice")}
+            onClick={() => setNotice("")}
+          >
             <X size={16} />
           </button>
         </div>
@@ -562,9 +574,9 @@ export default function Studio() {
     return (
       <>
         <div className="q-legacy-return">
-          <a href="#workspace">← Back to workspace</a>
-          <span>Controlled synthetic PostgreSQL experiments</span>
-          <ThemeControl />
+          <a href="#workspace">{tr("← Back to workspace")}</a>
+          <span>{tr("Controlled synthetic PostgreSQL experiments")}</span>
+          <Preferences />
         </div>
         <Legacy portfolioOnly />
       </>
@@ -579,7 +591,7 @@ export default function Studio() {
           document.getElementById("q-main")?.focus();
         }}
       >
-        Skip to content
+        {tr("Skip to content")}
       </a>
       {page === "home" ||
       documentPages.includes(page) ||
@@ -607,58 +619,59 @@ export default function Studio() {
             />
           ) : page === "matrix" ? (
             <main className="q-prose q-matrix" id="q-main" tabIndex={-1}>
-              <h1>Support matrix</h1>
+              <h1>{tr("Support matrix")}</h1>
               <p>
-                Each adapter exposes different controls. Local verification does
-                not imply hosted access. Your own configuration still needs
-                discovery, generation, validation and execution checks.
+                {tr(
+                  "Each adapter exposes different controls. Local verification does not imply hosted access. Your own configuration still needs discovery, generation, validation and execution checks.",
+                )}
               </p>
               {catalog?.engines.map((e) => (
                 <section className="q-matrix-engine" key={e.id}>
                   <div>
                     <h2>{e.name}</h2>
-                    <span className="q-tag">{e.verification.status}</span>
+                    <span className="q-tag">{tr(e.verification.status)}</span>
                   </div>
                   <p>
-                    <strong>Version:</strong>{" "}
-                    {e.verification.version || "Not verified"}
+                    <strong>{tr("Version:")}</strong>{" "}
+                    {e.verification.version || tr("Not verified")}
                     <br />
-                    <strong>Hosted:</strong> {e.verification.hosted_provider}
+                    <strong>{tr("Hosted:")}</strong>{" "}
+                    {tr(e.verification.hosted_provider)}
                     <br />
-                    <strong>Generation:</strong>{" "}
-                    {e.verification.generation || "Verification pending"}
+                    <strong>{tr("Generation:")}</strong>{" "}
+                    {tr(e.verification.generation || "Verification pending")}
                   </p>
                   <div className="q-capabilities">
                     {Object.entries(e.capabilities).map(([k, v]) => (
                       <span className={v ? "available" : "unavailable"} key={k}>
                         <span className="q-sr-only">
-                          {v ? "Supported: " : "Unsupported: "}
+                          {v ? tr("Supported: ") : tr("Unsupported: ")}
                         </span>
                         {v ? (
                           <Check size={13} aria-hidden="true" />
                         ) : (
                           <X size={13} aria-hidden="true" />
                         )}{" "}
-                        {k.replaceAll("_", " ")}
+                        {tr(k.replaceAll("_", " "))}
                       </span>
                     ))}
                   </div>
                   {e.limitations.map((l) => (
                     <p className="q-note" key={l}>
-                      {l}
+                      {tr(l)}
                     </p>
                   ))}
                   <details>
-                    <summary>Verified test scope</summary>
+                    <summary>{tr("Verified test scope")}</summary>
                     {e.verification.tests?.map((t) => (
-                      <p key={t}>✓ {t}</p>
+                      <p key={t}>✓ {tr(t)}</p>
                     ))}
                     <a
                       href="/adapter-verification.json"
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Machine-readable evidence
+                      {tr("Machine-readable evidence")}
                     </a>
                   </details>
                 </section>
@@ -675,10 +688,10 @@ export default function Studio() {
               "settings",
             ].includes(page) ? (
             <main className="q-prose" id="q-main" tabIndex={-1}>
-              <h1>Page not found</h1>
-              <p>This address does not match a QueryOtter page.</p>
+              <h1>{tr("Page not found")}</h1>
+              <p>{tr("This address does not match a QueryOtter page.")}</p>
               <a className="q-button" href="#home">
-                Go to the home page
+                {tr("Go to the home page")}
               </a>
             </main>
           ) : loading ? (
@@ -689,35 +702,36 @@ export default function Studio() {
               role="status"
               aria-live="polite"
             >
-              <h1>Restoring your workspace…</h1>
-              <p>Checking your session and loading your connections.</p>
+              <h1>{tr("Restoring your workspace…")}</h1>
+              <p>{tr("Checking your session and loading your connections.")}</p>
             </main>
           ) : (
             <main className="q-prose" id="q-main" tabIndex={-1}>
-              <h1>Your query workspace</h1>
+              <h1>{tr("Your query workspace")}</h1>
               <p>
-                Sign in to save connections, queries and history. A synthetic
-                public demo is available without database credentials.
+                {tr(
+                  "Sign in to save connections, queries and history. A synthetic public demo is available without database credentials.",
+                )}
               </p>
               <button className="q-button" onClick={() => setAuth(true)}>
-                Choose a sign-in provider
+                {tr("Choose a sign-in provider")}
               </button>
               <button
                 className="q-button secondary"
                 onClick={() => void startDemo()}
               >
-                Try the safe demo
+                {tr("Try the safe demo")}
               </button>
             </main>
           )}
           <footer className="q-public-footer">
             <Brand />
-            <span>Queries grounded in schema and evidence</span>
+            <span>{tr("Queries grounded in schema and evidence")}</span>
             <nav>
-              <a href="#docs">Docs & FAQ</a>
-              <a href="#support">Support</a>
-              <a href="#privacy">Privacy</a>
-              <a href="#terms">Terms</a>
+              <a href="#docs">{tr("Docs & FAQ")}</a>
+              <a href="#support">{tr("Support")}</a>
+              <a href="#privacy">{tr("Privacy")}</a>
+              <a href="#terms">{tr("Terms")}</a>
             </nav>
           </footer>
         </>
@@ -725,7 +739,7 @@ export default function Studio() {
         <div className="q-workspace-shell">
           <aside
             id="q-workspace-navigation"
-            aria-label="Workspace navigation"
+            aria-label={tr("Workspace navigation")}
             className={"q-sidebar " + (mobileMenu ? "open" : "")}
           >
             <Brand />
@@ -736,7 +750,9 @@ export default function Studio() {
               <div>
                 <strong>{session.workspace?.name}</strong>
                 <small>
-                  {session.demo ? "Synthetic demo" : "Personal workspace"}
+                  {session.demo
+                    ? tr("Synthetic demo")
+                    : tr("Personal workspace")}
                 </small>
               </div>
             </div>
@@ -749,35 +765,36 @@ export default function Studio() {
                   key={l.id}
                 >
                   <l.icon size={18} />
-                  {l.name}
+                  {tr(l.name)}
                   {l.id === "connections" && <span>{connections.length}</span>}
                 </a>
               ))}
             </nav>
             <div className="q-sidebar-tip">
               <Otter small />
-              <strong>Review the business meaning</strong>
+              <strong>{tr("Review the business meaning")}</strong>
               <p>
-                A valid query can still answer the wrong question. Review its
-                meaning.
+                {tr(
+                  "A valid query can still answer the wrong question. Review its meaning.",
+                )}
               </p>
-              <a href="#docs">Read the field guide</a>
+              <a href="#docs">{tr("Read the field guide")}</a>
             </div>
             <nav className="q-sidebar-bottom">
               <a href="#experiments">
                 <FlaskConical size={18} />
-                PostgreSQL experiments
+                {tr("PostgreSQL experiments")}
               </a>
               <a
                 href="#settings"
                 className={page === "settings" ? "active" : ""}
               >
                 <Settings2 size={18} />
-                Settings & usage
+                {tr("Settings & usage")}
               </a>
               <a href="#docs">
                 <BookOpen size={18} />
-                Docs & support
+                {tr("Docs & support")}
               </a>
               <button
                 onClick={() =>
@@ -790,7 +807,7 @@ export default function Studio() {
                 }
               >
                 <LogOut size={17} />
-                Log out
+                {tr("Log out")}
               </button>
             </nav>
             <div className="q-user-label">
@@ -798,7 +815,9 @@ export default function Studio() {
               <div>
                 <strong>{session.user.name}</strong>
                 <small>
-                  {session.demo ? "Demo session · 24 hours" : "Session secured"}
+                  {session.demo
+                    ? tr("Demo session · 24 hours")
+                    : tr("Session secured")}
                 </small>
               </div>
             </div>
@@ -808,7 +827,7 @@ export default function Studio() {
               <button
                 ref={menuButton}
                 className="q-mobile-menu"
-                aria-label="Toggle workspace menu"
+                aria-label={tr("Toggle workspace menu")}
                 aria-expanded={mobileMenu}
                 aria-controls="q-workspace-navigation"
                 onClick={() => setMobileMenu(!mobileMenu)}
@@ -816,19 +835,24 @@ export default function Studio() {
                 <Menu size={21} />
               </button>
               <div>
-                <span>Workspace</span>
+                <span>{tr("Workspace")}</span>
                 <ChevronRight size={13} />
                 <strong>
-                  {links.find((l) => l.id === page)?.name || "Settings & usage"}
+                  {tr(
+                    links.find((l) => l.id === page)?.name ||
+                      "Settings & usage",
+                  )}
                 </strong>
               </div>
               <a href="#matrix">
                 <ShieldCheck size={14} />
-                Support evidence
+                {tr("Support evidence")}
               </a>
-              <ThemeControl />
+              <Preferences />
               <span className="q-tag">
-                {session.demo ? "Synthetic data" : "Read-only by default"}
+                {session.demo
+                  ? tr("Synthetic data")
+                  : tr("Read-only by default")}
               </span>
             </header>
             <main className="q-workspace-content" id="q-main" tabIndex={-1}>
@@ -837,14 +861,15 @@ export default function Studio() {
                 <section className="q-onboarding">
                   <Otter small />
                   <div>
-                    <strong>Set up your workspace</strong>
+                    <strong>{tr("Set up your workspace")}</strong>
                     <p>
-                      Choose a time zone, then explore a safe demo or connect
-                      your read-only database.
+                      {tr(
+                        "Choose a time zone, then explore a safe demo or connect your read-only database.",
+                      )}
                     </p>
                   </div>
                   <select
-                    aria-label="Onboarding time zone"
+                    aria-label={tr("Onboarding time zone")}
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
                   >
@@ -875,7 +900,7 @@ export default function Studio() {
                       }).finally(() => setBusy(false));
                     }}
                   >
-                    Get started
+                    {tr("Get started")}
                   </button>
                 </section>
               )}
@@ -883,29 +908,39 @@ export default function Studio() {
                 <div>
                   <h1>
                     {page === "workspace"
-                      ? "Query workspace"
+                      ? tr("Query workspace")
                       : page === "connections"
-                        ? "Your connections"
+                        ? tr("Your connections")
                         : page === "optimization"
-                          ? "Optimization"
+                          ? tr("Optimization")
                           : page === "history"
-                            ? "Query history"
+                            ? tr("Query history")
                             : page === "saved"
-                              ? "Saved queries"
-                              : "Settings & usage"}
+                              ? tr("Saved queries")
+                              : tr("Settings & usage")}
                   </h1>
                   <p>
                     {page === "workspace"
-                      ? "Ask in plain language. Review the native query. Run when you’re ready."
+                      ? tr(
+                          "Ask in plain language. Review the native query. Run when you’re ready.",
+                        )
                       : page === "connections"
-                        ? "Test, explore, rotate and remove your database connections."
+                        ? tr(
+                            "Test, explore, rotate and remove your database connections.",
+                          )
                         : page === "optimization"
-                          ? "Plan evidence and measured results have different meanings."
+                          ? tr(
+                              "Plan evidence and measured results have different meanings.",
+                            )
                           : page === "history"
-                            ? "Private history, retained on your schedule."
+                            ? tr("Private history, retained on your schedule.")
                             : page === "saved"
-                              ? "Load a query to review and run it against its original connection."
-                              : "Manage retention, local access, exports and your account."}
+                              ? tr(
+                                  "Load a query to review and run it against its original connection.",
+                                )
+                              : tr(
+                                  "Manage retention, local access, exports and your account.",
+                                )}
                   </p>
                 </div>
                 {page === "connections" && (
@@ -918,7 +953,7 @@ export default function Studio() {
                     disabled={session.demo}
                   >
                     <Plus size={16} />
-                    Add connection
+                    {tr("Add connection")}
                   </button>
                 )}
               </div>
@@ -926,14 +961,14 @@ export default function Studio() {
                 <div className="q-connection-bar">
                   <Database size={17} />
                   <label>
-                    Selected connection
+                    {tr("Selected connection")}
                     <select
-                      aria-label="Selected connection"
+                      aria-label={tr("Selected connection")}
                       value={selected}
                       onChange={(e) => choose(e.target.value)}
                       disabled={busy}
                     >
-                      <option value="">Choose a database</option>
+                      <option value="">{tr("Choose a database")}</option>
                       {connections.map((c) => (
                         <option value={c.id} key={c.id}>
                           {c.label} ·{" "}
@@ -950,11 +985,11 @@ export default function Studio() {
                       <span className="q-tag">{engine?.name}</span>
                       <span className="q-muted">
                         {metadata?.version?.split(" ").slice(0, 3).join(" ") ||
-                          "Version after discovery"}
+                          tr("Version after discovery")}
                       </span>
                       <button
                         className="q-icon-button"
-                        aria-label="Refresh selected schema"
+                        aria-label={tr("Refresh selected schema")}
                         onClick={() => void run("discover")}
                         disabled={busy}
                       >
@@ -974,12 +1009,14 @@ export default function Studio() {
                   <div>
                     <strong>
                       {job?.state === "queued"
-                        ? "Waiting for the worker…"
-                        : "Working with your selected database…"}
+                        ? tr("Waiting for the worker…")
+                        : tr("Working with your selected database…")}
                     </strong>
                     <p>
-                      {job?.events.at(-1)?.message ||
-                        "Preparing a durable operation."}
+                      {tr(
+                        job?.events.at(-1)?.message ||
+                          "Preparing a durable operation.",
+                      )}
                     </p>
                   </div>
                   <button
@@ -988,20 +1025,22 @@ export default function Studio() {
                     onClick={() => void cancel()}
                   >
                     <Square size={13} />
-                    Cancel
+                    {tr("Cancel")}
                   </button>
                 </section>
               )}
               {page === "workspace" &&
                 (!connection ? (
-                  <Empty title="Choose a database to begin">
+                  <Empty title={tr("Choose a database to begin")}>
                     <p>
-                      Use a safe synthetic copy or add a read-only database.
+                      {tr(
+                        "Use a safe synthetic copy or add a read-only database.",
+                      )}
                     </p>
                     <button className="q-button" onClick={() => void addSeed()}>
-                      Open a demo copy
+                      {tr("Open a demo copy")}
                     </button>
-                    <a href="#connections">Manage connections</a>
+                    <a href="#connections">{tr("Manage connections")}</a>
                   </Empty>
                 ) : (
                   <div className="q-query-layout">
@@ -1009,14 +1048,19 @@ export default function Studio() {
                       <div className="q-card q-question-card">
                         <div className="q-card-heading">
                           <MessageSquare size={18} />
-                          <h2>Ask your database</h2>
-                          <span className="q-tag">Groq · metadata only</span>
+                          <h2>{tr("Ask your database")}</h2>
+                          <span className="q-tag">
+                            {tr("Groq · metadata only")}
+                          </span>
                         </div>
                         {conversation.length > 0 && (
                           <details className="q-conversation">
                             <summary>
-                              Conversation · {conversation.length}{" "}
-                              {conversation.length === 1 ? "turn" : "turns"}
+                              {tr("Conversation · ")}
+                              {conversation.length}{" "}
+                              {conversation.length === 1
+                                ? tr("turn")
+                                : tr("turns")}
                             </summary>
                             {conversation.map((c, i) => (
                               <div key={i}>
@@ -1027,7 +1071,7 @@ export default function Studio() {
                           </details>
                         )}
                         <label className="q-sr-only" htmlFor="q-prompt">
-                          Natural-language request
+                          {tr("Natural-language request")}
                         </label>
                         <textarea
                           id="q-prompt"
@@ -1035,12 +1079,14 @@ export default function Studio() {
                           onChange={(e) => setPrompt(e.target.value)}
                           rows={3}
                           maxLength={3000}
-                          placeholder="Show the five customers with the highest total paid orders last month…"
+                          placeholder={tr(
+                            "Show the five customers with the highest total paid orders last month…",
+                          )}
                         />
                         <div className="q-question-footer">
                           <span>
                             <LockKeyhole size={12} />
-                            No records or credentials sent
+                            {tr("No records or credentials sent")}
                           </span>
                           <button
                             className="q-button"
@@ -1048,15 +1094,19 @@ export default function Studio() {
                             disabled={busy || !prompt.trim()}
                           >
                             <MessageSquare size={15} />
-                            {previous ? "Refine query" : "Generate query"}
+                            {previous
+                              ? tr("Refine query")
+                              : tr("Generate query")}
                           </button>
                         </div>
                         {draft?.clarification && (
                           <div className="q-clarification">
-                            <strong>Clarify your request</strong>
+                            <strong>{tr("Clarify your request")}</strong>
                             <p>{draft.clarification}</p>
                             <small>
-                              Edit your request above to answer, then refine.
+                              {tr(
+                                "Edit your request above to answer, then refine.",
+                              )}
                             </small>
                           </div>
                         )}
@@ -1069,7 +1119,7 @@ export default function Studio() {
                       <div className="q-card q-editor-card">
                         <div className="q-card-heading">
                           <Code2 size={18} />
-                          <h2>Native query</h2>
+                          <h2>{tr("Native query")}</h2>
                           <span className="q-tag">{engine?.name}</span>
                           <button
                             className="q-text-button"
@@ -1080,11 +1130,11 @@ export default function Studio() {
                             }}
                           >
                             <Save size={14} />
-                            Save
+                            {tr("Save")}
                           </button>
                         </div>
                         <label className="q-sr-only" htmlFor="q-native">
-                          Native query editor
+                          {tr("Native query editor")}
                         </label>
                         <div className="q-code-editor">
                           <div aria-hidden="true">
@@ -1118,8 +1168,8 @@ export default function Studio() {
                                 "cockroachdb",
                                 "sqlite",
                               ].includes(connection.engine)
-                                ? "SELECT …"
-                                : "Enter a supported native JSON query…"
+                                ? tr("SELECT …")
+                                : tr("Enter a supported native JSON query…")
                             }
                           />
                         </div>
@@ -1128,12 +1178,12 @@ export default function Studio() {
                             {draft?.validation?.syntactically_valid ? (
                               <>
                                 <CheckCircle2 size={13} />
-                                Syntax & metadata validated
+                                {tr("Syntax & metadata validated")}
                               </>
                             ) : (
                               <>
                                 <ShieldCheck size={13} />
-                                Review before Run
+                                {tr("Review before Run")}
                               </>
                             )}
                           </span>
@@ -1142,7 +1192,7 @@ export default function Studio() {
                             disabled={!query || busy}
                             onClick={() => void run("validate")}
                           >
-                            Validate
+                            {tr("Validate")}
                           </button>
                           <button
                             className="q-button"
@@ -1150,7 +1200,7 @@ export default function Studio() {
                             onClick={() => void run("run")}
                           >
                             <Play size={14} />
-                            Run query
+                            {tr("Run query")}
                           </button>
                         </div>
                       </div>
@@ -1158,7 +1208,7 @@ export default function Studio() {
                         <div className="q-card q-explanation">
                           <div className="q-card-heading">
                             <GitBranch size={17} />
-                            <h2>Query explanation</h2>
+                            <h2>{tr("Query explanation")}</h2>
                           </div>
                           <p>{draft.explanation}</p>
                           {draft.assumptions?.length ? (
@@ -1169,30 +1219,32 @@ export default function Studio() {
                             </ul>
                           ) : null}
                           <p className="q-note">
-                            Syntax:{" "}
+                            {tr("Syntax:")}{" "}
                             {draft.validation?.syntactically_valid
-                              ? "validated"
-                              : "not validated"}{" "}
-                            · Execution:{" "}
+                              ? tr("validated")
+                              : tr("not validated")}{" "}
+                            {tr("· Execution:")}{" "}
                             {draft.validation?.executable === true
-                              ? "succeeded"
-                              : "not run"}{" "}
-                            · Business meaning: requires your review
+                              ? tr("succeeded")
+                              : tr("not run")}{" "}
+                            {tr("· Business meaning: requires your review")}
                           </p>
                           <div className="q-usage-line">
                             <span>
-                              Model calls {draft.usage.model_calls || 0}
+                              {tr("Model calls ")}
+                              {draft.usage.model_calls || 0}
                             </span>
                             <span>
-                              Tokens{" "}
+                              {tr("Tokens")}{" "}
                               {Number(draft.usage.input_tokens || 0) +
                                 Number(draft.usage.output_tokens || 0)}
                             </span>
                             <span>
-                              {Number(draft.usage.seconds || 0).toFixed(2)} s
+                              {Number(draft.usage.seconds || 0).toFixed(2)}
+                              {tr(" s")}
                             </span>
                             <span>
-                              Estimated $
+                              {tr("Estimated $")}
                               {Number(
                                 draft.usage.estimated_cost_usd || 0,
                               ).toFixed(5)}
@@ -1203,34 +1255,39 @@ export default function Studio() {
                       <div className="q-card q-results">
                         <div className="q-card-heading">
                           <Activity size={18} />
-                          <h2>Results</h2>
+                          <h2>{tr("Results")}</h2>
                           {result && (
                             <>
                               <span className="q-tag">
-                                {result.row_count} rows ·{" "}
-                                {result.elapsed_ms.toFixed(2)} ms
+                                {result.row_count}
+                                {tr(" rows ·")} {result.elapsed_ms.toFixed(2)}
+                                {tr(" ms")}
                               </span>
                               <a
                                 href={`/api/assistant/results/${resultId}/export?format=json`}
                                 className="q-text-button"
                               >
                                 <Download size={14} />
-                                JSON
+                                {tr("JSON")}
                               </a>
                               <a
                                 href={`/api/assistant/results/${resultId}/export?format=csv`}
                                 className="q-text-button"
                               >
-                                CSV
+                                {tr("CSV")}
                               </a>
                             </>
                           )}
                         </div>
                         {!result ? (
-                          <Empty title="Run a query to see results" icon={Play}>
+                          <Empty
+                            title={tr("Run a query to see results")}
+                            icon={Play}
+                          >
                             <p>
-                              Review or edit the query, then select Run.
-                              Generating a draft never executes it.
+                              {tr(
+                                "Review or edit the query, then select Run. Generating a draft never executes it.",
+                              )}
                             </p>
                           </Empty>
                         ) : (
@@ -1251,7 +1308,7 @@ export default function Studio() {
                                         <td key={j}>
                                           {v === null ? (
                                             <span className="q-null">
-                                              NULL / missing
+                                              {tr("NULL / missing")}
                                             </span>
                                           ) : typeof v === "object" ? (
                                             JSON.stringify(v)
@@ -1266,25 +1323,28 @@ export default function Studio() {
                               </table>
                               {result.rows.length === 0 && (
                                 <p className="q-table-empty">
-                                  No rows matched this query. Review filters and
-                                  date boundaries.
+                                  {tr(
+                                    "No rows matched this query. Review filters and date boundaries.",
+                                  )}
                                 </p>
                               )}
                             </div>
                             <div className="q-results-footer">
                               <span>
                                 {result.truncated
-                                  ? "Clipped at 500 rows. "
+                                  ? tr("Clipped at 500 rows. ")
                                   : ""}
-                                Bounded snapshot · expires after 15 minutes
+                                {tr(
+                                  "Bounded snapshot · expires after 15 minutes",
+                                )}
                               </span>
                               <div
                                 className="q-pagination"
                                 role="group"
-                                aria-label="Results pagination"
+                                aria-label={tr("Results pagination")}
                               >
                                 <button
-                                  aria-label="Previous results page"
+                                  aria-label={tr("Previous results page")}
                                   disabled={result.page <= 1}
                                   onClick={() =>
                                     void resultPage(result.page - 1)
@@ -1293,14 +1353,16 @@ export default function Studio() {
                                   <ChevronLeft size={17} />
                                 </button>
                                 <span>
-                                  Page {result.page} of{" "}
+                                  {tr("Page ")}
+                                  {result.page}
+                                  {tr(" of")}{" "}
                                   {Math.max(
                                     1,
                                     Math.ceil(result.row_count / 50),
                                   )}
                                 </span>
                                 <button
-                                  aria-label="Next results page"
+                                  aria-label={tr("Next results page")}
                                   disabled={
                                     result.page * 50 >= result.row_count
                                   }
@@ -1313,9 +1375,9 @@ export default function Studio() {
                               </div>
                             </div>
                             <p className="q-note">
-                              Execution succeeded. Business meaning remains
-                              unverified. Document JSON export preserves missing
-                              fields.
+                              {tr(
+                                "Execution succeeded. Business meaning remains unverified. Document JSON export preserves missing fields.",
+                              )}
                             </p>
                           </>
                         )}
@@ -1328,17 +1390,17 @@ export default function Studio() {
                     >
                       <div className="q-card-heading">
                         <Database size={17} />
-                        <h2>Schema explorer</h2>
+                        <h2>{tr("Schema explorer")}</h2>
                         <button
                           className="q-schema-toggle"
                           aria-expanded={schemaOpen}
                           aria-controls="q-schema-content"
                           onClick={() => setSchemaOpen(!schemaOpen)}
                         >
-                          {schemaOpen ? "Hide fields" : "Show fields"}
+                          {schemaOpen ? tr("Hide fields") : tr("Show fields")}
                         </button>
                         <button
-                          aria-label="Refresh schema"
+                          aria-label={tr("Refresh schema")}
                           className="q-icon-button"
                           onClick={() => void run("discover")}
                           disabled={busy}
@@ -1350,33 +1412,35 @@ export default function Studio() {
                         <div className="q-schema-search">
                           <Search size={14} />
                           <input
-                            aria-label="Search schema"
+                            aria-label={tr("Search schema")}
                             value={schemaSearch}
                             onChange={(e) => setSchemaSearch(e.target.value)}
-                            placeholder="Find a table or field…"
+                            placeholder={tr("Find a table or field…")}
                           />
                         </div>
                         {!metadata ? (
-                          <Empty title="Discover your schema">
+                          <Empty title={tr("Discover your schema")}>
                             <p>
-                              Test or refresh the selected connection to
-                              discover actual tables and fields.
+                              {tr(
+                                "Test or refresh the selected connection to discover actual tables and fields.",
+                              )}
                             </p>
                             <button
                               className="q-button secondary"
                               onClick={() => void run("test")}
                               disabled={busy}
                             >
-                              Test & discover
+                              {tr("Test & discover")}
                             </button>
                           </Empty>
                         ) : (
                           <>
                             <p className="q-schema-note">
-                              {metadata.tables.length} tables / collections ·{" "}
+                              {metadata.tables.length}
+                              {tr(" tables / collections ·")}{" "}
                               {metadata.complete
-                                ? "Discovered metadata"
-                                : "Sampled, incomplete schema"}
+                                ? tr("Discovered metadata")
+                                : tr("Sampled, incomplete schema")}
                             </p>
                             {metadata.tables
                               .filter((t) =>
@@ -1403,8 +1467,11 @@ export default function Studio() {
                                   </summary>
                                   {t.inferred && (
                                     <p className="q-note">
-                                      Inferred from {t.sampled_documents || 0}{" "}
-                                      documents; sparse fields may be missing.
+                                      {tr("Inferred from ")}
+                                      {t.sampled_documents || 0}{" "}
+                                      {tr(
+                                        "documents; sparse fields may be missing.",
+                                      )}
                                     </p>
                                   )}
                                   {t.columns.map((c) => (
@@ -1422,7 +1489,7 @@ export default function Studio() {
                                 </details>
                               ))}
                             <details>
-                              <summary>Relationships & indexes</summary>
+                              <summary>{tr("Relationships & indexes")}</summary>
                               <pre>
                                 {JSON.stringify(
                                   {
@@ -1435,18 +1502,18 @@ export default function Studio() {
                               </pre>
                             </details>
                             <p className="q-note">
-                              Metadata is cached for five minutes. Refresh after
-                              schema changes. No raw record values enter model
-                              context.
+                              {tr(
+                                "Metadata is cached for five minutes. Refresh after schema changes. No raw record values enter model context.",
+                              )}
                             </p>
                             <details>
-                              <summary>Import Prisma context</summary>
+                              <summary>{tr("Import Prisma context")}</summary>
                               <textarea
-                                aria-label="Prisma schema"
+                                aria-label={tr("Prisma schema")}
                                 rows={5}
                                 value={prisma}
                                 onChange={(e) => setPrisma(e.target.value)}
-                                placeholder="model Customer { … }"
+                                placeholder={tr("model Customer { … }")}
                               />
                               <button
                                 className="q-button secondary"
@@ -1463,7 +1530,7 @@ export default function Studio() {
                                   })
                                 }
                               >
-                                Import & compare
+                                {tr("Import & compare")}
                               </button>
                             </details>
                           </>
@@ -1477,10 +1544,11 @@ export default function Studio() {
                   <div className="q-demo-banner">
                     <Otter small />
                     <div>
-                      <strong>Start with a synthetic database</strong>
+                      <strong>{tr("Start with a synthetic database")}</strong>
                       <p>
-                        Add a synthetic shop database copy. No customer
-                        credentials or records needed.
+                        {tr(
+                          "Add a synthetic shop database copy. No customer credentials or records needed.",
+                        )}
                       </p>
                     </div>
                     <button
@@ -1489,13 +1557,15 @@ export default function Studio() {
                       disabled={busy}
                     >
                       <Plus size={15} />
-                      Add demo copy
+                      {tr("Add demo copy")}
                     </button>
                   </div>
                   {connections.length === 0 ? (
-                    <Empty title="Add your first connection">
+                    <Empty title={tr("Add your first connection")}>
                       <p>
-                        Choose a provider or start with a synthetic SQLite copy.
+                        {tr(
+                          "Choose a provider or start with a synthetic SQLite copy.",
+                        )}
                       </p>
                     </Empty>
                   ) : (
@@ -1516,8 +1586,8 @@ export default function Studio() {
                               }
                             >
                               {c.status === "connected"
-                                ? "Connected"
-                                : "Needs validation"}
+                                ? tr("Connected")
+                                : tr("Needs validation")}
                             </span>
                           </div>
                           <h2>{c.label}</h2>
@@ -1527,26 +1597,28 @@ export default function Studio() {
                                 ?.name
                             }{" "}
                             ·{" "}
-                            {
+                            {tr(
                               catalog?.providers.find(
                                 (p) => p.id === c.provider,
-                              )?.name
-                            }
+                              )?.name || c.provider,
+                            )}
                           </p>
                           <p className="q-connection-host">
-                            {c.summary.masked_url || c.summary.scope}
+                            {c.summary.masked_url || tr(c.summary.scope || "")}
                           </p>
                           <dl>
-                            <dt>Access</dt>
+                            <dt>{tr("Access")}</dt>
                             <dd>
                               {c.status === "connected"
-                                ? "Read-only checked"
-                                : "Read-only required"}
+                                ? tr("Read-only checked")
+                                : tr("Read-only required")}
                             </dd>
-                            <dt>Last validated</dt>
+                            <dt>{tr("Last validated")}</dt>
                             <dd>{when(c.validated)}</dd>
-                            <dt>Scope</dt>
-                            <dd>{c.summary.schema || c.summary.scope}</dd>
+                            <dt>{tr("Scope")}</dt>
+                            <dd>
+                              {c.summary.schema || tr(c.summary.scope || "")}
+                            </dd>
                           </dl>
                           <div className="q-tile-actions">
                             <button
@@ -1556,10 +1628,12 @@ export default function Studio() {
                                 location.hash = "workspace";
                               }}
                             >
-                              Explore
+                              {tr("Explore")}
                             </button>
                             <button
-                              aria-label={`Rotate ${c.label} secrets`}
+                              aria-label={tr("Rotate {value0} secrets", {
+                                value0: c.label,
+                              })}
                               disabled={session.demo || busy}
                               onClick={() => {
                                 setRotation(c);
@@ -1569,7 +1643,9 @@ export default function Studio() {
                               <RefreshCw size={15} />
                             </button>
                             <button
-                              aria-label={`Remove ${c.label}`}
+                              aria-label={tr("Remove {value0}", {
+                                value0: c.label,
+                              })}
                               onClick={() => askRemove(c)}
                               disabled={busy}
                             >
@@ -1581,66 +1657,70 @@ export default function Studio() {
                     </div>
                   )}
                   <p className="q-note">
-                    A successful connection test verifies credentials and
-                    discovery; generation and bounded execution must be checked
-                    separately.
+                    {tr(
+                      "A successful connection test verifies credentials and discovery; generation and bounded execution must be checked separately.",
+                    )}
                   </p>
                 </>
               )}
               {page === "optimization" &&
                 (!connection ? (
-                  <Empty title="Select a database to investigate">
-                    <p>Start with a connection or a synthetic copy.</p>
-                    <a href="#connections">Open connections</a>
+                  <Empty title={tr("Select a database to investigate")}>
+                    <p>{tr("Start with a connection or a synthetic copy.")}</p>
+                    <a href="#connections">{tr("Open connections")}</a>
                   </Empty>
                 ) : (
                   <>
                     <div className="q-card q-optimization-query">
                       <div className="q-card-heading">
                         <FlaskConical size={18} />
-                        <h2>Query under investigation</h2>
+                        <h2>{tr("Query under investigation")}</h2>
                         <span className="q-tag">
                           {connection.capabilities?.query_plans
-                            ? "Plan evidence available"
-                            : "Limited native recommendations"}
+                            ? tr("Plan evidence available")
+                            : tr("Limited native recommendations")}
                         </span>
                       </div>
                       <label className="q-sr-only" htmlFor="q-opt-query">
-                        Query to optimize
+                        {tr("Query to optimize")}
                       </label>
                       <textarea
                         id="q-opt-query"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         rows={5}
-                        placeholder="Paste a native read-only query, or generate one in the query workspace."
+                        placeholder={tr(
+                          "Paste a native read-only query, or generate one in the query workspace.",
+                        )}
                         spellCheck={false}
                       />
                       <div className="q-editor-footer">
-                        <span>No connected production indexes are changed</span>
+                        <span>
+                          {tr("No connected production indexes are changed")}
+                        </span>
                         <button
                           className="q-button"
                           disabled={busy || !query}
                           onClick={() => void run("optimize")}
                         >
                           <MessageSquare size={15} />
-                          Investigate
+                          {tr("Investigate")}
                         </button>
                       </div>
                     </div>
                     {optimization && (
                       <>
                         <div className="q-card q-explanation">
-                          <h2>What the evidence suggests</h2>
+                          <h2>{tr("What the evidence suggests")}</h2>
                           <p>{optimization.diagnosis}</p>
                           {optimization.recommendations?.map((r) => (
                             <p key={r}>{r}</p>
                           ))}
                           <span className="q-tag">
-                            Recommendations · unmeasured
+                            {tr("Recommendations · unmeasured")}
                           </span>
                           <details>
-                            <summary>Actual plan evidence</summary>
+                            <summary>{tr("Actual plan evidence")}</summary>
                             <pre>
                               {JSON.stringify(optimization.plan, null, 2)}
                             </pre>
@@ -1650,7 +1730,9 @@ export default function Studio() {
                           {optimization.candidates?.map((c, i) => (
                             <article className="q-card q-candidate" key={i}>
                               <span className="q-entry-meta">
-                                Candidate {i + 1} · ranked hypothesis
+                                {tr("Candidate ")}
+                                {i + 1}
+                                {tr(" · ranked hypothesis")}
                               </span>
                               <h2>{c.name}</h2>
                               <p>{c.hypothesis}</p>
@@ -1658,14 +1740,17 @@ export default function Studio() {
                               {c.indexes.length > 0 && (
                                 <details>
                                   <summary>
-                                    Proposed indexes · never applied to
-                                    production
+                                    {tr(
+                                      "Proposed indexes · never applied to production",
+                                    )}
                                   </summary>
                                   <pre>{c.indexes.join("\n")}</pre>
                                 </details>
                               )}
                               <p className="q-note">
-                                Semantics and latency are not verified yet.
+                                {tr(
+                                  "Semantics and latency are not verified yet.",
+                                )}
                               </p>
                               <div>
                                 <button
@@ -1677,7 +1762,7 @@ export default function Studio() {
                                     location.hash = "workspace";
                                   }}
                                 >
-                                  Review query
+                                  {tr("Review query")}
                                 </button>
                                 <button
                                   className="q-button"
@@ -1694,7 +1779,7 @@ export default function Studio() {
                                   }
                                 >
                                   <FlaskConical size={14} />
-                                  Benchmark copy
+                                  {tr("Benchmark copy")}
                                 </button>
                               </div>
                             </article>
@@ -1702,12 +1787,13 @@ export default function Studio() {
                         </div>
                         {!optimization.candidates?.length && (
                           <Empty
-                            title="No validated candidates"
+                            title={tr("No validated candidates")}
                             icon={ShieldCheck}
                           >
                             <p>
-                              The query may already be appropriate, or the
-                              available evidence is limited.
+                              {tr(
+                                "The query may already be appropriate, or the available evidence is limited.",
+                              )}
                             </p>
                           </Empty>
                         )}
@@ -1717,34 +1803,39 @@ export default function Studio() {
                       <section className="q-card q-manual-benchmark">
                         <div className="q-card-heading">
                           <FlaskConical size={18} />
-                          <h2>Compare a rewrite in this copy</h2>
-                          <span className="q-tag">No model call needed</span>
+                          <h2>{tr("Compare a rewrite in this copy")}</h2>
+                          <span className="q-tag">
+                            {tr("No model call needed")}
+                          </span>
                         </div>
                         <p>
-                          Use the query above as the baseline. The candidate
-                          must preserve its output columns, duplicates, NULLs
-                          and ordering. A blank candidate compares the same
-                          query with optional experimental indexes.
+                          {tr(
+                            "Use the query above as the baseline. The candidate must preserve its output columns, duplicates, NULLs and ordering. A blank candidate compares the same query with optional experimental indexes.",
+                          )}
                         </p>
                         <label>
-                          Candidate query
+                          {tr("Candidate query")}
                           <textarea
                             rows={4}
                             value={manualCandidate}
                             onChange={(e) => setManualCandidate(e.target.value)}
                             maxLength={12000}
-                            placeholder="Optional rewrite; leave blank to retain the baseline query"
+                            placeholder={tr(
+                              "Optional rewrite; leave blank to retain the baseline query",
+                            )}
                             spellCheck={false}
                           />
                         </label>
                         <label>
-                          Experimental indexes · copy only
+                          {tr("Experimental indexes · copy only")}
                           <textarea
                             rows={2}
                             value={manualIndexes}
                             onChange={(e) => setManualIndexes(e.target.value)}
                             maxLength={3000}
-                            placeholder="Optional: one plain-column CREATE INDEX per line, maximum two"
+                            placeholder={tr(
+                              "Optional: one plain-column CREATE INDEX per line, maximum two",
+                            )}
                             spellCheck={false}
                           />
                         </label>
@@ -1761,7 +1852,8 @@ export default function Studio() {
                             })
                           }
                         >
-                          Benchmark this copy <FlaskConical size={15} />
+                          {tr("Benchmark this copy ")}
+                          <FlaskConical size={15} />
                         </button>
                       </section>
                     )}
@@ -1769,11 +1861,11 @@ export default function Studio() {
                       <section className="q-card q-benchmark-report">
                         <div className="q-card-heading">
                           <Activity size={19} />
-                          <h2>Observed copy benchmark</h2>
+                          <h2>{tr("Observed copy benchmark")}</h2>
                           <span className="q-tag">
                             {benchmark.benchmark.correct
-                              ? "Result comparison passed"
-                              : "Result mismatch · rejected"}
+                              ? tr("Result comparison passed")
+                              : tr("Result mismatch · rejected")}
                           </span>
                           <a
                             href={`/api/assistant/history/${benchmark.run_id}/export`}
@@ -1781,7 +1873,7 @@ export default function Studio() {
                             className="q-text-button"
                           >
                             <Download size={14} />
-                            Export
+                            {tr("Export")}
                           </a>
                         </div>
                         <div className="q-metrics">
@@ -1806,34 +1898,42 @@ export default function Studio() {
                           />
                         </div>
                         <p>
-                          Correctness scope: {benchmark.benchmark.scope.rows}{" "}
-                          complete bounded rows;{" "}
+                          {tr("Correctness scope: ")}
+                          {benchmark.benchmark.scope.rows}{" "}
+                          {tr("complete bounded rows;")}{" "}
                           {benchmark.benchmark.scope.comparison}.
                         </p>
                         <p>{benchmark.benchmark.methodology}</p>
                         <p>
-                          Observed index allocation:{" "}
+                          {tr("Observed index allocation:")}{" "}
                           {
                             benchmark.benchmark.index_tradeoffs
                               .observed_allocated_bytes
                           }{" "}
-                          bytes. {benchmark.benchmark.index_tradeoffs.writes}
+                          {tr("bytes. ")}
+                          {benchmark.benchmark.index_tradeoffs.writes}
                         </p>
                         <p className="q-note">
-                          Other datasets and production performance remain
-                          unverified.
+                          {tr(
+                            "Other datasets and production performance remain unverified.",
+                          )}
                         </p>
                       </section>
                     )}
                     <a className="q-inline-link" href="#experiments">
-                      Explore the controlled PostgreSQL benchmark portfolio{" "}
+                      {tr(
+                        "Explore the controlled PostgreSQL benchmark portfolio",
+                      )}{" "}
                     </a>
                   </>
                 ))}
               {page === "history" && (
                 <>
                   <div className="q-list-tools">
-                    <span>{history.length} recent operations</span>
+                    <span>
+                      {history.length}
+                      {tr(" recent operations")}
+                    </span>
                     <button
                       className="q-text-button"
                       onClick={() =>
@@ -1849,20 +1949,23 @@ export default function Studio() {
                         })
                       }
                     >
-                      Clear history <Trash2 size={14} />
+                      {tr("Clear history ")}
+                      <Trash2 size={14} />
                     </button>
                   </div>
                   {listLoading ? (
                     <div className="q-empty" role="status">
-                      <LoaderCircle className="q-spin" /> Loading history…
+                      <LoaderCircle className="q-spin" />
+                      {tr(" Loading history…")}
                     </div>
                   ) : history.length === 0 ? (
-                    <Empty title="No query history yet">
+                    <Empty title={tr("No query history yet")}>
                       <p>
-                        Your completed queries and investigations will appear
-                        here.
+                        {tr(
+                          "Your completed queries and investigations will appear here.",
+                        )}
                       </p>
-                      <a href="#workspace">Ask your first question</a>
+                      <a href="#workspace">{tr("Ask your first question")}</a>
                     </Empty>
                   ) : (
                     <div className="q-history-list">
@@ -1877,12 +1980,12 @@ export default function Studio() {
                           </span>
                           <div>
                             <span className="q-entry-meta">
-                              {h.kind} · {when(h.created)}
+                              {tr(h.kind)} · {when(h.created)}
                             </span>
                             <h3>
                               {h.prompt ||
                                 h.query?.slice(0, 100) ||
-                                "Connection discovery"}
+                                tr("Connection discovery")}
                             </h3>
                             <p>
                               {
@@ -1890,8 +1993,9 @@ export default function Studio() {
                                   (c) => c.id === h.connection_id,
                                 )?.label
                               }{" "}
-                              · {Number(h.usage.seconds || 0).toFixed(2)} s ·{" "}
-                              {Number(h.usage.model_calls || 0)} model calls
+                              · {Number(h.usage.seconds || 0).toFixed(2)}
+                              {tr(" s ·")} {Number(h.usage.model_calls || 0)}
+                              {tr(" model calls")}
                             </p>
                           </div>
                           <button
@@ -1899,7 +2003,7 @@ export default function Studio() {
                             disabled={!h.query}
                             onClick={() => load(h, true)}
                           >
-                            Open
+                            {tr("Open")}
                           </button>
                         </article>
                       ))}
@@ -1910,15 +2014,17 @@ export default function Studio() {
               {page === "saved" &&
                 (listLoading ? (
                   <div className="q-empty" role="status">
-                    <LoaderCircle className="q-spin" /> Loading saved queries…
+                    <LoaderCircle className="q-spin" />
+                    {tr(" Loading saved queries…")}
                   </div>
                 ) : saved.length === 0 ? (
-                  <Empty title="Save a query for later">
+                  <Empty title={tr("Save a query for later")}>
                     <p>
-                      Select Save in the native editor. It stays linked to the
-                      original database.
+                      {tr(
+                        "Select Save in the native editor. It stays linked to the original database.",
+                      )}
                     </p>
-                    <a href="#workspace">Open query workspace</a>
+                    <a href="#workspace">{tr("Open query workspace")}</a>
                   </Empty>
                 ) : (
                   <div className="q-connection-grid">
@@ -1938,10 +2044,12 @@ export default function Studio() {
                             className="q-button secondary"
                             onClick={() => load(s)}
                           >
-                            Review query
+                            {tr("Review query")}
                           </button>
                           <button
-                            aria-label={`Delete saved query ${s.name}`}
+                            aria-label={tr("Delete saved query {value0}", {
+                              value0: s.name,
+                            })}
                             onClick={() =>
                               setConfirm({
                                 title: "Remove this saved query?",
@@ -1965,9 +2073,9 @@ export default function Studio() {
               {page === "settings" && (
                 <div className="q-settings-grid">
                   <section className="q-card q-settings-card">
-                    <h2>Workspace preferences</h2>
+                    <h2>{tr("Workspace preferences")}</h2>
                     <label>
-                      Workspace name
+                      {tr("Workspace name")}
                       <input
                         value={workspaceName}
                         onChange={(e) => setWorkspaceName(e.target.value)}
@@ -1975,29 +2083,31 @@ export default function Studio() {
                       />
                     </label>
                     <label>
-                      IANA time zone
+                      {tr("IANA time zone")}
                       <input
                         value={timezone}
                         onChange={(e) => setTimezone(e.target.value)}
-                        placeholder="Europe/Paris"
+                        placeholder={tr("Europe/Paris")}
                       />
                     </label>
                     <label>
-                      History retention
+                      {tr("History retention")}
                       <select
                         value={retention}
                         onChange={(e) => setRetention(Number(e.target.value))}
                       >
                         {[1, 7, 14, 30, 60, 90].map((n) => (
                           <option key={n} value={n}>
-                            {n} days
+                            {n}
+                            {tr(" days")}
                           </option>
                         ))}
                       </select>
                     </label>
                     <p className="q-note">
-                      Result snapshots expire in 15 minutes. Expired history is
-                      pruned on account activity and maintenance.
+                      {tr(
+                        "Result snapshots expire in 15 minutes. Expired history is pruned on account activity and maintenance.",
+                      )}
                     </p>
                     <button
                       className="q-button"
@@ -2014,17 +2124,22 @@ export default function Studio() {
                       }
                     >
                       <Check size={15} />
-                      Save preferences
+                      {tr("Save preferences")}
                     </button>
                   </section>
                   <section className="q-card q-settings-card">
-                    <h2>Your usage</h2>
+                    <h2>{tr("Your usage")}</h2>
                     <div className="q-budget-number">
-                      {session.usage?.tokens_used_or_reserved.toLocaleString()}
+                      {session.usage?.tokens_used_or_reserved.toLocaleString(
+                        locale,
+                      )}
                       <small>
                         {" "}
-                        / {session.usage?.daily_token_limit.toLocaleString()}{" "}
-                        tokens today
+                        /{" "}
+                        {session.usage?.daily_token_limit.toLocaleString(
+                          locale,
+                        )}{" "}
+                        {tr("tokens today")}
                       </small>
                     </div>
                     <progress
@@ -2052,21 +2167,24 @@ export default function Studio() {
                     </div>
                     <p className="q-note">{session.usage?.cost_note}</p>
                     <p>
-                      One active operation, ten connections, 100 saved queries.
-                      Public demo model calls share a global daily limit.
+                      {tr(
+                        "One active operation, ten connections, 100 saved queries. Public demo model calls share a global daily limit.",
+                      )}
                     </p>
                     <button
                       className="q-button secondary"
                       onClick={() => void safely(refreshData)}
                     >
-                      Refresh usage <RefreshCw size={14} />
+                      {tr("Refresh usage ")}
+                      <RefreshCw size={14} />
                     </button>
                   </section>
                   <section className="q-card q-settings-card">
-                    <h2>Private network connectors</h2>
+                    <h2>{tr("Private network connectors")}</h2>
                     <p>
-                      Install a scoped outbound connector on a machine that can
-                      reach your database. Credentials stay on that machine.
+                      {tr(
+                        "Install a scoped outbound connector on a machine that can reach your database. Credentials stay on that machine.",
+                      )}
                     </p>
                     <a
                       className="q-inline-link"
@@ -2074,16 +2192,22 @@ export default function Studio() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Installation instructions <ExternalLink size={14} />
+                      {tr("Installation instructions ")}
+                      <ExternalLink size={14} />
                     </a>
                     {connectors.map((c) => (
                       <div className="q-connector-row" key={c.id}>
                         <span>
                           <strong>{c.label}</strong>
-                          <small>Last seen {when(c.last_seen)}</small>
+                          <small>
+                            {tr("Last seen ")}
+                            {when(c.last_seen)}
+                          </small>
                         </span>
                         <button
-                          aria-label={`Revoke ${c.label}`}
+                          aria-label={tr("Revoke {value0}", {
+                            value0: c.label,
+                          })}
                           onClick={() =>
                             setConfirm({
                               title: "Revoke this connector?",
@@ -2103,7 +2227,7 @@ export default function Studio() {
                       </div>
                     ))}
                     <label>
-                      Connector label
+                      {tr("Connector label")}
                       <input
                         value={connectorLabel}
                         onChange={(e) => setConnectorLabel(e.target.value)}
@@ -2124,19 +2248,19 @@ export default function Studio() {
                       }
                     >
                       <Plus size={15} />
-                      Enroll local connector
+                      {tr("Enroll local connector")}
                     </button>
                     {enrollment && (
                       <div className="q-enrollment">
                         <strong>
-                          Shown once · store on your connector machine
+                          {tr("Shown once · store on your connector machine")}
                         </strong>
                         <label>
-                          Connector ID
+                          {tr("Connector ID")}
                           <input readOnly value={enrollment.id} />
                         </label>
                         <label>
-                          Connector token
+                          {tr("Connector token")}
                           <input
                             type="password"
                             readOnly
@@ -2160,49 +2284,48 @@ export default function Studio() {
                               )
                           }
                         >
-                          Copy token
+                          {tr("Copy token")}
                         </button>
                         <button
                           className="q-text-button"
                           onClick={() => setEnrollment(null)}
                         >
-                          Hide token
+                          {tr("Hide token")}
                         </button>
                       </div>
                     )}
                   </section>
                   <section className="q-card q-settings-card">
-                    <h2>Account & data</h2>
+                    <h2>{tr("Account & data")}</h2>
                     <p>
                       {session.user.name}
                       {session.user.email ? " · " + session.user.email : ""}
                     </p>
                     <p>
-                      Your connection secrets are excluded from account export.
-                      Export unexpired results separately from their result
-                      table.
+                      {tr(
+                        "Your connection secrets are excluded from account export. Export unexpired results separately from their result table.",
+                      )}
                     </p>
                     <a
                       className="q-button secondary"
                       href="/api/assistant/account/export"
                     >
                       <Download size={15} />
-                      Export account data
+                      {tr("Export account data")}
                     </a>
                     <div className="q-danger-zone">
-                      <h3>Delete your account</h3>
+                      <h3>{tr("Delete your account")}</h3>
                       <p>
-                        Revoke sessions and connectors and remove connections,
-                        schemas, saved queries, jobs, history and results from
-                        the active application. Hosting backups expire under
-                        provider retention policies.
+                        {tr(
+                          "Revoke sessions and connectors and remove connections, schemas, saved queries, jobs, history and results from the active application. Hosting backups expire under provider retention policies.",
+                        )}
                       </p>
                       <label>
-                        Enter DELETE to confirm
+                        {tr("Enter DELETE to confirm")}
                         <input
                           value={deleteText}
                           onChange={(e) => setDeleteText(e.target.value)}
-                          placeholder="DELETE"
+                          placeholder={tr("DELETE")}
                         />
                       </label>
                       <button
@@ -2225,23 +2348,26 @@ export default function Studio() {
                           })
                         }
                       >
-                        Delete account <Trash2 size={15} />
+                        {tr("Delete account ")}
+                        <Trash2 size={15} />
                       </button>
                     </div>
                     <nav className="q-legal-links">
-                      <a href="#privacy">Privacy</a>
-                      <a href="#terms">Terms</a>
-                      <a href="#support">Support</a>
+                      <a href="#privacy">{tr("Privacy")}</a>
+                      <a href="#terms">{tr("Terms")}</a>
+                      <a href="#support">{tr("Support")}</a>
                     </nav>
                   </section>
                 </div>
               )}
             </main>
             <footer className="q-workspace-footer">
-              <span>QueryOtter · reviewed queries, measured changes</span>
-              <a href="#privacy">Privacy</a>
-              <a href="#terms">Terms</a>
-              <a href="#support">Support</a>
+              <span>
+                {tr("QueryOtter · reviewed queries, measured changes")}
+              </span>
+              <a href="#privacy">{tr("Privacy")}</a>
+              <a href="#terms">{tr("Terms")}</a>
+              <a href="#support">{tr("Support")}</a>
             </footer>
           </div>
         </div>
@@ -2256,17 +2382,18 @@ export default function Studio() {
           >
             <button
               className="q-dialog-close"
-              aria-label="Close sign-in"
+              aria-label={tr("Close sign-in")}
               onClick={() => setAuth(false)}
             >
               <X size={20} />
             </button>
             <Otter />
 
-            <h2 id="q-signin-title">Sign in to QueryOtter</h2>
+            <h2 id="q-signin-title">{tr("Sign in to QueryOtter")}</h2>
             <p>
-              Use your own workspace for connections, saved queries and private
-              history.
+              {tr(
+                "Use your own workspace for connections, saved queries and private history.",
+              )}
             </p>
             {(catalog?.authentication || session?.authentication || []).map(
               (p) => (
@@ -2283,25 +2410,28 @@ export default function Studio() {
                       p.name.charAt(0)
                     )}
                   </span>
-                  Continue with {p.name}
-                  <small>{p.configured ? p.status : "Setup required"}</small>
+                  {tr("Continue with ")}
+                  {p.name}
+                  <small>
+                    {p.configured ? tr(p.status) : tr("Setup required")}
+                  </small>
                 </button>
               ),
             )}
             <p className="q-note">
-              Provider status shows the sign-in flows that have been checked.
-              Microsoft organization accounts may require publisher
-              verification.
+              {tr(
+                "Provider status shows the sign-in flows that have been checked. Microsoft organization accounts may require publisher verification.",
+              )}
             </p>
             <button
               className="q-button secondary"
               onClick={() => void startDemo()}
               disabled={busy}
             >
-              Try the synthetic demo
+              {tr("Try the synthetic demo")}
             </button>
             <details className="q-owner-login">
-              <summary>Owner access</summary>
+              <summary>{tr("Owner access")}</summary>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -2315,7 +2445,7 @@ export default function Studio() {
                 }}
               >
                 <label>
-                  Owner password
+                  {tr("Owner password")}
                   <input
                     type="password"
                     autoComplete="current-password"
@@ -2324,22 +2454,22 @@ export default function Studio() {
                     required
                   />
                 </label>
-                <button className="q-button">Sign in as owner</button>
+                <button className="q-button">{tr("Sign in as owner")}</button>
               </form>
             </details>
             {error && (
               <p className="q-error" role="alert">
-                {error}
+                {tr(error)}
               </p>
             )}
             <p className="q-auth-terms">
-              By using QueryOtter, review its{" "}
+              {tr("By using QueryOtter, review its")}{" "}
               <a href="#terms" onClick={() => setAuth(false)}>
-                terms
+                {tr("terms")}
               </a>{" "}
-              and{" "}
+              {tr("and")}{" "}
               <a href="#privacy" onClick={() => setAuth(false)}>
-                privacy policy
+                {tr("privacy policy")}
               </a>
               .
             </p>
@@ -2370,7 +2500,7 @@ export default function Studio() {
             aria-modal="true"
             aria-labelledby="q-save-title"
           >
-            <h2 id="q-save-title">Save this query</h2>
+            <h2 id="q-save-title">{tr("Save this query")}</h2>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -2412,7 +2542,7 @@ export default function Studio() {
               }}
             >
               <label>
-                Query name
+                {tr("Query name")}
                 <input
                   autoFocus
                   disabled={savingQuery}
@@ -2428,10 +2558,10 @@ export default function Studio() {
                   className="q-button secondary"
                   onClick={() => setSaveDialog(false)}
                 >
-                  Cancel
+                  {tr("Cancel")}
                 </button>
                 <button className="q-button" disabled={savingQuery}>
-                  {savingQuery ? "Saving query…" : "Save query"}
+                  {savingQuery ? tr("Saving query…") : tr("Save query")}
                 </button>
               </footer>
             </form>
@@ -2446,14 +2576,14 @@ export default function Studio() {
             aria-modal="true"
             aria-labelledby="q-confirm-title"
           >
-            <h2 id="q-confirm-title">{confirm.title}</h2>
-            <p>{confirm.body}</p>
+            <h2 id="q-confirm-title">{tr(confirm.title)}</h2>
+            <p>{tr(confirm.body)}</p>
             <footer>
               <button
                 className="q-button secondary"
                 onClick={() => setConfirm(null)}
               >
-                Keep it
+                {tr("Keep it")}
               </button>
               <button
                 className="q-button danger"
@@ -2464,7 +2594,7 @@ export default function Studio() {
                   })
                 }
               >
-                Confirm removal
+                {tr("Confirm removal")}
               </button>
             </footer>
           </section>

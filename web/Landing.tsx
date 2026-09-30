@@ -1,3 +1,4 @@
+import { useLanguage } from "./Language";
 import React, { useState } from "react";
 import { Database, FlaskConical, LockKeyhole, ShieldCheck } from "lucide-react";
 import type { Catalog } from "./studio-api";
@@ -42,6 +43,8 @@ export default function Landing({
   onDemo: (prompt?: string) => void;
   onConnect: () => void;
 }) {
+  const { t: tr } = useLanguage();
+
   const [active, setActive] = useState(0);
   const example = examples[active];
   return (
@@ -49,119 +52,130 @@ export default function Landing({
       <section className="q-hero">
         <div className="q-hero-copy">
           <h1>
-            Your database, <em>understood</em>
+            {tr("Your database, ")}
+            <em>{tr("understood")}</em>
           </h1>
           <p>
-            Start with a question. Get a native query grounded in your schema.
-            Then check the answer and the evidence behind a faster version.
+            {tr(
+              "Start with a question. Get a native query grounded in your schema. Then check the answer and the evidence behind a faster version.",
+            )}
           </p>
           <div className="q-hero-actions">
             <button
               className="q-button large"
-              onClick={() => onDemo(example.prompt)}
+              onClick={() => onDemo(tr(example.prompt))}
               disabled={busy || loading}
             >
-              Try the demo
+              {tr("Try the demo")}
             </button>
             <button className="q-button secondary large" onClick={onConnect}>
-              Connect a database
+              {tr("Connect a database")}
             </button>
           </div>
           <div className="q-hero-facts">
             <span>
-              <ShieldCheck size={15} /> Read-only by default
+              <ShieldCheck size={15} />
+              {tr(" Read-only by default")}
             </span>
             <span>
-              <LockKeyhole size={15} /> Credentials stay out of the model
+              <LockKeyhole size={15} />
+              {tr(" Credentials stay out of the model")}
             </span>
           </div>
         </div>
-        <article className="q-specimen" aria-label="Synthetic query examples">
+        <article
+          className="q-specimen"
+          aria-label={tr("Synthetic query examples")}
+        >
           <header>
-            <strong>A question becomes a query</strong>
-            <span className="q-tag">SQLite demo schema</span>
+            <strong>{tr("A question becomes a query")}</strong>
+            <span className="q-tag">{tr("SQLite demo schema")}</span>
           </header>
           <div
             className="q-example-tabs"
             role="group"
-            aria-label="Choose an example"
+            aria-label={tr("Choose an example")}
           >
             {examples.map((item, i) => (
               <button
-                key={item.label}
+                key={tr(item.label)}
                 aria-pressed={active === i}
                 onClick={() => setActive(i)}
               >
-                {item.label}
+                {tr(item.label)}
               </button>
             ))}
           </div>
           <div className="q-specimen-step">
             <span aria-hidden="true">01</span>
             <div>
-              <h2>Ask in your own words</h2>
-              <p>{example.question}</p>
+              <h2>{tr("Ask in your own words")}</h2>
+              <p>{tr(example.question)}</p>
             </div>
           </div>
           <div className="q-specimen-step">
             <span aria-hidden="true">02</span>
             <div>
-              <h2>Review the native query</h2>
+              <h2>{tr("Review the native query")}</h2>
             </div>
           </div>
           <pre>
             <code>{example.sql}</code>
           </pre>
           <footer>
-            <p>Illustrative SQL · {example.note}</p>
+            <p>
+              {tr("Illustrative SQL · ")}
+              {tr(example.note)}
+            </p>
             <button
-              onClick={() => onDemo(example.prompt)}
+              onClick={() => onDemo(tr(example.prompt))}
               disabled={busy || loading}
             >
-              Open this question
+              {tr("Open this question")}
             </button>
           </footer>
         </article>
       </section>
       <section className="q-method">
         <div>
-          <h2>Keep the question connected to the evidence</h2>
+          <h2>{tr("Keep the question connected to the evidence")}</h2>
           <p>
-            Each step gives you something concrete to inspect. You decide when a
-            query runs.
+            {tr(
+              "Each step gives you something concrete to inspect. You decide when a query runs.",
+            )}
           </p>
           <a className="q-inline-link" href="#docs">
-            Read the field guide
+            {tr("Read the field guide")}
           </a>
         </div>
         <ol>
           <li>
             <div>
-              <h3>Connect and see what’s there</h3>
+              <h3>{tr("Connect and see what’s there")}</h3>
               <p>
-                Paste a connection string or follow a provider guide. Test
-                credentials and TLS, then explore actual tables, fields and
-                relationships.
+                {tr(
+                  "Paste a connection string or follow a provider guide. Test credentials and TLS, then explore actual tables, fields and relationships.",
+                )}
               </p>
             </div>
           </li>
           <li>
             <div>
-              <h3>Ask, refine and review</h3>
+              <h3>{tr("Ask, refine and review")}</h3>
               <p>
-                Get SQL in the right dialect or a supported native document
-                query. Check joins, filters and date boundaries before selecting
-                Run.
+                {tr(
+                  "Get SQL in the right dialect or a supported native document query. Check joins, filters and date boundaries before selecting Run.",
+                )}
               </p>
             </div>
           </li>
           <li>
             <div>
-              <h3>Measure a proposed change</h3>
+              <h3>{tr("Measure a proposed change")}</h3>
               <p>
-                Inspect plans and indexes where available. Supported
-                disposable-copy benchmarks compare results, latency, variability
-                and index costs.
+                {tr(
+                  "Inspect plans and indexes where available. Supported disposable-copy benchmarks compare results, latency, variability and index costs.",
+                )}
               </p>
             </div>
           </li>
@@ -169,14 +183,14 @@ export default function Landing({
       </section>
       <section className="q-engine-section">
         <div>
-          <h2>Nine engines, explicit limits</h2>
+          <h2>{tr("Nine engines, explicit limits")}</h2>
           <p>
-            Providers host databases. Engines determine the query language and
-            available evidence. See exactly what was tested locally, in
-            emulators or on a hosted service.
+            {tr(
+              "Providers host databases. Engines determine the query language and available evidence. See exactly what was tested locally, in emulators or on a hosted service.",
+            )}
           </p>
           <a href="#matrix" className="q-inline-link">
-            View the support matrix
+            {tr("View the support matrix")}
           </a>
         </div>
         <div className="q-engine-grid">
@@ -186,25 +200,25 @@ export default function Landing({
               <strong>{e.name}</strong>
               <small>
                 {e.verification.status.startsWith("Verified")
-                  ? "Local / emulator checks passed"
-                  : "Verification pending"}
+                  ? tr("Local / emulator checks passed")
+                  : tr("Verification pending")}
               </small>
             </a>
-          )) || <p role="status">Loading support evidence…</p>}
+          )) || <p role="status">{tr("Loading support evidence…")}</p>}
         </div>
       </section>
       <section className="q-benchmark-teaser">
         <FlaskConical size={27} />
         <div>
-          <h2>A performance claim needs a method</h2>
+          <h2>{tr("A performance claim needs a method")}</h2>
           <p>
-            Explore actual PostgreSQL reports, independent correctness fixtures
-            and measured timing distributions. A recommendation becomes an
-            improvement only when the comparison supports it.
+            {tr(
+              "Explore actual PostgreSQL reports, independent correctness fixtures and measured timing distributions. A recommendation becomes an improvement only when the comparison supports it.",
+            )}
           </p>
         </div>
         <a className="q-button secondary" href="#experiments">
-          Open experiments
+          {tr("Open experiments")}
         </a>
       </section>
     </main>

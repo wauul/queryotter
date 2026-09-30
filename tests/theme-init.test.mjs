@@ -3,23 +3,46 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { runInNewContext } from "node:vm";
 
-const boot = readFileSync(new URL("../public/theme-init.js", import.meta.url), "utf8");
+const boot = readFileSync(
+  new URL("../public/theme-init.js", import.meta.url),
+  "utf8",
+);
 function firstPaint(saved, darkSystem, storageBlocked = false) {
   const root = { dataset: {}, style: {} };
   runInNewContext(boot, {
     document: { documentElement: root },
     window: { matchMedia: () => ({ matches: darkSystem }) },
-    localStorage: { getItem: () => { if (storageBlocked) throw Error("storage blocked"); return saved; } },
+    localStorage: {
+      getItem: () => {
+        if (storageBlocked) throw Error("storage blocked");
+        return saved;
+      },
+    },
   });
   return root;
 }
 for (const [name, saved, darkSystem, expected] of [
   ["first visit follows a light system", null, false, "light"],
   ["first visit follows a dark system", null, true, "dark"],
-  ["saved light overrides a dark system before rendering", "light", true, "light"],
-  ["saved dark overrides a light system before rendering", "dark", false, "dark"],
+  [
+    "saved light overrides a dark system before rendering",
+    "light",
+    true,
+    "light",
+  ],
+  [
+    "saved dark overrides a light system before rendering",
+    "dark",
+    false,
+    "dark",
+  ],
   ["system mode follows the current system", "system", true, "dark"],
-  ["invalid saved values fall back to the system", "unexpected", false, "light"],
+  [
+    "invalid saved values fall back to the system",
+    "unexpected",
+    false,
+    "light",
+  ],
 ]) {
   test(name, () => {
     const root = firstPaint(saved, darkSystem);
@@ -34,7 +57,40 @@ test("theme initialization is a blocking same-origin script allowed by the produ
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   assert.match(html, /<script src="\/theme-init\.js"><\/script>/);
   assert.ok(html.indexOf("theme-init.js") < html.indexOf('id="root"'));
-  const config = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
-  const csp = config.headers[0].headers.find(h => h.key === "Content-Security-Policy").value;
+  const config = JSON.parse(
+    readFileSync(new URL("../vercel.json", import.meta.url), "utf8"),
+  );
+  const csp = config.headers[0].headers.find(
+    (h) => h.key === "Content-Security-Policy",
+  ).value;
   assert.match(csp, /script-src 'self';/);
+});
+
+function languageBeforePaint(saved, browserLanguage, blocked = false) {
+  const root = { dataset: {}, style: {} };
+  runInNewContext(boot, {
+    document: { documentElement: root },
+    window: { matchMedia: () => ({ matches: false }) },
+    navigator: { language: browserLanguage },
+    localStorage: {
+      getItem: (key) => {
+        if (blocked) throw Error("storage blocked");
+        return key === "queryotter-language" ? saved : null;
+      },
+    },
+  });
+  return root.lang;
+}
+test("first language follows French regional preferences, otherwise English", () => {
+  assert.equal(languageBeforePaint(null, "fr-FR"), "fr");
+  assert.equal(languageBeforePaint(null, "fr-CA"), "fr");
+  assert.equal(languageBeforePaint(null, "de-DE"), "en");
+});
+test("saved language overrides the browser independently of theme", () => {
+  assert.equal(languageBeforePaint("en", "fr-FR"), "en");
+  assert.equal(languageBeforePaint("fr", "en-US"), "fr");
+  assert.equal(languageBeforePaint("unsupported", "fr-FR"), "fr");
+});
+test("language remains usable with blocked browser storage", () => {
+  assert.equal(languageBeforePaint(null, "fr-FR", true), "fr");
 });

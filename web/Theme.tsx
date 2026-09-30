@@ -4,15 +4,20 @@ import React, {
   useLayoutEffect,
   useState,
 } from "react";
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
+import { useLanguage, LanguageControl } from "./Language";
 
 type ThemeMode = "system" | "light" | "dark";
 const ThemeContext = createContext<{
   mode: ThemeMode;
+  theme: "light" | "dark";
   setMode: (mode: ThemeMode) => void;
-}>({ mode: "system", setMode: () => {} });
+}>({ mode: "system", theme: "light", setMode: () => {} });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">(() =>
+    document.documentElement.dataset.theme === "dark" ? "dark" : "light",
+  );
   const [mode, setMode] = useState<ThemeMode>(() => {
     const initial = document.documentElement.dataset.themeMode;
     return initial === "light" || initial === "dark" ? initial : "system";
@@ -23,6 +28,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const theme =
         mode === "system" ? (media.matches ? "dark" : "light") : mode;
       document.documentElement.dataset.theme = theme;
+      setResolvedTheme(theme);
       document.documentElement.dataset.themeMode = mode;
       document.documentElement.style.colorScheme = theme;
       document
@@ -39,27 +45,35 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return () => media.removeEventListener("change", apply);
   }, [mode]);
   return (
-    <ThemeContext.Provider value={{ mode, setMode }}>
+    <ThemeContext.Provider value={{ mode, theme: resolvedTheme, setMode }}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
 export function ThemeControl() {
-  const { mode, setMode } = useContext(ThemeContext);
-  const Icon = mode === "system" ? Monitor : mode === "dark" ? Moon : Sun;
+  const { theme, setMode } = useContext(ThemeContext);
+  const { t } = useLanguage();
+  const Icon = theme === "dark" ? Moon : Sun;
   return (
-    <label className="q-theme-control">
-      <Icon size={16} aria-hidden="true" />
-      <span className="q-sr-only">Color theme</span>
-      <select
-        value={mode}
-        onChange={(e) => setMode(e.target.value as ThemeMode)}
-      >
-        <option value="system">System</option>
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-      </select>
-    </label>
+    <button
+      className="q-theme-toggle"
+      aria-label={t("Dark mode")}
+      aria-pressed={theme === "dark"}
+      title={t(
+        theme === "dark" ? "Switch to light mode" : "Switch to dark mode",
+      )}
+      onClick={() => setMode(theme === "dark" ? "light" : "dark")}
+    >
+      <Icon size={19} aria-hidden="true" />
+    </button>
+  );
+}
+export function Preferences() {
+  return (
+    <div className="q-preferences">
+      <LanguageControl />
+      <ThemeControl />
+    </div>
   );
 }

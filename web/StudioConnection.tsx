@@ -1,3 +1,4 @@
+import { useLanguage } from "./Language";
 import React, { useState } from "react";
 import { useModal } from "./useModal";
 import {
@@ -22,6 +23,8 @@ export default function StudioConnection({
   onSaved: (c: Connection) => void;
   rotate?: Connection;
 }) {
+  const { t: tr } = useLanguage();
+
   useModal(true, close);
   const [provider, setProvider] = useState(rotate?.provider || "neon");
   const [engine, setEngine] = useState(rotate?.engine || "postgresql");
@@ -155,17 +158,19 @@ export default function StudioConnection({
         <div className="q-dialog-head">
           <div>
             <h2 id="q-connect-title">
-              {rotate ? "Rotate connection secrets" : "Connect your database"}
+              {rotate
+                ? tr("Rotate connection secrets")
+                : tr("Connect your database")}
             </h2>
           </div>
-          <button aria-label="Close connection dialog" onClick={close}>
+          <button aria-label={tr("Close connection dialog")} onClick={close}>
             <X size={21} />
           </button>
         </div>
         <form onSubmit={save}>
           <div className="q-field-row">
             <label>
-              Provider
+              {tr("Provider")}
               <select
                 value={provider}
                 onChange={(e) => {
@@ -180,13 +185,13 @@ export default function StudioConnection({
               >
                 {catalog.providers.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name}
+                    {tr(p.name)}
                   </option>
                 ))}
               </select>
             </label>
             <label>
-              Database engine
+              {tr("Database engine")}
               <select
                 value={engine}
                 onChange={(e) => {
@@ -217,11 +222,11 @@ export default function StudioConnection({
             </label>
           </div>
           <label>
-            Connection name
+            {tr("Connection name")}
             <input
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              placeholder="Analytics · read only"
+              placeholder={tr("Analytics · read only")}
               required
               maxLength={100}
             />
@@ -229,10 +234,14 @@ export default function StudioConnection({
           <div className="q-provider-guide">
             <ShieldCheck size={19} />
             <div>
-              <strong>{preset.name} connection guide</strong>
-              <p>{preset.instructions}</p>
+              <strong>
+                {tr(preset.name)}
+                {tr(" connection guide")}
+              </strong>
+              <p>{tr(preset.instructions)}</p>
               <a href={preset.docs} target="_blank" rel="noreferrer">
-                Official documentation <ExternalLink size={12} />
+                {tr("Official documentation ")}
+                <ExternalLink size={12} />
               </a>
             </div>
           </div>
@@ -260,23 +269,23 @@ export default function StudioConnection({
                   }}
                 >
                   {m === "url"
-                    ? "URL or file"
+                    ? tr("URL or file")
                     : m === "form"
-                      ? "Guided form"
-                      : "Connector"}
+                      ? tr("Guided form")
+                      : tr("Connector")}
                 </button>
               ))}
           </div>
           {mode === "connector" ? (
             <>
               <label>
-                Enrolled connector
+                {tr("Enrolled connector")}
                 <select
                   value={connector}
                   onChange={(e) => setConnector(e.target.value)}
                   required
                 >
-                  <option value="">Choose a connector</option>
+                  <option value="">{tr("Choose a connector")}</option>
                   {connectors.map((c) => (
                     <option value={c.id} key={c.id}>
                       {c.label}
@@ -285,39 +294,39 @@ export default function StudioConnection({
                 </select>
               </label>
               <label>
-                Local profile name
+                {tr("Local profile name")}
                 <input
                   value={profile}
                   onChange={(e) => setProfile(e.target.value)}
-                  placeholder="local-shop"
+                  placeholder={tr("local-shop")}
                   required
                 />
               </label>
               <p className="q-note">
-                Enroll a connector in Settings first. The cloud app cannot
-                access your localhost automatically. Credentials stay on the
-                connector machine.
+                {tr(
+                  "Enroll a connector in Settings first. The cloud app cannot access your localhost automatically. Credentials stay on the connector machine.",
+                )}
               </p>
             </>
           ) : engine === "sqlite" && provider !== "turso" ? (
             <label className="q-upload">
               <Upload size={24} />
               <strong>{filename || "Upload a SQLite copy"}</strong>
-              <span>.sqlite, .db · maximum 2 MiB</span>
+              <span>{tr(".sqlite, .db · maximum 2 MiB")}</span>
               <input
-                aria-label="SQLite database file"
+                aria-label={tr("SQLite database file")}
                 type="file"
                 accept=".db,.sqlite,.sqlite3"
                 onChange={(e) => void upload(e.target.files?.[0])}
               />
-              <small>Queries and experiments run against a copy.</small>
+              <small>{tr("Queries and experiments run against a copy.")}</small>
             </label>
           ) : (
             <>
               {engine === "firestore" ? (
                 <div className="q-field-row">
                   <label>
-                    Firebase project ID
+                    {tr("Firebase project ID")}
                     <input
                       value={project}
                       onChange={(e) => setProject(e.target.value)}
@@ -325,7 +334,7 @@ export default function StudioConnection({
                     />
                   </label>
                   <label>
-                    Firestore database ID
+                    {tr("Firestore database ID")}
                     <input
                       value={firebaseDb}
                       onChange={(e) => setFirebaseDb(e.target.value)}
@@ -337,16 +346,16 @@ export default function StudioConnection({
                 <>
                   <div className="q-field-row">
                     <label>
-                      Hostname
+                      {tr("Hostname")}
                       <input
                         value={host}
                         onChange={(e) => setHost(e.target.value)}
                         required
-                        placeholder="db.example.com"
+                        placeholder={tr("db.example.com")}
                       />
                     </label>
                     <label>
-                      Port
+                      {tr("Port")}
                       <input
                         inputMode="numeric"
                         value={port}
@@ -356,7 +365,7 @@ export default function StudioConnection({
                     </label>
                   </div>
                   <label>
-                    Database
+                    {tr("Database")}
                     <input
                       value={database}
                       onChange={(e) => setDatabase(e.target.value)}
@@ -365,7 +374,7 @@ export default function StudioConnection({
                   </label>
                   <div className="q-field-row">
                     <label>
-                      Read-only username
+                      {tr("Read-only username")}
                       <input
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
@@ -374,7 +383,7 @@ export default function StudioConnection({
                       />
                     </label>
                     <label>
-                      Password
+                      {tr("Password")}
                       <input
                         type="password"
                         value={password}
@@ -388,10 +397,10 @@ export default function StudioConnection({
               ) : (
                 <label>
                   {engine === "firebase_realtime"
-                    ? "Realtime Database HTTPS URL"
+                    ? tr("Realtime Database HTTPS URL")
                     : provider === "turso"
-                      ? "Turso / libSQL database URL"
-                      : "Connection URL"}
+                      ? tr("Turso / libSQL database URL")
+                      : tr("Connection URL")}
                   <input
                     type="password"
                     value={url}
@@ -399,7 +408,7 @@ export default function StudioConnection({
                     placeholder={
                       provider === "turso"
                         ? "libsql://database-org.turso.io"
-                        : "Paste the provider connection string"
+                        : tr("Paste the provider connection string")
                     }
                     autoComplete="new-password"
                     required
@@ -410,14 +419,15 @@ export default function StudioConnection({
                     onClick={() => void parse()}
                     disabled={engine === "firebase_realtime"}
                   >
-                    Detect engine and database <ArrowRight size={12} />
+                    {tr("Detect engine and database ")}
+                    <ArrowRight size={12} />
                   </button>
                   {parsed && <small>{parsed}</small>}
                 </label>
               )}
               {provider === "turso" && (
                 <label>
-                  Read-only database token
+                  {tr("Read-only database token")}
                   <input
                     type="password"
                     value={authToken}
@@ -435,25 +445,29 @@ export default function StudioConnection({
                 "sqlserver",
               ].includes(engine) && (
                 <label>
-                  Database schema
+                  {tr("Database schema")}
                   <input
                     value={schema}
                     onChange={(e) => setSchema(e.target.value)}
                     required
-                    placeholder={engine === "sqlserver" ? "dbo" : "public"}
+                    placeholder={
+                      engine === "sqlserver" ? tr("dbo") : tr("public")
+                    }
                   />
                 </label>
               )}
               {["firestore", "firebase_realtime"].includes(engine) && (
                 <label>
-                  Dedicated read-only service account JSON
+                  {tr("Dedicated read-only service account JSON")}
                   <textarea
                     value={service}
                     onChange={(e) => setService(e.target.value)}
                     className="q-secret-json"
                     rows={3}
                     required
-                    placeholder="Paste a dedicated viewer service account key"
+                    placeholder={tr(
+                      "Paste a dedicated viewer service account key",
+                    )}
                   />
                 </label>
               )}
@@ -467,26 +481,26 @@ export default function StudioConnection({
                     onChange={(e) => setInfer(e.target.checked)}
                   />
                   <span>
-                    Infer document field names/types from up to 20 records per
-                    collection. Record values stay local to the worker and are
-                    not sent to Groq. Inference remains incomplete.
+                    {tr(
+                      "Infer document field names/types from up to 20 records per collection. Record values stay local to the worker and are not sent to Groq. Inference remains incomplete.",
+                    )}
                   </span>
                 </label>
               )}
               <details>
-                <summary>Verified TLS and custom CA</summary>
+                <summary>{tr("Verified TLS and custom CA")}</summary>
                 <p className="q-note">
-                  TLS always verifies the server certificate and hostname. Use a
-                  provider CA bundle when its certificate is not publicly
-                  trusted.
+                  {tr(
+                    "TLS always verifies the server certificate and hostname. Use a provider CA bundle when its certificate is not publicly trusted.",
+                  )}
                 </p>
                 <label>
-                  CA certificate PEM (optional)
+                  {tr("CA certificate PEM (optional)")}
                   <textarea
                     rows={3}
                     value={ca}
                     onChange={(e) => setCa(e.target.value)}
-                    placeholder="-----BEGIN CERTIFICATE-----"
+                    placeholder={tr("-----BEGIN CERTIFICATE-----")}
                   />
                 </label>
               </details>
@@ -494,11 +508,13 @@ export default function StudioConnection({
           )}
           <p className="q-security-line">
             <LockKeyhole size={14} />
-            Secrets are encrypted and masked. Saving does not run a query.
+            {tr(
+              "Secrets are encrypted and masked. Saving does not run a query.",
+            )}
           </p>
           {error && (
             <p role="alert" className="q-error">
-              {error}
+              {tr(error)}
             </p>
           )}
           <footer>
@@ -507,14 +523,14 @@ export default function StudioConnection({
               className="q-button secondary"
               onClick={close}
             >
-              Cancel
+              {tr("Cancel")}
             </button>
             <button className="q-button" disabled={saving}>
               {saving
-                ? "Saving…"
+                ? tr("Saving…")
                 : rotate
-                  ? "Rotate secrets"
-                  : "Save connection"}
+                  ? tr("Rotate secrets")
+                  : tr("Save connection")}
               <Database size={16} />
             </button>
           </footer>

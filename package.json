@@ -10,7 +10,8 @@
     "test:proxy": "node --test tests/vercel-proxy.test.mjs",
     "test:theme": "node --test tests/theme-init.test.mjs",
     "postgres": "node scripts/postgres.mjs",
-    "test:web": "playwright test"
+    "test:web": "playwright test",
+    "test:i18n": "node --test tests/i18n.test.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",

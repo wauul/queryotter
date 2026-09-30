@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-30T17:58:56.232Z",
+  "generatedAt": "2026-09-30T18:37:43.6985014Z",
   "title": "Design System: QueryOtter",
   "extensions": {
     "colorMeta": {
@@ -515,12 +515,12 @@
       {
         "name": "overlay-light",
         "value": "0 20px 60px #162b3826",
-        "purpose": "Dialogs and mobile rail in light theme."
+        "purpose": "Dialogs, mobile rail and language popup in light theme."
       },
       {
         "name": "overlay-dark",
         "value": "0 20px 60px #06101780",
-        "purpose": "Dialogs and mobile rail in dark theme."
+        "purpose": "Dialogs, mobile rail and language popup in dark theme."
       }
     ],
     "motion": [
@@ -562,7 +562,8 @@
       "navigation": 10,
       "header": 20,
       "dialog": 50,
-      "skipNavigation": 60
+      "skipNavigation": 60,
+      "languagePopup": 70
     },
     "tonalRampNote": "Synthesized OKLCH preview strips, eight lightness steps; they are not additional shipped palette tokens."
   },
@@ -628,11 +629,27 @@
       "description": "Previous, page count and next remain one labelled group.",
       "html": "<div class=\"ds-pagination\" role=\"group\" aria-label=\"Results pagination\"><button aria-label=\"Previous results page\" disabled><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"m15 18-6-6 6-6\"/></svg></button><span>Page 1 of 3</span><button aria-label=\"Next results page\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"m9 18 6-6-6-6\"/></svg></button></div>",
       "css": ".ds-pagination{font-family:var(--font,'IBM Plex Sans',sans-serif);display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-size:.75rem;color:var(--muted,#4c6472)}.ds-pagination button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 12px;border:1px solid var(--control-border,#738b9a);border-radius:6px;background:var(--surface,#fcfdfe);color:var(--ink,#162b38);cursor:pointer;transition:background-color 160ms,color 160ms,border-color 160ms;}.ds-pagination button:disabled{opacity:.48;cursor:not-allowed}.ds-primary:focus-visible,.ds-secondary:focus-visible,.ds-field:focus-visible,.ds-nav a:focus-visible,.ds-tabs button:focus-visible,.ds-pagination button:focus-visible{outline:3px solid var(--accent,#236582);outline-offset:3px}@media(prefers-reduced-motion:reduce){button,a{transition:none}}"
+    },
+    {
+      "name": "Theme Toggle",
+      "kind": "button",
+      "refersTo": "theme-toggle",
+      "description": "Icon-only native button; Sun/Moon show current theme and aria-pressed means dark. First visit follows system, click persists an override.",
+      "html": "<button class=\"ds-theme-toggle\" aria-label=\"Dark mode\" aria-pressed=\"false\" title=\"Switch to dark mode\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42\"/></svg></button>",
+      "css": ".ds-theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:10px;color:var(--muted,#4c6472);border:0;border-radius:6px;background:transparent;cursor:pointer;transition:background-color 160ms,color 160ms,border-color 160ms;}.ds-theme-toggle:hover{color:var(--ink,#162b38);background:var(--surface-alt,#eaf0f4)}.ds-theme-toggle:focus-visible{outline:3px solid var(--accent,#236582);outline-offset:3px}@media(prefers-reduced-motion:reduce){.ds-theme-toggle{transition:none}}"
+    },
+    {
+      "name": "Language Popup",
+      "kind": "custom",
+      "refersTo": "language-menu",
+      "description": "English/Français listbox with current-language trigger, selected check and roving keyboard focus. Preview displays the open state; production uses Language.tsx for dismissal and selection.",
+      "html": "<div class=\"ds-language-control\"><button class=\"ds-language-trigger\" aria-label=\"Language: English\" aria-haspopup=\"listbox\" aria-expanded=\"true\" aria-controls=\"ds-language-options\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M2 12h20M12 2a16 16 0 0 1 0 20 16 16 0 0 1 0-20\"/></svg><span lang=\"en\">English</span><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg></button><div class=\"ds-language-menu\" id=\"ds-language-options\" role=\"listbox\" aria-label=\"Language\"><button role=\"option\" lang=\"en\" aria-selected=\"true\" tabindex=\"0\">English<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m20 6-11 11-5-5\"/></svg></button><button role=\"option\" lang=\"fr\" aria-selected=\"false\" tabindex=\"-1\">Français</button></div></div>",
+      "css": ".ds-language-control{font-family:var(--font,'IBM Plex Sans',sans-serif);position:relative;display:inline-block;color:var(--muted,#4c6472);padding-bottom:110px}.ds-language-trigger{font-family:var(--font,'IBM Plex Sans',sans-serif);display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px;border:1px solid transparent;border-radius:6px;background:transparent;color:inherit;font-size:.8125rem;cursor:pointer;transition:background-color 160ms,color 160ms,border-color 160ms;}.ds-language-trigger:hover,.ds-language-trigger[aria-expanded=true]{color:var(--ink,#162b38);background:var(--surface-alt,#eaf0f4)}.ds-language-menu{position:absolute;top:50px;right:0;z-index:70;width:164px;padding:6px;border:1px solid var(--control-border,#738b9a);border-radius:8px;background:var(--surface,#fcfdfe);box-shadow:var(--shadow,0 20px 60px #162b3826)}.ds-language-menu button{font-family:var(--font,'IBM Plex Sans',sans-serif);display:flex;align-items:center;justify-content:space-between;width:100%;min-height:44px;padding:10px;border:0;border-radius:4px;text-align:left;font-size:.875rem;color:var(--ink,#162b38);background:transparent;cursor:pointer;transition:background-color 160ms,color 160ms,border-color 160ms;}.ds-language-menu button:hover,.ds-language-menu button:focus-visible,.ds-language-menu button[aria-selected=true]{background:var(--surface-alt,#eaf0f4)}.ds-language-menu button[aria-selected=true]{color:var(--accent,#236582)}.ds-language-trigger:focus-visible,.ds-language-menu button:focus-visible{outline:3px solid var(--accent,#236582);outline-offset:3px}@media(prefers-reduced-motion:reduce){.ds-language-trigger,.ds-language-menu button{transition:none}}"
     }
   ],
   "narrative": {
     "northStar": "Riverbench",
-    "overview": "Riverbench is a cool, readable measurement workbench. The preserved otter provides warmth; native controls, actual schema names and ruled evidence provide technical confidence. Comfortable prose and denser query surfaces share the same palette, fonts and interaction vocabulary.\n\nThe QueryOtter name and original artwork, geometry and colors in `web/Otter.tsx` are binding user decisions: preserve the file unchanged, including in dark mode. [PRODUCT.md](PRODUCT.md) informs explicit review, scope and action labels without prescribing every page composition. Visual ground truth is `web/style.css`, `web/studio.css` and the sampled landing, workspace, connection, documentation, theme and experiment components. The direction contract is [redesign-direction.md](.data/redesign-direction.md); verification belongs in [redesign-verification.md](docs/redesign-verification.md).",
+    "overview": "Riverbench is a cool, readable measurement workbench. The preserved otter provides warmth; native controls, actual schema names and ruled evidence provide technical confidence. Comfortable prose and denser query surfaces share the same palette, fonts and interaction vocabulary.\n\nThe QueryOtter name and original artwork, geometry and colors in `web/Otter.tsx` are binding user decisions: preserve the file unchanged, including in dark mode. [PRODUCT.md](PRODUCT.md) informs explicit review, scope and action labels without prescribing every page composition. Visual ground truth is `web/style.css`, `web/studio.css`, `web/Language.tsx`, `web/Theme.tsx`, `web/main.tsx`, `web/locales/fr.json` and the sampled landing, workspace, connection, documentation and experiment components. Verification belongs in [redesign-verification.md](docs/redesign-verification.md).\n\nImpeccable's direction seed was b943d43f in Operate mode. Grounded candidate 5, the river-survey measurement workbench, was selected under the user's explicit autonomous-choice brief. The build is code-led, with no approved raster comp or painted assets.",
     "keyCharacteristics": [
       "Cool paired themes with a warm, unchanged original mascot.",
       "Flat ruled evidence and restrained outlined panels.",

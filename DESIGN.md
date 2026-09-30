@@ -76,6 +76,7 @@ rounded:
   tag: "4px"
   control: "6px"
   panel: "12px"
+  popup: "8px"
 spacing:
   micro: "4px"
   compact: "8px"
@@ -128,6 +129,22 @@ components:
     typography: "{typography.label}"
     rounded: "{rounded.control}"
     padding: "10px 12px"
+  theme-toggle:
+    textColor: "{colors.muted}"
+    rounded: "{rounded.control}"
+    padding: "10px"
+    height: "44px"
+    width: "44px"
+  language-trigger:
+    textColor: "{colors.muted}"
+    rounded: "{rounded.control}"
+    padding: "8px"
+  language-menu:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.popup}"
+    padding: "6px"
+    width: "164px"
 ---
 
 # Design System: QueryOtter
@@ -138,7 +155,7 @@ components:
 
 Riverbench is a cool, readable measurement workbench. The preserved otter provides warmth; native controls, actual schema names and ruled evidence provide technical confidence. Comfortable prose and denser query surfaces share the same palette, fonts and interaction vocabulary.
 
-The QueryOtter name and original artwork, geometry and colors in `web/Otter.tsx` are binding user decisions: preserve the file unchanged, including in dark mode. [PRODUCT.md](PRODUCT.md) informs explicit review, scope and action labels without prescribing every page composition. Visual ground truth is `web/style.css`, `web/studio.css` and the sampled landing, workspace, connection, documentation, theme and experiment components. Verification belongs in [redesign-verification.md](docs/redesign-verification.md).
+The QueryOtter name and original artwork, geometry and colors in `web/Otter.tsx` are binding user decisions: preserve the file unchanged, including in dark mode. [PRODUCT.md](PRODUCT.md) informs explicit review, scope and action labels without prescribing every page composition. Visual ground truth is `web/style.css`, `web/studio.css`, `web/Language.tsx`, `web/Theme.tsx`, `web/main.tsx`, `web/locales/fr.json` and the sampled landing, workspace, connection, documentation and experiment components. Verification belongs in [redesign-verification.md](docs/redesign-verification.md).
 
 Impeccable's direction seed was b943d43f in Operate mode. Grounded candidate 5, the river-survey measurement workbench, was selected under the user's explicit autonomous-choice brief. The build is code-led, with no approved raster comp or painted assets.
 
@@ -150,7 +167,7 @@ Three complete directions were considered under the user's autonomous choice bri
 | Night watch | Horizontal command strip, chronological operation log and dominant native query. Sans labels and compact code. | Proposed night #0d171b, #9be6ca, #eaa76d; day #eef5f2, #153b31. Rectangular controls and timeline markers. | Keyboard-first investigation log. Strong for frequent engineers, weaker for initial connection setup and general analysts. |
 | Otter atlas | Indexed chapters, connection passports and offset catalog spreads. Geometric sans headings and tabular annotations. | Proposed paper #f1eee7, blue #294360, rust #be542e; dark #20252d with #dca98c. Square chapter tabs. | Catalog index and capability legends. Strong for discovery, with extra editorial apparatus during frequent execution. |
 
-Alternative palettes record considered options; they are not implementation tokens. Seed b943d43f selected the river survey/measurement workbench. Clock, fold and lexicon challengers informed fixed numeric slots, progressive disclosure and bounded prose; literal LED motifs, folding animation and spectral decoration were declined. Taste, Impeccable and UI UX Pro Max guidance informed the pass. 21st.dev's MIT Campsite theme toggle and table collections were references; the shipped native theme select adds no animation dependency. Self-hosted Fontsource IBM Plex fonts carry OFL licenses. No Figma, Stitch or generated image comp is claimed as a design source.
+Alternative palettes record considered options; they are not implementation tokens. Seed b943d43f selected the river survey/measurement workbench. Clock, fold and lexicon challengers informed fixed numeric slots, progressive disclosure and bounded prose; literal LED motifs, folding animation and spectral decoration were declined. Taste, Impeccable and UI UX Pro Max guidance informed the pass. 21st.dev's MIT Campsite theme toggle and table collections were references; the shipped icon theme button and language popup add no animation dependency. Self-hosted Fontsource IBM Plex fonts carry OFL licenses. No Figma, Stitch or generated image comp is claimed as a design source.
 
 **Key Characteristics:**
 - Cool paired themes with a warm, unchanged original mascot.
@@ -217,7 +234,7 @@ Dense tables scroll inside their own containers. Pagination keeps previous, page
 
 ## Elevation & Depth
 
-Most surfaces are flat: tone and fine rules separate work areas. Soft elevation is reserved for dialogs and mobile navigation overlays, using the shared shadow token. The dim dialog backdrop is `#071923a6`. Navigation, headers, dialogs and skip navigation use layers 10, 20, 50 and 60 respectively.
+Most surfaces are flat: tone and fine rules separate work areas. Soft elevation is reserved for dialogs, mobile navigation overlays and the language popup, using the shared shadow token. The dim dialog backdrop is `#071923a6`. Navigation, headers, dialogs, skip navigation and the language popup use layers 10, 20, 50, 60 and 70 respectively.
 
 ### Shadow Vocabulary
 - **Light overlay:** `0 20px 60px #162b3826`.
@@ -246,7 +263,16 @@ Outlined panels use surface, structural border and panel corners without permane
 ### Inputs / Fields
 Native controls use surface, control-border, control corners and 10px 12px padding. Placeholders use muted at full opacity; disabled fields use 0.6 opacity. Textareas resize vertically. Query and question editors remove their field border inside an outlined panel; their focus outline moves inward.
 
-Theme is a labelled native System / Light / Dark select with a Lucide state icon. Closed selects and option menus follow color-scheme. Preference follows the system until an override is chosen, persists locally and observes system changes; a same-origin head script resolves it before initial rendering.
+Native connection selects and their option menus follow color-scheme.
+
+### Preferences
+A shared compact preference group appears on public, workspace and experiment surfaces, with 6px between language and theme controls. The theme control is one icon-only native button (44px square), with a Sun for current light mode and Moon for current dark mode. Its localized accessible name is Dark mode; aria-pressed represents whether dark is active, while its title describes the next action. Muted icon color becomes ink on hover over secondary surface. First visit follows the system; a click persists explicit light or dark independently of language. There is no System option in the interface. The same-origin head script resolves initial theme and language before rendering.
+
+The language trigger shows English or Français with Globe and disclosure icons, using compact Sans text, 8px padding and control corners. The Globe is hidden on small screens while the language name remains. Hover or open state uses secondary surface and ink. Its right-aligned popup sits 6px below the trigger, with a 164px width, 6px internal padding, stronger control border, popup corners and shared overlay shadow. Options are 44px high with 10px padding and tag corners. Selected options use accent text, secondary surface and a check icon; hover and visible focus also use secondary surface.
+
+The custom listbox exposes labelled expanded/selected state, focuses the current option on opening and uses roving option focus. Arrow keys cycle choices; Home/End and E/F select focus positions. Selection and Escape return focus to the trigger; Tab, focus leaving the control and outside pointer interaction dismiss the popup. Keep visible focus and the selected check as separate signals.
+
+Browser language beginning with fr selects French initially; otherwise English is used. Explicit language choice persists independently and updates document lang. The bundled French interface includes provider guides, documentation, privacy and terms. Changing language preserves the live workspace and leaves user text, native queries, schema identifiers, result values and API/model output unchanged.
 
 ### Navigation
 The rail uses muted Sans labels and Lucide outline icons. Active destinations use selected wash, accent and medium weight; hover uses secondary surface and ink. Mobile menu exposes the rail below the top bar. Skip navigation becomes visible on focus. Preserve the original otter separately from interface icons.

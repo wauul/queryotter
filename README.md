@@ -2,7 +2,7 @@
 
 QueryOtter investigates slow PostgreSQL SELECTs using a real Groq model and a deterministic experiment executor. It reads plans, proposes rewrites or indexes, verifies results on independent fixtures, benchmarks surviving candidates, and recommends only measured improvements.
 
-**Live app:** https://queryotter.wauul.chatgpt.site  
+**Live app:** https://queryotter.vercel.app  
 **Repository:** https://github.com/wauul/queryotter
 
 ![QueryOtter measured investigation](docs/queryotter-desktop.png)
@@ -51,7 +51,7 @@ The loop is **inspect → explain → hypothesize → experiment → validate �
 
 ```mermaid
 flowchart LR
-  UI[React + TypeScript] --> Edge[Hosted Worker proxy]
+  UI[React + TypeScript on Vercel] --> Edge[Vercel Node.js API proxy]
   Edge -->|Service-authenticated HTTPS connector| API[FastAPI]
   API --> Jobs[(SQLite WAL jobs and events)]
   Worker[Separate Python worker, concurrency 1] --> Jobs
@@ -100,7 +100,7 @@ Index build latency and storage are reported separately. Index maintenance/write
 
 ## Deployment
 
-The hosted app uses Sites with committed `.openai/hosting.json`, static `dist` assets, and `hosting/worker.js`. `CONNECTOR_URL` and secret `SERVICE_TOKEN` belong in the hosting environment. The Groq key, experiment URL, session secret and encryption key stay on the connector host.
+The primary hosted app uses Vercel Hobby with `vercel.json`, static Vite `dist` assets, and the Node.js function `api/proxy.js`. The function forwards approved API requests to the separate worker connector; long-running investigations and durable SQLite/PostgreSQL storage remain on that host. `CONNECTOR_URL` and sensitive `SERVICE_TOKEN` belong in Vercel's Production and Preview environments. The Groq key, experiment URL, owner password, session secret and encryption key stay on the connector host. `.vercelignore` excludes local secrets, PostgreSQL files, Python environments and backend source from the web deployment.
 
 For the current free demonstration, the official Cloudflare client runs:
 
@@ -110,17 +110,20 @@ For the current free demonstration, the official Cloudflare client runs:
 
 Use the returned URL for `CONNECTOR_URL`. The connector requires the service token, so visiting its tunnel directly cannot start jobs. The proxy removes caller-supplied service headers, forwards only approved API routes, refuses cross-origin writes, and never redirects credentials. [Cloudflare Quick Tunnels](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/trycloudflare/) are development-only, have no uptime guarantee, and get a new hostname on restart. Use a named tunnel and persistent machine, or a dedicated worker host, for durable availability. Neither was provisioned as a paid resource.
 
-Build and package exact committed source:
+Build and deploy from this repository:
 
 ```powershell
-npm run build
-uv run python scripts/package-site.py
-git add .
-git commit -m "Build QueryOtter"
-git push
+npm run test:proxy
+npm run build:web
+vercel link --yes --scope wauuls-projects --project queryotter
+vercel env add CONNECTOR_URL production,preview
+vercel env add SERVICE_TOKEN production,preview --sensitive
+vercel deploy --prod --yes
 ```
 
-Push the same commit to the configured Sites source remote using a short-lived credential, save a version with its exact SHA and `artifacts/queryotter.tar.gz`, then deploy that version through the Sites connector. Never store Git tokens in source or remote URLs. The archive contains only built assets, hosting config and the Worker.
+Run the two `env add` commands only during initial setup, entering the connector URL and the matching service token from the private worker environment. Use `vercel env update CONNECTOR_URL production,preview` and redeploy if the tunnel changes. Never pass credentials as command-line arguments or commit them. Deployment uses the authenticated Vercel CLI; automatic GitHub deployment is not connected for this project. Future updates require `vercel deploy --prod --yes` after validation.
+
+The previous Sites deployment remains available; its optional build is `npm run build` followed by `uv run python scripts/package-site.py`, using `.openai/hosting.json` and `hosting/worker.js`. Vercel uses `build:web` and does not package the Sites Worker.
 
 ## Troubleshooting and limits
 
@@ -133,7 +136,7 @@ Push the same commit to the configured Sites source remote using a short-lived c
 - **Metadata cache:** per-job schema snapshot only; no cross-job cache because disposable schemas are recreated. Statistics are refreshed after seeding.
 - **Model budget:** at most three candidates, one model decision plus one transient retry. No iterative follow-up decision or plateau-search loop.
 
-CI builds the frontend and runs deterministic API/SQL/database tests against embedded PostgreSQL; it does not consume model credits. Node and Python dependency lockfiles are committed. See the published evaluation for actual model/SQL usage and outcomes, and `tests/` for reproducible safety, semantic and operations checks.
+CI builds the frontend and runs deterministic API/SQL/database tests against embedded PostgreSQL plus the Vercel proxy security checks; it does not consume model credits. Node and Python dependency lockfiles are committed. See the published evaluation for actual model/SQL usage and outcomes, and `tests/` for reproducible safety, semantic and operations checks.
 
 ## Verification evidence
 
@@ -143,8 +146,8 @@ Authenticated live plan-only work was also verified against a dedicated local re
 
 The deployed flow was tested with real Groq/SQL work: **4.452 ms → 0.025 ms** in a fresh hosted customer-orders investigation. Job history persisted; duplicate submission returned the same job; a separate browser session could not read, cancel or export it. Cancellation reached a persisted terminal state. Unsafe SQL was refused before execution. Owner authentication and redacted invalid connection errors were verified. Full evidence is in `docs/deployed-verification.json` (synthetic SQL and metadata only; no credentials or records).
 
-To repeat deployed verification (requires the worker and tunnel online; consumes one public model run and one cancellable submission):
+To repeat deployed verification (requires the worker and tunnel online; uses the private owner password to avoid exhausting the public demo quota; makes one model run and one cancellable submission):
 
 ```powershell
-uv run python scripts/verify-deployed.py https://queryotter.wauul.chatgpt.site
+uv run python scripts/verify-deployed.py https://queryotter.vercel.app --owner
 ```

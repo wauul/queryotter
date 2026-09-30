@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { proxy } from "../api/[...path].js";
+import { proxy } from "../api/proxy.js";
 
 const env = {
   CONNECTOR_URL: "https://connector.example",

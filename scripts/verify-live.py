@@ -1,6 +1,6 @@
 """Create a tiny disposable read-only fixture and verify authenticated hosted plan-only work."""
 
-import os, secrets, time, json
+import os, secrets, time, json, sys
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse, quote
 import httpx, psycopg
@@ -8,6 +8,7 @@ from psycopg import sql
 from dotenv import load_dotenv
 
 load_dotenv()
+BASE = sys.argv[1] if len(sys.argv) > 1 else "https://queryotter.vercel.app"
 
 
 def main():
@@ -62,7 +63,7 @@ def main():
         f"postgresql://{role}:{password}@{parsed.hostname}:{parsed.port or 5432}/{db}"
     )
     with httpx.Client(
-        base_url="https://queryotter.wauul.chatgpt.site", timeout=20
+        base_url=BASE, timeout=20
     ) as client:
         assert client.get("/api/session").status_code == 200
         assert (
@@ -101,6 +102,7 @@ def main():
         # No execution times or records in the non-executing plan.
         assert all("Actual Total Time" not in node for node in r["plan_before"])
         evidence = {
+            "url": BASE,
             "mode": "authenticated live plan-only",
             "job_id": id,
             "checks": [

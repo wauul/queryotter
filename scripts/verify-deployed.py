@@ -6,7 +6,7 @@ import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
-BASE = sys.argv[1] if len(sys.argv) > 1 else "https://queryotter.wauul.chatgpt.site"
+BASE = sys.argv[1] if len(sys.argv) > 1 else "https://queryotter.vercel.app"
 
 
 def main():
@@ -20,6 +20,11 @@ def main():
             assert c.get("/api/session").status_code == 200
         assert a.get("/api/health").json()["status"] == "ok"
         evidence["checks"].append("Hosted page and connector healthy")
+        if "--owner" in sys.argv:
+            assert a.post(
+                "/api/login", json={"password": os.environ["ADMIN_PASSWORD"]}
+            ).status_code == 200
+        evidence["submission_mode"] = "owner" if "--owner" in sys.argv else "anonymous"
         key = secrets.token_hex(16)
         payload = {"case_id": "customer-orders", "request_key": key}
         response = a.post("/api/jobs", json=payload)
@@ -33,7 +38,9 @@ def main():
         evidence["checks"].append("Duplicate submission and cross-session isolation")
         deadline = time.monotonic() + 190
         while time.monotonic() < deadline:
-            job = a.get("/api/jobs/" + id).json()
+            poll = a.get("/api/jobs/" + id)
+            assert poll.status_code == 200, f"Job polling returned HTTP {poll.status_code}"
+            job = poll.json()
             if job["state"] not in {"queued", "running"}:
                 break
             time.sleep(1)

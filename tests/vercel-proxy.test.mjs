@@ -124,3 +124,15 @@ test("forwards same-origin JSON without following redirects or leaking failures"
     503,
   );
 });
+
+test("OAuth callbacks preserve code/state and both session cookies", async () => {
+  const response = await proxy(new Request(`${base}/api/assistant/auth/github/callback?code=code&state=state`), env, async (url) => {
+    assert.equal(url.search, "?code=code&state=state");
+    const headers = new Headers({"content-type": "text/html", "referrer-policy": "no-referrer"});
+    headers.append("set-cookie", "qot_auth=session; HttpOnly; Secure; SameSite=Lax");
+    headers.append("set-cookie", "qot_oauth_browser=; Max-Age=0; HttpOnly; Secure");
+    return new Response("Signing in", {headers});
+  });
+  assert.equal(response.headers.getSetCookie().length, 2);
+  assert.equal(response.headers.get("referrer-policy"), "no-referrer");
+});

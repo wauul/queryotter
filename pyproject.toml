@@ -11,6 +11,14 @@ dependencies = [
     "cryptography>=45,<47",
     "python-dotenv>=1,<2",
     "certifi>=2025,<2027",
+    "pymysql>=1.1,<1.2",
+    "pymongo>=4.14,<5",
+    "python-tds>=1.16,<2",
+    "google-cloud-firestore>=2.21,<3",
+    "google-auth>=2.40,<3",
+    "authlib>=1.6,<2",
+    "dnspython>=2.8,<3",
+    "pyopenssl>=25,<27",
 ]
 [dependency-groups]
 dev = [

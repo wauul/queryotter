@@ -6,13 +6,30 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from cryptography.fernet import Fernet
 from backend import store
+from backend import workspaces
+from backend.adapters.base import AdapterError
+from backend.assistant_api import router as assistant_router
 from backend.cases import CASES, BY_ID
 from backend.safety import validate_query, Unsupported
 from dotenv import load_dotenv
 
 load_dotenv()
 store.init()
+workspaces.init()
 app = FastAPI(title="QueryOtter", docs_url=None, redoc_url=None)
+app.include_router(assistant_router)
+
+
+@app.exception_handler(AdapterError)
+async def adapter_error(request, error):
+    return JSONResponse(
+        {"detail": str(error), "code": error.code},
+        status_code=404
+        if error.code == "not_found"
+        else 429
+        if error.code == "budget"
+        else 422,
+    )
 
 
 @app.middleware("http")
@@ -26,7 +43,20 @@ async def guard(request, call_next):
         return JSONResponse(
             {"detail": "Worker service authentication required."}, status_code=401
         )
-    if int(request.headers.get("content-length", "0")) > 18000:
+    limit = (
+        3_000_000
+        if request.url.path.startswith("/api/assistant/connections")
+        or request.url.path.startswith("/api/assistant/connectors")
+        and request.url.path.endswith("/complete")
+        else 65536
+        if request.url.path.startswith("/api/assistant/")
+        else 18000
+    )
+    try:
+        length = int(request.headers.get("content-length", "0"))
+    except ValueError:
+        return JSONResponse({"detail": "Invalid request length."}, status_code=400)
+    if length < 0 or length > limit:
         return JSONResponse({"detail": "Request too large."}, status_code=413)
     # Refuse cross-origin writes; reverse proxy supplies canonical origin.
     origin = request.headers.get("origin")
@@ -40,6 +70,10 @@ async def guard(request, call_next):
         return JSONResponse(
             {"detail": "Cross-origin writes are not allowed."}, status_code=403
         )
+    if request.method not in ("GET", "HEAD"):
+        body = await request.body()
+        if len(body) > limit:
+            return JSONResponse({"detail": "Request too large."}, status_code=413)
     return await call_next(request)
 
 
@@ -57,6 +91,10 @@ def signed(owner):
 
 
 def owner(request):
+    if request.cookies.get("qot_auth"):
+        from backend import accounts
+
+        return accounts.current(request)["id"]
     try:
         payload, signature = request.cookies["qot_session"].split(".")
         expected = hmac.new(
@@ -66,6 +104,8 @@ def owner(request):
             raise ValueError()
         value = json.loads(base64.urlsafe_b64decode(payload))
         if value["expires"] < time.time():
+            raise ValueError()
+        if value["id"] != "admin" and not value["id"].startswith("anon_"):
             raise ValueError()
         return value["id"]
     except Exception:
@@ -112,7 +152,8 @@ def session(request: Request, response: Response):
         id = owner(request)
     except HTTPException:
         id = "anon_" + secrets.token_hex(16)
-    cookie(response, request, id)
+    if not request.cookies.get("qot_auth"):
+        cookie(response, request, id)
     return {"authenticated": id == "admin", "live_enabled": True}
 
 
@@ -239,7 +280,10 @@ def create(data: JobInput, request: Request):
             raise HTTPException(422, str(e)) from None
     if not store.limit("requests:" + who, 10, 3600):
         raise HTTPException(429, "Hourly job limit reached.")
-    if who != "admin" and not store.limit(
+    from backend import accounts
+
+    public_run = not request.cookies.get("qot_auth") or accounts.is_demo(who)
+    if who != "admin" and public_run and not store.limit(
         "demo:" + time.strftime("%Y-%m-%d", time.gmtime()),
         int(os.environ.get("DEMO_DAILY_LIMIT", "6")),
         86400,

@@ -1,0 +1,285 @@
+{
+  "mysql": {
+    "status": "Verified against official local service/emulator",
+    "version": "8.4.11",
+    "checked": "2026-09-30",
+    "tests": [
+      "actual connection and schema/collection discovery",
+      "join, SUM, NULLs, date boundaries and deterministic ordering against independently computed expected rows",
+      "writes, side-effect functions, missing tables/columns and multiple statements rejected",
+      "512-row query bounded to 500 with explicit truncation",
+      "expired deadline prevents further database work",
+      "cooperative cancellation checkpoint verified; native in-flight interruption remains timeout-bound",
+      "actual non-executing plan",
+      "actual invalid database password rejected with redacted, actionable credential error",
+      "malformed TLS CA rejected; this does not verify the hosted provider certificate path",
+      "Actual in-flight aggregate timeout verified on disposable local fixture; see execution-boundaries.json"
+    ],
+    "generation": "Real Groq schema-grounded generation, validation and expected-result semantics verified on the published synthetic case",
+    "hosted_provider": "Requires user credentials",
+    "capabilities": {
+      "connection_testing": true,
+      "discovery": true,
+      "generation": true,
+      "validation": true,
+      "read_only_execution": true,
+      "query_plans": true,
+      "profiling": true,
+      "candidate_optimization": true,
+      "controlled_benchmarking": false,
+      "cancellation": true,
+      "timeouts": true
+    },
+    "seconds": 0.148
+  },
+  "mongodb": {
+    "status": "Verified against official local service/emulator",
+    "version": "8.0.32",
+    "checked": "2026-09-30",
+    "tests": [
+      "actual connection and schema/collection discovery",
+      "native find and aggregation, missing fields/type variation, NULL aggregation against expected rows",
+      "native writes/unknown fields/unsupported query shapes rejected",
+      "expired deadline prevents further database work",
+      "cooperative cancellation checkpoint verified; native in-flight interruption remains timeout-bound",
+      "actual non-executing plan",
+      "actual invalid database password rejected with redacted, actionable credential error"
+    ],
+    "generation": "Real Groq schema-grounded generation, validation and expected-result semantics verified on the published synthetic case",
+    "hosted_provider": "Requires user credentials",
+    "capabilities": {
+      "connection_testing": true,
+      "discovery": true,
+      "generation": true,
+      "validation": true,
+      "read_only_execution": true,
+      "query_plans": true,
+      "profiling": true,
+      "candidate_optimization": true,
+      "controlled_benchmarking": false,
+      "cancellation": true,
+      "timeouts": true
+    },
+    "seconds": 0.166
+  },
+  "firestore": {
+    "status": "Verified against official local service/emulator",
+    "version": "Standard Core API v1",
+    "checked": "2026-09-30",
+    "tests": [
+      "actual connection and schema/collection discovery",
+      "native structured filters/order/limit, missing fields and type-order caveat",
+      "native writes/unknown fields/unsupported query shapes rejected",
+      "expired deadline prevents further database work",
+      "cooperative cancellation checkpoint verified; native in-flight interruption remains timeout-bound",
+      "unsupported plan explicitly reported"
+    ],
+    "generation": "Real Groq schema-grounded generation, validation and expected-result semantics verified on the published synthetic case",
+    "hosted_provider": "Requires user credentials",
+    "capabilities": {
+      "connection_testing": true,
+      "discovery": true,
+      "generation": true,
+      "validation": true,
+      "read_only_execution": true,
+      "query_plans": false,
+      "profiling": false,
+      "candidate_optimization": true,
+      "controlled_benchmarking": false,
+      "cancellation": true,
+      "timeouts": true
+    },
+    "seconds": 0.18
+  },
+  "firebase_realtime": {
+    "status": "Verified against official local service/emulator",
+    "version": "Realtime REST v1",
+    "checked": "2026-09-30",
+    "tests": [
+      "actual connection and schema/collection discovery",
+      "native order/equality/limit and actual missing fields against expected IDs",
+      "native writes/unknown fields/unsupported query shapes rejected",
+      "expired deadline prevents further database work",
+      "cooperative cancellation checkpoint verified; native in-flight interruption remains timeout-bound",
+      "unsupported plan explicitly reported"
+    ],
+    "generation": "Real Groq schema-grounded generation, validation and expected-result semantics verified on the published synthetic case",
+    "hosted_provider": "Requires user credentials",
+    "capabilities": {
+      "connection_testing": true,
+      "discovery": true,
+      "generation": true,
+      "validation": true,
+      "read_only_execution": true,
+      "query_plans": false,
+      "profiling": false,
+      "candidate_optimization": true,
+      "controlled_benchmarking": false,
+      "cancellation": true,
+      "timeouts": true
+    },
+    "seconds": 0.121
+  },
+  "sqlite": {
+    "status": "Verified against official local service/emulator",
+    "version": "3.50.4",
+    "checked": "2026-09-30",
+    "tests": [
+      "actual connection and schema/collection discovery",
+      "join, SUM, NULLs, date boundaries and deterministic ordering against independently computed expected rows",
+      "writes, side-effect functions, missing tables/columns and multiple statements rejected",
+      "512-row query bounded to 500 with explicit truncation",
+      "expired deadline prevents further database work",
+      "cooperative cancellation checkpoint verified; native in-flight interruption remains timeout-bound",
+      "actual non-executing plan",
+      "Actual in-flight aggregate timeout verified on disposable local fixture; see execution-boundaries.json"
+    ],
+    "generation": "Real Groq schema-grounded generation, validation and expected-result semantics verified on the published synthetic case",
+    "hosted_provider": "Requires user credentials",
+    "capabilities": {
+      "connection_testing": true,
+      "discovery": true,
+      "generation": true,
+      "validation": true,
+      "read_only_execution": true,
+      "query_plans": true,
+      "profiling": true,
+      "candidate_optimization": true,
+      "controlled_benchmarking": true,
+      "cancellation": true,
+      "timeouts": true
+    },
+    "seconds": 0.447
+  },
+  "postgresql": {
+    "status": "Verified against official local service/emulator",
+    "version": "PostgreSQL 18.4 (Debian 18.4-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "checked": "2026-09-30",
+    "tests": [
+      "actual connection and schema/collection discovery",
+      "join, SUM, NULLs, date boundaries and deterministic ordering against independently computed expected rows",
+      "writes, side-effect functions, missing tables/columns and multiple statements rejected",
+      "512-row query bounded to 500 with explicit truncation",
+      "expired deadline prevents further database work",
+      "cooperative cancellation checkpoint verified; native in-flight interruption remains timeout-bound",
+      "actual non-executing plan",
+      "actual invalid database password rejected with redacted, actionable credential error",
+      "malformed TLS CA rejected; this does not verify the hosted provider certificate path",
+      "Actual in-flight aggregate timeout verified on disposable local fixture; see execution-boundaries.json"
+    ],
+    "generation": "Real Groq schema-grounded generation, validation and expected-result semantics verified on the published synthetic case",
+    "hosted_provider": "Verified against Neon PostgreSQL 18.6: discovery, validation, bounded expected-result execution and non-executing plan. See neon-verification.json.",
+    "capabilities": {
+      "connection_testing": true,
+      "discovery": true,
+      "generation": true,
+      "validation": true,
+      "read_only_execution": true,
+      "query_plans": true,
+      "profiling": true,
+      "candidate_optimization": true,
+      "controlled_benchmarking": false,
+      "cancellation": true,
+      "timeouts": true
+    },
+    "seconds": 2.126
+  },
+  "mariadb": {
+    "status": "Verified against official local service/emulator",
+    "version": "11.4.13-MariaDB-ubu2404",
+    "checked": "2026-09-30",
+    "tests": [
+      "actual connection and schema/collection discovery",
+      "join, SUM, NULLs, date boundaries and deterministic ordering against independently computed expected rows",
+      "writes, side-effect functions, missing tables/columns and multiple statements rejected",
+      "512-row query bounded to 500 with explicit truncation",
+      "expired deadline prevents further database work",
+      "cooperative cancellation checkpoint verified; native in-flight interruption remains timeout-bound",
+      "actual non-executing plan",
+      "actual invalid database password rejected with redacted, actionable credential error",
+      "malformed TLS CA rejected; this does not verify the hosted provider certificate path",
+      "Actual in-flight aggregate timeout verified on disposable local fixture; see execution-boundaries.json"
+    ],
+    "generation": "Real Groq schema-grounded generation, validation and expected-result semantics verified on the published synthetic case",
+    "hosted_provider": "Requires user credentials",
+    "capabilities": {
+      "connection_testing": true,
+      "discovery": true,
+      "generation": true,
+      "validation": true,
+      "read_only_execution": true,
+      "query_plans": true,
+      "profiling": true,
+      "candidate_optimization": true,
+      "controlled_benchmarking": false,
+      "cancellation": true,
+      "timeouts": true
+    },
+    "seconds": 0.064
+  },
+  "cockroachdb": {
+    "status": "Verified against official local service/emulator",
+    "version": "CockroachDB CCL v25.4.0 (x86_64-pc-linux-gnu, built 2025/10/28 18:45:28, go1.23.12 X:nocoverageredesign)",
+    "checked": "2026-09-30",
+    "tests": [
+      "actual connection and schema/collection discovery",
+      "join, SUM, NULLs, date boundaries and deterministic ordering against independently computed expected rows",
+      "writes, side-effect functions, missing tables/columns and multiple statements rejected",
+      "512-row query bounded to 500 with explicit truncation",
+      "expired deadline prevents further database work",
+      "cooperative cancellation checkpoint verified; native in-flight interruption remains timeout-bound",
+      "actual non-executing plan",
+      "malformed TLS CA rejected; this does not verify the hosted provider certificate path",
+      "Actual in-flight aggregate timeout verified on disposable local fixture; see execution-boundaries.json"
+    ],
+    "generation": "Real Groq schema-grounded generation, validation and expected-result semantics verified on the published synthetic case",
+    "hosted_provider": "Requires user credentials",
+    "capabilities": {
+      "connection_testing": true,
+      "discovery": true,
+      "generation": true,
+      "validation": true,
+      "read_only_execution": true,
+      "query_plans": true,
+      "profiling": true,
+      "candidate_optimization": true,
+      "controlled_benchmarking": false,
+      "cancellation": true,
+      "timeouts": true
+    },
+    "seconds": 0.364
+  },
+  "sqlserver": {
+    "status": "Verified against official local service/emulator",
+    "version": "16.0.4295.3",
+    "checked": "2026-09-30",
+    "tests": [
+      "actual connection and schema/collection discovery",
+      "join, SUM, NULLs, date boundaries and deterministic ordering against independently computed expected rows",
+      "writes, side-effect functions, missing tables/columns and multiple statements rejected",
+      "512-row query bounded to 500 with explicit truncation",
+      "expired deadline prevents further database work",
+      "cooperative cancellation checkpoint verified; native in-flight interruption remains timeout-bound",
+      "actual non-executing plan",
+      "actual invalid database password rejected with redacted, actionable credential error",
+      "malformed TLS CA rejected; this does not verify the hosted provider certificate path",
+      "Actual in-flight aggregate timeout verified on disposable local fixture; see execution-boundaries.json"
+    ],
+    "generation": "Real Groq schema-grounded generation, validation and expected-result semantics verified on the published synthetic case",
+    "hosted_provider": "Requires user credentials",
+    "capabilities": {
+      "connection_testing": true,
+      "discovery": true,
+      "generation": true,
+      "validation": true,
+      "read_only_execution": true,
+      "query_plans": true,
+      "profiling": true,
+      "candidate_optimization": true,
+      "controlled_benchmarking": false,
+      "cancellation": true,
+      "timeouts": true
+    },
+    "seconds": 0.267
+  }
+}

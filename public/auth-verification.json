@@ -1,0 +1,27 @@
+{
+  "checked": "2026-09-30",
+  "origin": "https://queryotter.vercel.app",
+  "providers": {
+    "github": {
+      "client_id": "Ov23liJ2VjOozIKYrTVs",
+      "status": "Production login and logout verified",
+      "scopes": "read:user user:email",
+      "verified": "Actual hosted authorization-code callback and personal workspace; explicit logout revokes the session"
+    },
+    "google": {
+      "client_id": "309458267146-9on72t1rgr3o11merfp925ejm2ra0c2r.apps.googleusercontent.com",
+      "status": "Production login and logout verified",
+      "scopes": "openid profile email",
+      "publishing": "External / In production; basic identity scopes only; no verified-brand claim",
+      "verified": "Actual Google consent, signed ID-token callback, isolated personal workspace and first-run onboarding"
+    },
+    "microsoft": {
+      "client_id": "2be8397d-a988-4975-b24d-528bcc85ab55",
+      "status": "Personal account login verified; organizations may require publisher verification",
+      "scopes": "openid profile email",
+      "account_types": "Any organizational directory and personal Microsoft accounts",
+      "verified": "Actual personal Microsoft consent, signed ID-token callback and isolated personal workspace",
+      "limitation": "Publisher is unverified. Some work/school tenants block user consent; a verified custom domain/Partner Center identity or tenant-admin approval requires the organization owner. No organizational login was tested."
+    }
+  }
+}

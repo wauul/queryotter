@@ -9,29 +9,51 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 def execute(job):
     id = job["id"]
+    last_check = 0.0
+    cancelled = False
 
-    def check():
+    def check(force=False):
+        nonlocal last_check, cancelled
+        if cancelled:
+            raise Cancelled()
+        now = time.monotonic()
+        if not force and now - last_check < 0.25:
+            return
+        last_check = now
         with store.connect() as c:
             r = c.execute("SELECT cancel FROM jobs WHERE id=?", (id,)).fetchone()
-        if r and r["cancel"]:
+        if not r or r["cancel"]:
+            cancelled = True
             raise Cancelled()
 
     try:
         if job["query"].startswith("{"):
-            from backend.live import investigate_live
+            if "assistant" in json.loads(job["query"]):
+                from backend.assistant import execute as assistant_execute
 
-            report = investigate_live(job, lambda s, m: store.event(id, s, m), check)
+                report = assistant_execute(
+                    job, check, lambda s, m: store.event(id, s, m)
+                )
+            else:
+                from backend.live import investigate_live
+
+                report = investigate_live(
+                    job, lambda s, m: store.event(id, s, m), check
+                )
         else:
-            report = run(job["query"], lambda s, m: store.event(id, s, m), check)
-        check()
+            with store.connect() as c:
+                registered = c.execute("SELECT 1 FROM q_users WHERE id=? AND status='active'", (job["owner"],)).fetchone()
+            report = run(job["query"], lambda s, m: store.event(id, s, m), check, model_user=job["owner"] if registered else None)
+        check(force=True)
         store.finish(id, "completed", report)
     except Cancelled:
         store.finish(id, "cancelled")
-        store.event(
-            id,
-            "cancelled",
-            "Cancelled at a safe checkpoint; experimental indexes rolled back.",
-        )
+        if store.get(id, job["owner"]):
+            store.event(
+                id,
+                "cancelled",
+                "Cancelled at a safe checkpoint; disposable experiments discarded.",
+            )
     except Unsupported as e:
         store.finish(id, "rejected", error=str(e))
     except TimeoutError:
@@ -41,17 +63,27 @@ def execute(job):
             error="Job duration limit exceeded. Experimental changes discarded.",
         )
     except Exception as e:
-        store.finish(
-            id,
-            "failed",
-            error=f"Investigation failed ({type(e).__name__}). Check model access and experiment database availability.",
-        )
+        from backend.adapters.base import AdapterError
+
+        try:
+            check(force=True)
+        except Cancelled:
+            store.finish(id, "cancelled")
+        else:
+            if isinstance(e, AdapterError):
+                store.finish(id, "rejected", error=str(e))
+            else:
+                store.finish(
+                    id,
+                    "failed",
+                    error=f"Database or model operation failed ({type(e).__name__}). Check credentials, verified TLS, network allowlists and read-only grants. Provider details and secrets are not logged.",
+                )
     logging.info(
         json.dumps(
             {
                 "event": "job_finished",
                 "job_id": id,
-                "state": store.get(id, job["owner"])["state"],
+                "state": (store.get(id, job["owner"]) or {"state": "deleted"})["state"],
             }
         )
     )

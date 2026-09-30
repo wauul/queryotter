@@ -40,7 +40,7 @@ def decide(a, b):
     )
 
 
-def run(query, event=lambda stage, message: None, check=lambda: None, baseline=None):
+def run(query, event=lambda stage, message: None, check=lambda: None, baseline=None, model_user=None):
     start = time.monotonic()
     db_seconds = 0
     tool_calls = 0
@@ -56,6 +56,7 @@ def run(query, event=lambda stage, message: None, check=lambda: None, baseline=N
     event(
         "inspect", "SQL parsed. One safe SELECT; disposable synthetic PostgreSQL only."
     )
+    checkpoint()
     with sandbox() as (conn, schema):
         checkpoint()
         info = metadata(conn)
@@ -66,7 +67,15 @@ def run(query, event=lambda stage, message: None, check=lambda: None, baseline=N
             "Initial JSON execution plan collected; no records sent to model.",
         )
         if baseline is None:
-            proposal, usage = propose(query, info, compact(before))
+            if model_user:
+                from backend.generation import call
+                from backend.model import SYSTEM, Proposal
+
+                proposal_json, measured = call(model_user, SYSTEM, {"query": query, "schema": info, "plan": compact(before)}, checkpoint, max_tokens=3500)
+                proposal = Proposal.model_validate(proposal_json)
+                usage = {**measured, "calls": measured["model_calls"]}
+            else:
+                proposal, usage = propose(query, info, compact(before))
             candidates = [c.model_dump() for c in proposal.candidates]
             diagnosis = proposal.diagnosis
         else:

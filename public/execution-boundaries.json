@@ -1,0 +1,32 @@
+{
+  "sqlite": {
+    "actual_in_flight_timeout": true,
+    "seconds_including_discovery": 4.002,
+    "scope": "8-way synthetic orders Cartesian aggregate on a local service/copy"
+  },
+  "postgresql": {
+    "actual_in_flight_timeout": true,
+    "seconds_including_discovery": 3.161,
+    "scope": "8-way synthetic orders Cartesian aggregate on a local service/copy"
+  },
+  "mysql": {
+    "actual_in_flight_timeout": true,
+    "seconds_including_discovery": 3.287,
+    "scope": "8-way synthetic orders Cartesian aggregate on a local service/copy"
+  },
+  "mariadb": {
+    "actual_in_flight_timeout": true,
+    "seconds_including_discovery": 3.035,
+    "scope": "8-way synthetic orders Cartesian aggregate on a local service/copy"
+  },
+  "cockroachdb": {
+    "actual_in_flight_timeout": true,
+    "seconds_including_discovery": 3.128,
+    "scope": "8-way synthetic orders Cartesian aggregate on a local service/copy"
+  },
+  "sqlserver": {
+    "actual_in_flight_timeout": true,
+    "seconds_including_discovery": 3.115,
+    "scope": "8-way synthetic orders Cartesian aggregate on a local service/copy"
+  }
+}

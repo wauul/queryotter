@@ -11,6 +11,10 @@ from backend.worker import on_demand
 
 def main():
     load_dotenv()
+    if os.environ.get("QOT_TEST_NETWORKS"):
+        raise SystemExit(
+            "The test network exception must never be enabled in cloud mode."
+        )
     if not os.environ.get("JOB_DATABASE_URL"):
         raise SystemExit(
             "Cloud mode requires JOB_DATABASE_URL; local files are not durable."

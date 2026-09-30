@@ -69,13 +69,22 @@ def set_waker(callback):
     _waker = callback
 
 
+class SQLiteConnection(sqlite3.Connection):
+    def __exit__(self, *args):
+        try:
+            return super().__exit__(*args)
+        finally:
+            self.close()
+
+
 def connect():
     if postgres():
         return PostgresConnection()
     DB.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(DB, timeout=10)
+    conn = sqlite3.connect(DB, timeout=10, factory=SQLiteConnection)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA foreign_keys=ON")
     return conn
 
 

@@ -1,0 +1,33 @@
+# Disposable test databases only. Ports bind exclusively to loopback.
+services:
+  postgres:
+    image: postgres:18.4
+    environment: {POSTGRES_PASSWORD: Qot_TestOnly_48219, POSTGRES_DB: shop}
+    ports: ["127.0.0.1:55433:5432"]
+  mysql:
+    image: mysql:8.4
+    environment: {MYSQL_ROOT_PASSWORD: Qot_TestOnly_48219, MYSQL_DATABASE: shop}
+    ports: ["127.0.0.1:3307:3306"]
+  mariadb:
+    image: mariadb:11.4
+    environment: {MARIADB_ROOT_PASSWORD: Qot_TestOnly_48219, MARIADB_DATABASE: shop}
+    ports: ["127.0.0.1:3308:3306"]
+  mongodb:
+    image: mongo:8.0
+    environment: {MONGO_INITDB_ROOT_USERNAME: root, MONGO_INITDB_ROOT_PASSWORD: Qot_TestOnly_48219}
+    ports: ["127.0.0.1:27018:27017"]
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment: {ACCEPT_EULA: "Y", MSSQL_PID: Developer, MSSQL_SA_PASSWORD: "Qot_TestOnly_48219!"}
+    ports: ["127.0.0.1:1434:1433"]
+    mem_limit: 3g
+  cockroachdb:
+    image: cockroachdb/cockroach:v25.4.0
+    entrypoint: /cockroach/cockroach
+    command: start-single-node --insecure --listen-addr=0.0.0.0:26257 --http-addr=0.0.0.0:8080
+    ports: ["127.0.0.1:26258:26257"]
+    mem_limit: 1g
+  firebase:
+    build: {context: ., dockerfile: Dockerfile.emulators}
+    ports: ["127.0.0.1:8089:8080", "127.0.0.1:9009:9000"]
+    mem_limit: 2g

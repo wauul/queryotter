@@ -1,0 +1,1 @@
+{"rules":{".read":false,".write":false,"orders":{".indexOn":["status","total","customer_id","created_at"]},"customers":{".indexOn":["country"]}}}

@@ -4,7 +4,7 @@ import {randomBytes} from 'node:crypto';
 mkdirSync('.data',{recursive:true});
 let env=existsSync('.env')?readFileSync('.env','utf8'):'';
 let password=env.match(/PG_LOCAL_PASSWORD=(.*)/)?.[1] || randomBytes(24).toString('hex');
-const values={PG_LOCAL_PASSWORD:password,EXPERIMENT_DATABASE_URL:`postgresql://queryotter:${password}@127.0.0.1:55432/queryotter`,SERVICE_TOKEN:randomBytes(32).toString('hex'),SESSION_SECRET:randomBytes(32).toString('hex'),ENCRYPTION_KEY:randomBytes(32).toString('base64url')+'=',ADMIN_PASSWORD:randomBytes(24).toString('hex'),MODEL_PROVIDER:'codex'};
+const values={PG_LOCAL_PASSWORD:password,EXPERIMENT_DATABASE_URL:`postgresql://queryotter:${password}@127.0.0.1:55432/queryotter`,SERVICE_TOKEN:randomBytes(32).toString('hex'),SESSION_SECRET:randomBytes(32).toString('hex'),ENCRYPTION_KEY:randomBytes(32).toString('base64url')+'=',ADMIN_PASSWORD:randomBytes(24).toString('hex'),MODEL_PROVIDER:'openai-compatible',MODEL_BASE_URL:'https://api.groq.com/openai/v1',MODEL_NAME:'openai/gpt-oss-120b'};
 for(const [key,value] of Object.entries(values)) if(!new RegExp(`^${key}=`, 'm').test(env)) env+=`${key}=${value}\n`;
 writeFileSync('.env',env,{mode:0o600});
 const pg=new EmbeddedPostgres({databaseDir:'.data/postgres',user:'queryotter',password,port:55432,persistent:true,postgresFlags:['-c','listen_addresses=127.0.0.1'],onLog:()=>{},onError:()=>{}});

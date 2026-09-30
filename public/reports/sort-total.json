@@ -1,0 +1,509 @@
+{
+  "query": "SELECT\n  id,\n  total\nFROM orders\nORDER BY\n  total DESC NULLS LAST,\n  id DESC\nLIMIT 50",
+  "diagnosis": "Seq Scan on orders followed by top\u2011N sort. No index supports the ORDER BY (total DESC NULLS LAST, id DESC) with LIMIT, causing a full scan and heap sort.",
+  "candidates": [
+    {
+      "name": "order_by_total_id_desc",
+      "hypothesis": "Creating a covering btree index on (total DESC NULLS LAST, id DESC) lets PostgreSQL satisfy the ORDER BY and LIMIT directly via an index scan, eliminating the sequential scan and sort.",
+      "query": "SELECT\n  id,\n  total\nFROM orders\nORDER BY\n  total DESC NULLS LAST,\n  id DESC\nLIMIT 50",
+      "indexes": [
+        "CREATE INDEX idx_orders_total_id_desc ON orders (total DESC NULLS LAST, id DESC)"
+      ],
+      "correctness": {
+        "passed": true,
+        "datasets": [
+          {
+            "size": 0,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          },
+          {
+            "size": 300,
+            "seed": 17,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 900,
+            "seed": 31,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 120000,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          }
+        ]
+      },
+      "status": "verified improvement",
+      "original": {
+        "median_ms": 14.188,
+        "min_ms": 13.846,
+        "max_ms": 14.453,
+        "mad_ms": 0.191,
+        "samples_ms": [
+          13.846,
+          13.892,
+          14.379,
+          14.188,
+          14.306,
+          14.453,
+          14.123
+        ]
+      },
+      "optimized": {
+        "median_ms": 0.025,
+        "min_ms": 0.022,
+        "max_ms": 0.029,
+        "mad_ms": 0.002,
+        "samples_ms": [
+          0.027,
+          0.022,
+          0.025,
+          0.023,
+          0.029,
+          0.023,
+          0.029
+        ]
+      },
+      "speedup": 567.52,
+      "saved_ms": 14.163,
+      "plan": [
+        {
+          "Node Type": "Limit",
+          "Plan Rows": 50,
+          "Actual Rows": 50.0,
+          "Actual Total Time": 0.023,
+          "Total Cost": 3.55,
+          "Shared Hit Blocks": 53,
+          "Shared Read Blocks": 0,
+          "depth": 0
+        },
+        {
+          "Node Type": "Index Only Scan",
+          "Relation Name": "orders",
+          "Index Name": "idx_orders_total_id_desc",
+          "Plan Rows": 120000,
+          "Actual Rows": 50.0,
+          "Actual Total Time": 0.02,
+          "Total Cost": 7524.4,
+          "Shared Hit Blocks": 53,
+          "Shared Read Blocks": 0,
+          "depth": 1
+        }
+      ],
+      "index_build_ms": 57.29,
+      "index_bytes": 3809280,
+      "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
+    }
+  ],
+  "best": {
+    "name": "order_by_total_id_desc",
+    "hypothesis": "Creating a covering btree index on (total DESC NULLS LAST, id DESC) lets PostgreSQL satisfy the ORDER BY and LIMIT directly via an index scan, eliminating the sequential scan and sort.",
+    "query": "SELECT\n  id,\n  total\nFROM orders\nORDER BY\n  total DESC NULLS LAST,\n  id DESC\nLIMIT 50",
+    "indexes": [
+      "CREATE INDEX idx_orders_total_id_desc ON orders (total DESC NULLS LAST, id DESC)"
+    ],
+    "correctness": {
+      "passed": true,
+      "datasets": [
+        {
+          "size": 0,
+          "seed": 17,
+          "edges": false,
+          "passed": true
+        },
+        {
+          "size": 300,
+          "seed": 17,
+          "edges": true,
+          "passed": true
+        },
+        {
+          "size": 900,
+          "seed": 31,
+          "edges": true,
+          "passed": true
+        },
+        {
+          "size": 120000,
+          "seed": 17,
+          "edges": false,
+          "passed": true
+        }
+      ]
+    },
+    "status": "verified improvement",
+    "original": {
+      "median_ms": 14.188,
+      "min_ms": 13.846,
+      "max_ms": 14.453,
+      "mad_ms": 0.191,
+      "samples_ms": [
+        13.846,
+        13.892,
+        14.379,
+        14.188,
+        14.306,
+        14.453,
+        14.123
+      ]
+    },
+    "optimized": {
+      "median_ms": 0.025,
+      "min_ms": 0.022,
+      "max_ms": 0.029,
+      "mad_ms": 0.002,
+      "samples_ms": [
+        0.027,
+        0.022,
+        0.025,
+        0.023,
+        0.029,
+        0.023,
+        0.029
+      ]
+    },
+    "speedup": 567.52,
+    "saved_ms": 14.163,
+    "plan": [
+      {
+        "Node Type": "Limit",
+        "Plan Rows": 50,
+        "Actual Rows": 50.0,
+        "Actual Total Time": 0.023,
+        "Total Cost": 3.55,
+        "Shared Hit Blocks": 53,
+        "Shared Read Blocks": 0,
+        "depth": 0
+      },
+      {
+        "Node Type": "Index Only Scan",
+        "Relation Name": "orders",
+        "Index Name": "idx_orders_total_id_desc",
+        "Plan Rows": 120000,
+        "Actual Rows": 50.0,
+        "Actual Total Time": 0.02,
+        "Total Cost": 7524.4,
+        "Shared Hit Blocks": 53,
+        "Shared Read Blocks": 0,
+        "depth": 1
+      }
+    ],
+    "index_build_ms": 57.29,
+    "index_bytes": 3809280,
+    "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
+  },
+  "original": {
+    "median_ms": 14.188,
+    "min_ms": 13.846,
+    "max_ms": 14.453,
+    "mad_ms": 0.191,
+    "samples_ms": [
+      13.846,
+      13.892,
+      14.379,
+      14.188,
+      14.306,
+      14.453,
+      14.123
+    ]
+  },
+  "plan_before": [
+    {
+      "Node Type": "Limit",
+      "Plan Rows": 50,
+      "Actual Rows": 50.0,
+      "Actual Total Time": 14.424,
+      "Total Cost": 6152.44,
+      "Shared Hit Blocks": 966,
+      "Shared Read Blocks": 0,
+      "depth": 0
+    },
+    {
+      "Node Type": "Sort",
+      "Plan Rows": 120000,
+      "Actual Rows": 50.0,
+      "Actual Total Time": 14.421,
+      "Total Cost": 6452.31,
+      "Shared Hit Blocks": 966,
+      "Shared Read Blocks": 0,
+      "Sort Method": "top-N heapsort",
+      "depth": 1
+    },
+    {
+      "Node Type": "Seq Scan",
+      "Relation Name": "orders",
+      "Plan Rows": 120000,
+      "Actual Rows": 120000.0,
+      "Actual Total Time": 6.858,
+      "Total Cost": 2166.0,
+      "Shared Hit Blocks": 966,
+      "Shared Read Blocks": 0,
+      "depth": 2
+    }
+  ],
+  "schema": {
+    "columns": [
+      [
+        "customers",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "customers",
+        "name",
+        "text",
+        "NO"
+      ],
+      [
+        "customers",
+        "city",
+        "text",
+        "YES"
+      ],
+      [
+        "items",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "items",
+        "order_id",
+        "integer",
+        "YES"
+      ],
+      [
+        "items",
+        "quantity",
+        "integer",
+        "YES"
+      ],
+      [
+        "items",
+        "product",
+        "text",
+        "YES"
+      ],
+      [
+        "orders",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "orders",
+        "customer_id",
+        "integer",
+        "YES"
+      ],
+      [
+        "orders",
+        "status",
+        "text",
+        "YES"
+      ],
+      [
+        "orders",
+        "total",
+        "numeric",
+        "YES"
+      ],
+      [
+        "orders",
+        "created_at",
+        "timestamp without time zone",
+        "NO"
+      ]
+    ],
+    "indexes": [
+      [
+        "customers",
+        "CREATE UNIQUE INDEX customers_pkey ON qot_cd1c642388304051.customers USING btree (id)"
+      ],
+      [
+        "orders",
+        "CREATE UNIQUE INDEX orders_pkey ON qot_cd1c642388304051.orders USING btree (id)"
+      ],
+      [
+        "items",
+        "CREATE UNIQUE INDEX items_pkey ON qot_cd1c642388304051.items USING btree (id)"
+      ]
+    ],
+    "constraints": [
+      [
+        "customers",
+        "NOT NULL id"
+      ],
+      [
+        "customers",
+        "NOT NULL name"
+      ],
+      [
+        "customers",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "orders",
+        "NOT NULL id"
+      ],
+      [
+        "orders",
+        "NOT NULL created_at"
+      ],
+      [
+        "orders",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "orders",
+        "FOREIGN KEY (customer_id) REFERENCES customers(id)"
+      ],
+      [
+        "items",
+        "NOT NULL id"
+      ],
+      [
+        "items",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "items",
+        "FOREIGN KEY (order_id) REFERENCES orders(id)"
+      ]
+    ],
+    "statistics": [
+      [
+        "customers",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "customers",
+        "name",
+        0.0,
+        -1.0,
+        0.81865406
+      ],
+      [
+        "customers",
+        "city",
+        0.1,
+        2.0,
+        0.9168176
+      ],
+      [
+        "orders",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "orders",
+        "customer_id",
+        0.013833334,
+        9918.0,
+        0.022549821
+      ],
+      [
+        "orders",
+        "status",
+        0.08953334,
+        2.0,
+        0.97735775
+      ],
+      [
+        "orders",
+        "total",
+        0.0342,
+        5002.0,
+        0.0033737188
+      ],
+      [
+        "orders",
+        "created_at",
+        0.0,
+        -0.5484667,
+        0.021831485
+      ],
+      [
+        "items",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "items",
+        "order_id",
+        0.0,
+        -0.49759167,
+        0.505716
+      ],
+      [
+        "items",
+        "quantity",
+        0.0,
+        4.0,
+        0.25459865
+      ],
+      [
+        "items",
+        "product",
+        0.0,
+        1.0,
+        1.0
+      ]
+    ],
+    "version": "18.4"
+  },
+  "conditions": {
+    "postgresql": "18.4",
+    "rows": {
+      "customers": 10000,
+      "orders": 120000,
+      "items": 240000
+    },
+    "seed": 17,
+    "cache": "warm cache; no cold-cache control",
+    "repetitions": 7,
+    "warmup_rounds": 2,
+    "execution_order": "Alternating original/candidate index states; equal per-state warmups",
+    "parallel_workers": 0,
+    "statement_timeout_ms": 3000,
+    "lock_timeout_ms": 500,
+    "comparison_row_cap": 20000,
+    "equivalence": "Empirical result equality on four fixtures; not a mathematical proof. Types and duplicate counts preserved; sequence compared when ordered.",
+    "index_isolation": "Each candidate uses transaction rollback in a disposable schema.",
+    "database_time_definition": "Client time in SQL execute calls including seeding and metadata, excluding model; streaming fetch and connection setup excluded."
+  },
+  "usage": {
+    "provider": "Groq / OpenAI-compatible",
+    "model": "openai/gpt-oss-120b",
+    "calls": 1,
+    "input_tokens": 1207,
+    "output_tokens": 587,
+    "seconds": 1.73,
+    "estimated_cost_usd": null,
+    "tool_calls": 229,
+    "runtime_seconds": 5.15,
+    "database_seconds": 3.167
+  },
+  "migration": [
+    "CREATE INDEX idx_orders_total_id_desc ON orders (total DESC NULLS LAST, id DESC)"
+  ],
+  "limitations": [
+    "Synthetic workload; verify against representative sanitized data.",
+    "CPU/cache state and index construction can affect benchmark variability.",
+    "Write overhead and cold-cache latency not measured.",
+    "Sample equality does not prove equivalence on all possible databases."
+  ]
+}

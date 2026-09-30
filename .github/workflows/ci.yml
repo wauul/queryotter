@@ -1,0 +1,19 @@
+name: QueryOtter CI
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci
+      - run: uv sync --locked --python 3.12
+      - name: Start disposable PostgreSQL
+        run: |
+          npm run postgres > /tmp/queryotter-postgres.log 2>&1 &
+          for i in $(seq 1 30); do test -f .data/postgres/postmaster.pid && break; sleep 1; done
+      - run: uv run pytest -q
+      - run: npm run build

@@ -1,0 +1,597 @@
+{
+  "query": "SELECT\n  id,\n  total\nFROM orders\nWHERE\n  status = 'refunded'\nORDER BY\n  id\nLIMIT 100",
+  "diagnosis": "The query filters on orders.status but there is no index supporting that predicate. PostgreSQL falls back to scanning the primary\u2011key index (orders_pkey) in id order, discarding ~9600 rows before finding the first 100 matching rows. This full index scan is the main bottleneck.",
+  "candidates": [
+    {
+      "name": "idx_orders_status_id",
+      "hypothesis": "An index on (status, id) lets PostgreSQL apply the status filter while preserving the required ordering, dramatically reducing rows examined.",
+      "query": "SELECT\n  id,\n  total\nFROM orders\nWHERE\n  status = 'refunded'\nORDER BY\n  id\nLIMIT 100",
+      "indexes": [
+        "CREATE INDEX idx_orders_status_id ON orders (status, id)"
+      ],
+      "correctness": {
+        "passed": true,
+        "datasets": [
+          {
+            "size": 0,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          },
+          {
+            "size": 300,
+            "seed": 17,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 900,
+            "seed": 31,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 120000,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          }
+        ]
+      },
+      "status": "verified improvement",
+      "original": {
+        "median_ms": 0.815,
+        "min_ms": 0.811,
+        "max_ms": 0.827,
+        "mad_ms": 0.004,
+        "samples_ms": [
+          0.826,
+          0.827,
+          0.811,
+          0.811,
+          0.815,
+          0.811,
+          0.817
+        ]
+      },
+      "optimized": {
+        "median_ms": 0.046,
+        "min_ms": 0.043,
+        "max_ms": 0.065,
+        "mad_ms": 0.002,
+        "samples_ms": [
+          0.049,
+          0.046,
+          0.043,
+          0.045,
+          0.065,
+          0.048,
+          0.044
+        ]
+      },
+      "speedup": 17.72,
+      "saved_ms": 0.769,
+      "plan": [
+        {
+          "Node Type": "Limit",
+          "Plan Rows": 100,
+          "Actual Rows": 100.0,
+          "Actual Total Time": 0.037,
+          "Total Cost": 112.6,
+          "Shared Hit Blocks": 83,
+          "Shared Read Blocks": 0,
+          "depth": 0
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "orders",
+          "Index Name": "idx_orders_status_id",
+          "Plan Rows": 1388,
+          "Actual Rows": 100.0,
+          "Actual Total Time": 0.032,
+          "Total Cost": 1557.45,
+          "Shared Hit Blocks": 83,
+          "Shared Read Blocks": 0,
+          "depth": 1
+        }
+      ],
+      "index_build_ms": 73.23,
+      "index_bytes": 3809280,
+      "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
+    },
+    {
+      "name": "partial_idx_orders_refunded",
+      "hypothesis": "A partial index that only stores rows with status='refunded' and includes the needed columns enables an index\u2011only scan for the query, eliminating row fetches from the heap.",
+      "query": "SELECT\n  id,\n  total\nFROM orders\nWHERE\n  status = 'refunded'\nORDER BY\n  id\nLIMIT 100",
+      "indexes": [
+        "CREATE INDEX partial_idx_orders_refunded ON orders (id) INCLUDE (total) WHERE status = 'refunded'"
+      ],
+      "correctness": {
+        "passed": true,
+        "datasets": [
+          {
+            "size": 0,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          },
+          {
+            "size": 300,
+            "seed": 17,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 900,
+            "seed": 31,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 120000,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          }
+        ]
+      },
+      "status": "verified improvement",
+      "original": {
+        "median_ms": 0.657,
+        "min_ms": 0.65,
+        "max_ms": 0.665,
+        "mad_ms": 0.002,
+        "samples_ms": [
+          0.665,
+          0.66,
+          0.65,
+          0.659,
+          0.656,
+          0.655,
+          0.657
+        ]
+      },
+      "optimized": {
+        "median_ms": 0.032,
+        "min_ms": 0.031,
+        "max_ms": 0.032,
+        "mad_ms": 0.0,
+        "samples_ms": [
+          0.032,
+          0.032,
+          0.031,
+          0.032,
+          0.032,
+          0.032,
+          0.031
+        ]
+      },
+      "speedup": 20.53,
+      "saved_ms": 0.625,
+      "plan": [
+        {
+          "Node Type": "Limit",
+          "Plan Rows": 100,
+          "Actual Rows": 100.0,
+          "Actual Total Time": 0.025,
+          "Total Cost": 4.82,
+          "Shared Hit Blocks": 81,
+          "Shared Read Blocks": 0,
+          "depth": 0
+        },
+        {
+          "Node Type": "Index Only Scan",
+          "Relation Name": "orders",
+          "Index Name": "partial_idx_orders_refunded",
+          "Plan Rows": 1388,
+          "Actual Rows": 100.0,
+          "Actual Total Time": 0.02,
+          "Total Cost": 63.34,
+          "Shared Hit Blocks": 81,
+          "Shared Read Blocks": 0,
+          "depth": 1
+        }
+      ],
+      "index_build_ms": 8.89,
+      "index_bytes": 57344,
+      "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
+    }
+  ],
+  "best": {
+    "name": "partial_idx_orders_refunded",
+    "hypothesis": "A partial index that only stores rows with status='refunded' and includes the needed columns enables an index\u2011only scan for the query, eliminating row fetches from the heap.",
+    "query": "SELECT\n  id,\n  total\nFROM orders\nWHERE\n  status = 'refunded'\nORDER BY\n  id\nLIMIT 100",
+    "indexes": [
+      "CREATE INDEX partial_idx_orders_refunded ON orders (id) INCLUDE (total) WHERE status = 'refunded'"
+    ],
+    "correctness": {
+      "passed": true,
+      "datasets": [
+        {
+          "size": 0,
+          "seed": 17,
+          "edges": false,
+          "passed": true
+        },
+        {
+          "size": 300,
+          "seed": 17,
+          "edges": true,
+          "passed": true
+        },
+        {
+          "size": 900,
+          "seed": 31,
+          "edges": true,
+          "passed": true
+        },
+        {
+          "size": 120000,
+          "seed": 17,
+          "edges": false,
+          "passed": true
+        }
+      ]
+    },
+    "status": "verified improvement",
+    "original": {
+      "median_ms": 0.657,
+      "min_ms": 0.65,
+      "max_ms": 0.665,
+      "mad_ms": 0.002,
+      "samples_ms": [
+        0.665,
+        0.66,
+        0.65,
+        0.659,
+        0.656,
+        0.655,
+        0.657
+      ]
+    },
+    "optimized": {
+      "median_ms": 0.032,
+      "min_ms": 0.031,
+      "max_ms": 0.032,
+      "mad_ms": 0.0,
+      "samples_ms": [
+        0.032,
+        0.032,
+        0.031,
+        0.032,
+        0.032,
+        0.032,
+        0.031
+      ]
+    },
+    "speedup": 20.53,
+    "saved_ms": 0.625,
+    "plan": [
+      {
+        "Node Type": "Limit",
+        "Plan Rows": 100,
+        "Actual Rows": 100.0,
+        "Actual Total Time": 0.025,
+        "Total Cost": 4.82,
+        "Shared Hit Blocks": 81,
+        "Shared Read Blocks": 0,
+        "depth": 0
+      },
+      {
+        "Node Type": "Index Only Scan",
+        "Relation Name": "orders",
+        "Index Name": "partial_idx_orders_refunded",
+        "Plan Rows": 1388,
+        "Actual Rows": 100.0,
+        "Actual Total Time": 0.02,
+        "Total Cost": 63.34,
+        "Shared Hit Blocks": 81,
+        "Shared Read Blocks": 0,
+        "depth": 1
+      }
+    ],
+    "index_build_ms": 8.89,
+    "index_bytes": 57344,
+    "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
+  },
+  "original": {
+    "median_ms": 0.657,
+    "min_ms": 0.65,
+    "max_ms": 0.665,
+    "mad_ms": 0.002,
+    "samples_ms": [
+      0.665,
+      0.66,
+      0.65,
+      0.659,
+      0.656,
+      0.655,
+      0.657
+    ]
+  },
+  "plan_before": [
+    {
+      "Node Type": "Limit",
+      "Plan Rows": 100,
+      "Actual Rows": 100.0,
+      "Actual Total Time": 0.681,
+      "Total Cost": 316.5,
+      "Shared Hit Blocks": 107,
+      "Shared Read Blocks": 0,
+      "depth": 0
+    },
+    {
+      "Node Type": "Index Scan",
+      "Relation Name": "orders",
+      "Index Name": "orders_pkey",
+      "Plan Rows": 1388,
+      "Actual Rows": 100.0,
+      "Actual Total Time": 0.677,
+      "Total Cost": 4389.29,
+      "Rows Removed by Filter": 9600,
+      "Shared Hit Blocks": 107,
+      "Shared Read Blocks": 0,
+      "depth": 1
+    }
+  ],
+  "schema": {
+    "columns": [
+      [
+        "customers",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "customers",
+        "name",
+        "text",
+        "NO"
+      ],
+      [
+        "customers",
+        "city",
+        "text",
+        "YES"
+      ],
+      [
+        "items",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "items",
+        "order_id",
+        "integer",
+        "YES"
+      ],
+      [
+        "items",
+        "quantity",
+        "integer",
+        "YES"
+      ],
+      [
+        "items",
+        "product",
+        "text",
+        "YES"
+      ],
+      [
+        "orders",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "orders",
+        "customer_id",
+        "integer",
+        "YES"
+      ],
+      [
+        "orders",
+        "status",
+        "text",
+        "YES"
+      ],
+      [
+        "orders",
+        "total",
+        "numeric",
+        "YES"
+      ],
+      [
+        "orders",
+        "created_at",
+        "timestamp without time zone",
+        "NO"
+      ]
+    ],
+    "indexes": [
+      [
+        "customers",
+        "CREATE UNIQUE INDEX customers_pkey ON qot_63f9911508b54d35.customers USING btree (id)"
+      ],
+      [
+        "orders",
+        "CREATE UNIQUE INDEX orders_pkey ON qot_63f9911508b54d35.orders USING btree (id)"
+      ],
+      [
+        "items",
+        "CREATE UNIQUE INDEX items_pkey ON qot_63f9911508b54d35.items USING btree (id)"
+      ]
+    ],
+    "constraints": [
+      [
+        "customers",
+        "NOT NULL id"
+      ],
+      [
+        "customers",
+        "NOT NULL name"
+      ],
+      [
+        "customers",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "orders",
+        "NOT NULL id"
+      ],
+      [
+        "orders",
+        "NOT NULL created_at"
+      ],
+      [
+        "orders",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "orders",
+        "FOREIGN KEY (customer_id) REFERENCES customers(id)"
+      ],
+      [
+        "items",
+        "NOT NULL id"
+      ],
+      [
+        "items",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "items",
+        "FOREIGN KEY (order_id) REFERENCES orders(id)"
+      ]
+    ],
+    "statistics": [
+      [
+        "customers",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "customers",
+        "name",
+        0.0,
+        -1.0,
+        0.81865406
+      ],
+      [
+        "customers",
+        "city",
+        0.1,
+        2.0,
+        0.9168176
+      ],
+      [
+        "orders",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "orders",
+        "customer_id",
+        0.0142,
+        9933.0,
+        0.029753994
+      ],
+      [
+        "orders",
+        "status",
+        0.0909,
+        2.0,
+        0.9758631
+      ],
+      [
+        "orders",
+        "total",
+        0.034633335,
+        5003.0,
+        -0.0073951543
+      ],
+      [
+        "orders",
+        "created_at",
+        0.0,
+        -0.55128336,
+        0.022342864
+      ],
+      [
+        "items",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "items",
+        "order_id",
+        0.0,
+        -0.48857084,
+        0.49972355
+      ],
+      [
+        "items",
+        "quantity",
+        0.0,
+        4.0,
+        0.24198656
+      ],
+      [
+        "items",
+        "product",
+        0.0,
+        1.0,
+        1.0
+      ]
+    ],
+    "version": "18.4"
+  },
+  "conditions": {
+    "postgresql": "18.4",
+    "rows": {
+      "customers": 10000,
+      "orders": 120000,
+      "items": 240000
+    },
+    "seed": 17,
+    "cache": "warm cache; no cold-cache control",
+    "repetitions": 7,
+    "warmup_rounds": 2,
+    "execution_order": "Alternating original/candidate index states; equal per-state warmups",
+    "parallel_workers": 0,
+    "statement_timeout_ms": 3000,
+    "lock_timeout_ms": 500,
+    "comparison_row_cap": 20000,
+    "equivalence": "Empirical result equality on four fixtures; not a mathematical proof. Types and duplicate counts preserved; sequence compared when ordered.",
+    "index_isolation": "Each candidate uses transaction rollback in a disposable schema.",
+    "database_time_definition": "Client time in SQL execute calls including seeding and metadata, excluding model; streaming fetch and connection setup excluded."
+  },
+  "usage": {
+    "provider": "Groq / OpenAI-compatible",
+    "model": "openai/gpt-oss-120b",
+    "calls": 1,
+    "input_tokens": 1158,
+    "output_tokens": 625,
+    "seconds": 1.72,
+    "estimated_cost_usd": null,
+    "tool_calls": 432,
+    "runtime_seconds": 5.22,
+    "database_seconds": 3.262
+  },
+  "migration": [
+    "CREATE INDEX partial_idx_orders_refunded ON orders (id) INCLUDE (total) WHERE status = 'refunded'"
+  ],
+  "limitations": [
+    "Synthetic workload; verify against representative sanitized data.",
+    "CPU/cache state and index construction can affect benchmark variability.",
+    "Write overhead and cold-cache latency not measured.",
+    "Sample equality does not prove equivalence on all possible databases."
+  ]
+}

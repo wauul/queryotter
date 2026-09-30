@@ -1,0 +1,727 @@
+{
+  "query": "SELECT\n  o.id,\n  c.name,\n  o.total\nFROM customers AS c\nJOIN orders AS o\n  ON o.customer_id = c.id\nWHERE\n  c.city = 'Paris'\nORDER BY\n  o.id\nLIMIT 100",
+  "diagnosis": "The plan scans the orders table via its primary\u2011key index, then for each row looks up the customer and filters on c.city='Paris'. Because there is no index on customers.city, PostgreSQL cannot restrict the outer scan, so it reads many orders (\u22483000) before the LIMIT. Adding a city index lets the planner start with the small set of Paris customers, and an index on orders.customer_id (or a composite index orders(customer_id,id)) lets the join be performed via index lookups and preserve the ORDER BY o.id without a costly sort.",
+  "candidates": [
+    {
+      "name": "city_filter_index",
+      "hypothesis": "Index on customers.city enables early filtering of customers, reducing the number of orders examined.",
+      "query": "SELECT\n  o.id,\n  c.name,\n  o.total\nFROM customers AS c\nJOIN orders AS o\n  ON o.customer_id = c.id\nWHERE\n  c.city = 'Paris'\nORDER BY\n  o.id\nLIMIT 100",
+      "indexes": [
+        "CREATE INDEX idx_customers_city ON customers (city)"
+      ],
+      "correctness": {
+        "passed": true,
+        "datasets": [
+          {
+            "size": 0,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          },
+          {
+            "size": 300,
+            "seed": 17,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 900,
+            "seed": 31,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 120000,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          }
+        ]
+      },
+      "status": "inconclusive",
+      "original": {
+        "median_ms": 2.692,
+        "min_ms": 2.569,
+        "max_ms": 2.914,
+        "mad_ms": 0.066,
+        "samples_ms": [
+          2.569,
+          2.626,
+          2.718,
+          2.65,
+          2.914,
+          2.826,
+          2.692
+        ]
+      },
+      "optimized": {
+        "median_ms": 2.825,
+        "min_ms": 2.571,
+        "max_ms": 3.14,
+        "mad_ms": 0.203,
+        "samples_ms": [
+          2.571,
+          2.62,
+          2.825,
+          3.14,
+          2.622,
+          3.022,
+          2.922
+        ]
+      },
+      "speedup": 0.95,
+      "saved_ms": -0.133,
+      "plan": [
+        {
+          "Node Type": "Limit",
+          "Plan Rows": 100,
+          "Actual Rows": 100.0,
+          "Actual Total Time": 2.874,
+          "Total Cost": 216.34,
+          "Shared Hit Blocks": 7652,
+          "Shared Read Blocks": 0,
+          "depth": 0
+        },
+        {
+          "Node Type": "Nested Loop",
+          "Plan Rows": 4692,
+          "Actual Rows": 100.0,
+          "Actual Total Time": 2.868,
+          "Total Cost": 10123.87,
+          "Shared Hit Blocks": 7652,
+          "Shared Read Blocks": 0,
+          "depth": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "orders",
+          "Index Name": "orders_pkey",
+          "Plan Rows": 120000,
+          "Actual Rows": 3002.0,
+          "Actual Total Time": 0.424,
+          "Total Cost": 4089.29,
+          "Shared Hit Blocks": 35,
+          "Shared Read Blocks": 0,
+          "depth": 2
+        },
+        {
+          "Node Type": "Memoize",
+          "Plan Rows": 1,
+          "Actual Rows": 0.03,
+          "Actual Total Time": 0.001,
+          "Total Cost": 0.32,
+          "Shared Hit Blocks": 7617,
+          "Shared Read Blocks": 0,
+          "depth": 2
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "customers",
+          "Index Name": "customers_pkey",
+          "Plan Rows": 1,
+          "Actual Rows": 0.04,
+          "Actual Total Time": 0.001,
+          "Total Cost": 0.31,
+          "Rows Removed by Filter": 1,
+          "Shared Hit Blocks": 7617,
+          "Shared Read Blocks": 0,
+          "depth": 3
+        }
+      ],
+      "index_build_ms": 4.82,
+      "index_bytes": 90112,
+      "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
+    },
+    {
+      "name": "orders_customer_id_index",
+      "hypothesis": "Index on orders.customer_id allows the join to use an index lookup instead of scanning the orders primary\u2011key index for every row.",
+      "query": "SELECT\n  o.id,\n  c.name,\n  o.total\nFROM customers AS c\nJOIN orders AS o\n  ON o.customer_id = c.id\nWHERE\n  c.city = 'Paris'\nORDER BY\n  o.id\nLIMIT 100",
+      "indexes": [
+        "CREATE INDEX idx_orders_customer_id ON orders (customer_id)"
+      ],
+      "correctness": {
+        "passed": true,
+        "datasets": [
+          {
+            "size": 0,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          },
+          {
+            "size": 300,
+            "seed": 17,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 900,
+            "seed": 31,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 120000,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          }
+        ]
+      },
+      "status": "inconclusive",
+      "original": {
+        "median_ms": 2.729,
+        "min_ms": 2.63,
+        "max_ms": 3.35,
+        "mad_ms": 0.059,
+        "samples_ms": [
+          3.35,
+          2.752,
+          2.67,
+          2.729,
+          2.63,
+          2.714,
+          2.931
+        ]
+      },
+      "optimized": {
+        "median_ms": 2.715,
+        "min_ms": 2.56,
+        "max_ms": 2.972,
+        "mad_ms": 0.093,
+        "samples_ms": [
+          2.622,
+          2.56,
+          2.795,
+          2.972,
+          2.717,
+          2.578,
+          2.715
+        ]
+      },
+      "speedup": 1.01,
+      "saved_ms": 0.014,
+      "plan": [
+        {
+          "Node Type": "Limit",
+          "Plan Rows": 100,
+          "Actual Rows": 100.0,
+          "Actual Total Time": 2.669,
+          "Total Cost": 216.34,
+          "Shared Hit Blocks": 7652,
+          "Shared Read Blocks": 0,
+          "depth": 0
+        },
+        {
+          "Node Type": "Nested Loop",
+          "Plan Rows": 4692,
+          "Actual Rows": 100.0,
+          "Actual Total Time": 2.663,
+          "Total Cost": 10123.87,
+          "Shared Hit Blocks": 7652,
+          "Shared Read Blocks": 0,
+          "depth": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "orders",
+          "Index Name": "orders_pkey",
+          "Plan Rows": 120000,
+          "Actual Rows": 3002.0,
+          "Actual Total Time": 0.203,
+          "Total Cost": 4089.29,
+          "Shared Hit Blocks": 35,
+          "Shared Read Blocks": 0,
+          "depth": 2
+        },
+        {
+          "Node Type": "Memoize",
+          "Plan Rows": 1,
+          "Actual Rows": 0.03,
+          "Actual Total Time": 0.001,
+          "Total Cost": 0.32,
+          "Shared Hit Blocks": 7617,
+          "Shared Read Blocks": 0,
+          "depth": 2
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "customers",
+          "Index Name": "customers_pkey",
+          "Plan Rows": 1,
+          "Actual Rows": 0.04,
+          "Actual Total Time": 0.001,
+          "Total Cost": 0.31,
+          "Rows Removed by Filter": 1,
+          "Shared Hit Blocks": 7617,
+          "Shared Read Blocks": 0,
+          "depth": 3
+        }
+      ],
+      "index_build_ms": 26.33,
+      "index_bytes": 1097728,
+      "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
+    },
+    {
+      "name": "orders_customer_id_id_index",
+      "hypothesis": "Composite index on orders(customer_id, id) supports the join lookup and provides rows already ordered by o.id, eliminating a separate sort step.",
+      "query": "SELECT\n  o.id,\n  c.name,\n  o.total\nFROM customers AS c\nJOIN orders AS o\n  ON o.customer_id = c.id\nWHERE\n  c.city = 'Paris'\nORDER BY\n  o.id\nLIMIT 100",
+      "indexes": [
+        "CREATE INDEX idx_orders_customer_id_id ON orders (customer_id, id)"
+      ],
+      "correctness": {
+        "passed": true,
+        "datasets": [
+          {
+            "size": 0,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          },
+          {
+            "size": 300,
+            "seed": 17,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 900,
+            "seed": 31,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 120000,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          }
+        ]
+      },
+      "status": "inconclusive",
+      "original": {
+        "median_ms": 2.663,
+        "min_ms": 2.524,
+        "max_ms": 4.792,
+        "mad_ms": 0.101,
+        "samples_ms": [
+          2.59,
+          2.663,
+          2.672,
+          2.767,
+          4.792,
+          2.562,
+          2.524
+        ]
+      },
+      "optimized": {
+        "median_ms": 2.65,
+        "min_ms": 2.565,
+        "max_ms": 5.966,
+        "mad_ms": 0.085,
+        "samples_ms": [
+          2.565,
+          2.62,
+          2.869,
+          5.966,
+          2.737,
+          2.65,
+          2.637
+        ]
+      },
+      "speedup": 1.0,
+      "saved_ms": 0.013,
+      "plan": [
+        {
+          "Node Type": "Limit",
+          "Plan Rows": 100,
+          "Actual Rows": 100.0,
+          "Actual Total Time": 2.589,
+          "Total Cost": 216.34,
+          "Shared Hit Blocks": 7652,
+          "Shared Read Blocks": 0,
+          "depth": 0
+        },
+        {
+          "Node Type": "Nested Loop",
+          "Plan Rows": 4692,
+          "Actual Rows": 100.0,
+          "Actual Total Time": 2.583,
+          "Total Cost": 10123.87,
+          "Shared Hit Blocks": 7652,
+          "Shared Read Blocks": 0,
+          "depth": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "orders",
+          "Index Name": "orders_pkey",
+          "Plan Rows": 120000,
+          "Actual Rows": 3002.0,
+          "Actual Total Time": 0.203,
+          "Total Cost": 4089.29,
+          "Shared Hit Blocks": 35,
+          "Shared Read Blocks": 0,
+          "depth": 2
+        },
+        {
+          "Node Type": "Memoize",
+          "Plan Rows": 1,
+          "Actual Rows": 0.03,
+          "Actual Total Time": 0.001,
+          "Total Cost": 0.32,
+          "Shared Hit Blocks": 7617,
+          "Shared Read Blocks": 0,
+          "depth": 2
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "customers",
+          "Index Name": "customers_pkey",
+          "Plan Rows": 1,
+          "Actual Rows": 0.04,
+          "Actual Total Time": 0.001,
+          "Total Cost": 0.31,
+          "Rows Removed by Filter": 1,
+          "Shared Hit Blocks": 7617,
+          "Shared Read Blocks": 0,
+          "depth": 3
+        }
+      ],
+      "index_build_ms": 33.5,
+      "index_bytes": 2736128,
+      "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
+    }
+  ],
+  "best": null,
+  "original": {
+    "median_ms": 2.692,
+    "min_ms": 2.569,
+    "max_ms": 2.914,
+    "mad_ms": 0.066,
+    "samples_ms": [
+      2.569,
+      2.626,
+      2.718,
+      2.65,
+      2.914,
+      2.826,
+      2.692
+    ]
+  },
+  "plan_before": [
+    {
+      "Node Type": "Limit",
+      "Plan Rows": 100,
+      "Actual Rows": 100.0,
+      "Actual Total Time": 2.991,
+      "Total Cost": 216.34,
+      "Shared Hit Blocks": 7652,
+      "Shared Read Blocks": 0,
+      "depth": 0
+    },
+    {
+      "Node Type": "Nested Loop",
+      "Plan Rows": 4692,
+      "Actual Rows": 100.0,
+      "Actual Total Time": 2.985,
+      "Total Cost": 10123.87,
+      "Shared Hit Blocks": 7652,
+      "Shared Read Blocks": 0,
+      "depth": 1
+    },
+    {
+      "Node Type": "Index Scan",
+      "Relation Name": "orders",
+      "Index Name": "orders_pkey",
+      "Plan Rows": 120000,
+      "Actual Rows": 3002.0,
+      "Actual Total Time": 0.239,
+      "Total Cost": 4089.29,
+      "Shared Hit Blocks": 35,
+      "Shared Read Blocks": 0,
+      "depth": 2
+    },
+    {
+      "Node Type": "Memoize",
+      "Plan Rows": 1,
+      "Actual Rows": 0.03,
+      "Actual Total Time": 0.001,
+      "Total Cost": 0.32,
+      "Shared Hit Blocks": 7617,
+      "Shared Read Blocks": 0,
+      "depth": 2
+    },
+    {
+      "Node Type": "Index Scan",
+      "Relation Name": "customers",
+      "Index Name": "customers_pkey",
+      "Plan Rows": 1,
+      "Actual Rows": 0.04,
+      "Actual Total Time": 0.001,
+      "Total Cost": 0.31,
+      "Rows Removed by Filter": 1,
+      "Shared Hit Blocks": 7617,
+      "Shared Read Blocks": 0,
+      "depth": 3
+    }
+  ],
+  "schema": {
+    "columns": [
+      [
+        "customers",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "customers",
+        "name",
+        "text",
+        "NO"
+      ],
+      [
+        "customers",
+        "city",
+        "text",
+        "YES"
+      ],
+      [
+        "items",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "items",
+        "order_id",
+        "integer",
+        "YES"
+      ],
+      [
+        "items",
+        "quantity",
+        "integer",
+        "YES"
+      ],
+      [
+        "items",
+        "product",
+        "text",
+        "YES"
+      ],
+      [
+        "orders",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "orders",
+        "customer_id",
+        "integer",
+        "YES"
+      ],
+      [
+        "orders",
+        "status",
+        "text",
+        "YES"
+      ],
+      [
+        "orders",
+        "total",
+        "numeric",
+        "YES"
+      ],
+      [
+        "orders",
+        "created_at",
+        "timestamp without time zone",
+        "NO"
+      ]
+    ],
+    "indexes": [
+      [
+        "customers",
+        "CREATE UNIQUE INDEX customers_pkey ON qot_7d14eb6c6b424adf.customers USING btree (id)"
+      ],
+      [
+        "orders",
+        "CREATE UNIQUE INDEX orders_pkey ON qot_7d14eb6c6b424adf.orders USING btree (id)"
+      ],
+      [
+        "items",
+        "CREATE UNIQUE INDEX items_pkey ON qot_7d14eb6c6b424adf.items USING btree (id)"
+      ]
+    ],
+    "constraints": [
+      [
+        "customers",
+        "NOT NULL id"
+      ],
+      [
+        "customers",
+        "NOT NULL name"
+      ],
+      [
+        "customers",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "orders",
+        "NOT NULL id"
+      ],
+      [
+        "orders",
+        "NOT NULL created_at"
+      ],
+      [
+        "orders",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "orders",
+        "FOREIGN KEY (customer_id) REFERENCES customers(id)"
+      ],
+      [
+        "items",
+        "NOT NULL id"
+      ],
+      [
+        "items",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "items",
+        "FOREIGN KEY (order_id) REFERENCES orders(id)"
+      ]
+    ],
+    "statistics": [
+      [
+        "customers",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "customers",
+        "name",
+        0.0,
+        -1.0,
+        0.81865406
+      ],
+      [
+        "customers",
+        "city",
+        0.1,
+        2.0,
+        0.9168176
+      ],
+      [
+        "orders",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "orders",
+        "customer_id",
+        0.0135,
+        9848.0,
+        0.016643321
+      ],
+      [
+        "orders",
+        "status",
+        0.0874,
+        2.0,
+        0.976724
+      ],
+      [
+        "orders",
+        "total",
+        0.0348,
+        4995.0,
+        -0.006084955
+      ],
+      [
+        "orders",
+        "created_at",
+        0.0,
+        -0.54489166,
+        0.0198187
+      ],
+      [
+        "items",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "items",
+        "order_id",
+        0.0,
+        -0.49464583,
+        0.50383335
+      ],
+      [
+        "items",
+        "quantity",
+        0.0,
+        4.0,
+        0.24174462
+      ],
+      [
+        "items",
+        "product",
+        0.0,
+        1.0,
+        1.0
+      ]
+    ],
+    "version": "18.4"
+  },
+  "conditions": {
+    "postgresql": "18.4",
+    "rows": {
+      "customers": 10000,
+      "orders": 120000,
+      "items": 240000
+    },
+    "seed": 17,
+    "cache": "warm cache; no cold-cache control",
+    "repetitions": 7,
+    "warmup_rounds": 2,
+    "execution_order": "Alternating original/candidate index states; equal per-state warmups",
+    "parallel_workers": 0,
+    "statement_timeout_ms": 3000,
+    "lock_timeout_ms": 500,
+    "comparison_row_cap": 20000,
+    "equivalence": "Empirical result equality on four fixtures; not a mathematical proof. Types and duplicate counts preserved; sequence compared when ordered.",
+    "index_isolation": "Each candidate uses transaction rollback in a disposable schema.",
+    "database_time_definition": "Client time in SQL execute calls including seeding and metadata, excluding model; streaming fetch and connection setup excluded."
+  },
+  "usage": {
+    "provider": "Groq / OpenAI-compatible",
+    "model": "openai/gpt-oss-120b",
+    "calls": 1,
+    "input_tokens": 1402,
+    "output_tokens": 880,
+    "seconds": 2.05,
+    "estimated_cost_usd": null,
+    "tool_calls": 635,
+    "runtime_seconds": 6.18,
+    "database_seconds": 3.716
+  },
+  "migration": [],
+  "limitations": [
+    "Synthetic workload; verify against representative sanitized data.",
+    "CPU/cache state and index construction can affect benchmark variability.",
+    "Write overhead and cold-cache latency not measured.",
+    "Sample equality does not prove equivalence on all possible databases."
+  ]
+}

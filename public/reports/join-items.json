@@ -1,0 +1,886 @@
+{
+  "query": "SELECT\n  o.id,\n  i.id AS item_id,\n  i.quantity\nFROM orders AS o\nJOIN items AS i\n  ON i.order_id = o.id\nWHERE\n  o.customer_id = 42\nORDER BY\n  o.id,\n  i.id\nLIMIT 100",
+  "diagnosis": "Seq Scan on items (no index on order_id) forces a full table scan and a hash join; Seq Scan on orders filters on customer_id without an index, causing many rows to be read and then sorted for the LIMIT. Both missing indexes drive the high cost and sort step.",
+  "candidates": [
+    {
+      "name": "idx_items_order_id",
+      "hypothesis": "Adding an index on items(order_id) lets PostgreSQL use an index scan to fetch only rows belonging to the filtered orders, eliminating the large Seq Scan and reducing hash\u2011join build cost.",
+      "query": "SELECT\n  o.id,\n  i.id AS item_id,\n  i.quantity\nFROM orders AS o\nJOIN items AS i\n  ON i.order_id = o.id\nWHERE\n  o.customer_id = 42\nORDER BY\n  o.id,\n  i.id\nLIMIT 100",
+      "indexes": [
+        "CREATE INDEX idx_items_order_id ON items (order_id)"
+      ],
+      "correctness": {
+        "passed": true,
+        "datasets": [
+          {
+            "size": 0,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          },
+          {
+            "size": 300,
+            "seed": 17,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 900,
+            "seed": 31,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 120000,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          }
+        ]
+      },
+      "status": "verified improvement",
+      "original": {
+        "median_ms": 19.722,
+        "min_ms": 19.337,
+        "max_ms": 20.962,
+        "mad_ms": 0.385,
+        "samples_ms": [
+          19.337,
+          20.201,
+          19.56,
+          19.722,
+          19.666,
+          20.962,
+          20.318
+        ]
+      },
+      "optimized": {
+        "median_ms": 4.324,
+        "min_ms": 4.213,
+        "max_ms": 4.884,
+        "mad_ms": 0.059,
+        "samples_ms": [
+          4.265,
+          4.275,
+          4.324,
+          4.333,
+          4.213,
+          4.448,
+          4.884
+        ]
+      },
+      "speedup": 4.56,
+      "saved_ms": 15.398,
+      "plan": [
+        {
+          "Node Type": "Limit",
+          "Plan Rows": 20,
+          "Actual Rows": 20.0,
+          "Actual Total Time": 4.875,
+          "Total Cost": 2581.46,
+          "Shared Hit Blocks": 1016,
+          "Shared Read Blocks": 0,
+          "depth": 0
+        },
+        {
+          "Node Type": "Sort",
+          "Plan Rows": 20,
+          "Actual Rows": 20.0,
+          "Actual Total Time": 4.873,
+          "Total Cost": 2581.46,
+          "Shared Hit Blocks": 1016,
+          "Shared Read Blocks": 0,
+          "Sort Method": "quicksort",
+          "depth": 1
+        },
+        {
+          "Node Type": "Nested Loop",
+          "Plan Rows": 20,
+          "Actual Rows": 20.0,
+          "Actual Total Time": 4.868,
+          "Total Cost": 2580.98,
+          "Shared Hit Blocks": 1016,
+          "Shared Read Blocks": 0,
+          "depth": 2
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Relation Name": "orders",
+          "Plan Rows": 10,
+          "Actual Rows": 10.0,
+          "Actual Total Time": 4.817,
+          "Total Cost": 2466.0,
+          "Rows Removed by Filter": 119990,
+          "Shared Hit Blocks": 966,
+          "Shared Read Blocks": 0,
+          "depth": 3
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "items",
+          "Index Name": "idx_items_order_id",
+          "Plan Rows": 2,
+          "Actual Rows": 2.0,
+          "Actual Total Time": 0.004,
+          "Total Cost": 11.48,
+          "Shared Hit Blocks": 50,
+          "Shared Read Blocks": 0,
+          "depth": 3
+        }
+      ],
+      "index_build_ms": 70.4,
+      "index_bytes": 4890624,
+      "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
+    },
+    {
+      "name": "idx_orders_customer_id",
+      "hypothesis": "An index on orders(customer_id) allows the planner to locate the 10 matching orders directly instead of scanning the whole table, cutting rows removed by filter and shrinking the hash table size.",
+      "query": "SELECT\n  o.id,\n  i.id AS item_id,\n  i.quantity\nFROM orders AS o\nJOIN items AS i\n  ON i.order_id = o.id\nWHERE\n  o.customer_id = 42\nORDER BY\n  o.id,\n  i.id\nLIMIT 100",
+      "indexes": [
+        "CREATE INDEX idx_orders_customer_id ON orders (customer_id)"
+      ],
+      "correctness": {
+        "passed": true,
+        "datasets": [
+          {
+            "size": 0,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          },
+          {
+            "size": 300,
+            "seed": 17,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 900,
+            "seed": 31,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 120000,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          }
+        ]
+      },
+      "status": "verified improvement",
+      "original": {
+        "median_ms": 20.469,
+        "min_ms": 19.593,
+        "max_ms": 24.056,
+        "mad_ms": 0.599,
+        "samples_ms": [
+          19.909,
+          20.469,
+          19.593,
+          24.056,
+          20.596,
+          19.87,
+          21.437
+        ]
+      },
+      "optimized": {
+        "median_ms": 16.319,
+        "min_ms": 15.515,
+        "max_ms": 18.215,
+        "mad_ms": 0.162,
+        "samples_ms": [
+          15.596,
+          16.385,
+          16.157,
+          18.215,
+          16.319,
+          15.515,
+          16.424
+        ]
+      },
+      "speedup": 1.25,
+      "saved_ms": 4.15,
+      "plan": [
+        {
+          "Node Type": "Limit",
+          "Plan Rows": 20,
+          "Actual Rows": 20.0,
+          "Actual Total Time": 16.412,
+          "Total Cost": 4837.07,
+          "Shared Hit Blocks": 1777,
+          "Shared Read Blocks": 0,
+          "depth": 0
+        },
+        {
+          "Node Type": "Sort",
+          "Plan Rows": 20,
+          "Actual Rows": 20.0,
+          "Actual Total Time": 16.41,
+          "Total Cost": 4837.07,
+          "Shared Hit Blocks": 1777,
+          "Shared Read Blocks": 0,
+          "Sort Method": "quicksort",
+          "depth": 1
+        },
+        {
+          "Node Type": "Hash Join",
+          "Plan Rows": 20,
+          "Actual Rows": 20.0,
+          "Actual Total Time": 16.401,
+          "Total Cost": 4836.59,
+          "Shared Hit Blocks": 1777,
+          "Shared Read Blocks": 0,
+          "depth": 2
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Relation Name": "items",
+          "Plan Rows": 240000,
+          "Actual Rows": 240000.0,
+          "Actual Total Time": 7.936,
+          "Total Cost": 4165.0,
+          "Shared Hit Blocks": 1765,
+          "Shared Read Blocks": 0,
+          "depth": 3
+        },
+        {
+          "Node Type": "Hash",
+          "Plan Rows": 10,
+          "Actual Rows": 10.0,
+          "Actual Total Time": 0.015,
+          "Total Cost": 41.44,
+          "Shared Hit Blocks": 12,
+          "Shared Read Blocks": 0,
+          "depth": 3
+        },
+        {
+          "Node Type": "Bitmap Heap Scan",
+          "Relation Name": "orders",
+          "Plan Rows": 10,
+          "Actual Rows": 10.0,
+          "Actual Total Time": 0.013,
+          "Total Cost": 41.44,
+          "Shared Hit Blocks": 12,
+          "Shared Read Blocks": 0,
+          "depth": 4
+        },
+        {
+          "Node Type": "Bitmap Index Scan",
+          "Index Name": "idx_orders_customer_id",
+          "Plan Rows": 10,
+          "Actual Rows": 10.0,
+          "Actual Total Time": 0.004,
+          "Total Cost": 4.37,
+          "Shared Hit Blocks": 2,
+          "Shared Read Blocks": 0,
+          "depth": 5
+        }
+      ],
+      "index_build_ms": 27.29,
+      "index_bytes": 1097728,
+      "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
+    },
+    {
+      "name": "idx_items_order_id_id",
+      "hypothesis": "A composite index on items(order_id, id) supports both the join (order_id) and the final ordering (i.id) after the join, allowing an index\u2011only scan and avoiding the explicit sort step.",
+      "query": "SELECT\n  o.id,\n  i.id AS item_id,\n  i.quantity\nFROM orders AS o\nJOIN items AS i\n  ON i.order_id = o.id\nWHERE\n  o.customer_id = 42\nORDER BY\n  o.id,\n  i.id\nLIMIT 100",
+      "indexes": [
+        "CREATE INDEX idx_items_order_id_id ON items (order_id, id)"
+      ],
+      "correctness": {
+        "passed": true,
+        "datasets": [
+          {
+            "size": 0,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          },
+          {
+            "size": 300,
+            "seed": 17,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 900,
+            "seed": 31,
+            "edges": true,
+            "passed": true
+          },
+          {
+            "size": 120000,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          }
+        ]
+      },
+      "status": "verified improvement",
+      "original": {
+        "median_ms": 20.806,
+        "min_ms": 19.622,
+        "max_ms": 27.228,
+        "mad_ms": 0.459,
+        "samples_ms": [
+          19.622,
+          27.228,
+          20.347,
+          20.844,
+          19.701,
+          21.075,
+          20.806
+        ]
+      },
+      "optimized": {
+        "median_ms": 4.41,
+        "min_ms": 4.17,
+        "max_ms": 9.228,
+        "mad_ms": 0.112,
+        "samples_ms": [
+          4.447,
+          9.228,
+          4.298,
+          4.398,
+          4.17,
+          4.41,
+          5.726
+        ]
+      },
+      "speedup": 4.72,
+      "saved_ms": 16.396,
+      "plan": [
+        {
+          "Node Type": "Limit",
+          "Plan Rows": 20,
+          "Actual Rows": 20.0,
+          "Actual Total Time": 5.715,
+          "Total Cost": 2585.74,
+          "Shared Hit Blocks": 1016,
+          "Shared Read Blocks": 0,
+          "depth": 0
+        },
+        {
+          "Node Type": "Sort",
+          "Plan Rows": 20,
+          "Actual Rows": 20.0,
+          "Actual Total Time": 5.714,
+          "Total Cost": 2585.74,
+          "Shared Hit Blocks": 1016,
+          "Shared Read Blocks": 0,
+          "Sort Method": "quicksort",
+          "depth": 1
+        },
+        {
+          "Node Type": "Nested Loop",
+          "Plan Rows": 20,
+          "Actual Rows": 20.0,
+          "Actual Total Time": 5.707,
+          "Total Cost": 2585.26,
+          "Shared Hit Blocks": 1016,
+          "Shared Read Blocks": 0,
+          "depth": 2
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Relation Name": "orders",
+          "Plan Rows": 10,
+          "Actual Rows": 10.0,
+          "Actual Total Time": 5.653,
+          "Total Cost": 2466.0,
+          "Rows Removed by Filter": 119990,
+          "Shared Hit Blocks": 966,
+          "Shared Read Blocks": 0,
+          "depth": 3
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "items",
+          "Index Name": "idx_items_order_id_id",
+          "Plan Rows": 2,
+          "Actual Rows": 2.0,
+          "Actual Total Time": 0.004,
+          "Total Cost": 11.91,
+          "Shared Hit Blocks": 50,
+          "Shared Read Blocks": 0,
+          "depth": 3
+        }
+      ],
+      "index_build_ms": 70.06,
+      "index_bytes": 5414912,
+      "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
+    }
+  ],
+  "best": {
+    "name": "idx_items_order_id",
+    "hypothesis": "Adding an index on items(order_id) lets PostgreSQL use an index scan to fetch only rows belonging to the filtered orders, eliminating the large Seq Scan and reducing hash\u2011join build cost.",
+    "query": "SELECT\n  o.id,\n  i.id AS item_id,\n  i.quantity\nFROM orders AS o\nJOIN items AS i\n  ON i.order_id = o.id\nWHERE\n  o.customer_id = 42\nORDER BY\n  o.id,\n  i.id\nLIMIT 100",
+    "indexes": [
+      "CREATE INDEX idx_items_order_id ON items (order_id)"
+    ],
+    "correctness": {
+      "passed": true,
+      "datasets": [
+        {
+          "size": 0,
+          "seed": 17,
+          "edges": false,
+          "passed": true
+        },
+        {
+          "size": 300,
+          "seed": 17,
+          "edges": true,
+          "passed": true
+        },
+        {
+          "size": 900,
+          "seed": 31,
+          "edges": true,
+          "passed": true
+        },
+        {
+          "size": 120000,
+          "seed": 17,
+          "edges": false,
+          "passed": true
+        }
+      ]
+    },
+    "status": "verified improvement",
+    "original": {
+      "median_ms": 19.722,
+      "min_ms": 19.337,
+      "max_ms": 20.962,
+      "mad_ms": 0.385,
+      "samples_ms": [
+        19.337,
+        20.201,
+        19.56,
+        19.722,
+        19.666,
+        20.962,
+        20.318
+      ]
+    },
+    "optimized": {
+      "median_ms": 4.324,
+      "min_ms": 4.213,
+      "max_ms": 4.884,
+      "mad_ms": 0.059,
+      "samples_ms": [
+        4.265,
+        4.275,
+        4.324,
+        4.333,
+        4.213,
+        4.448,
+        4.884
+      ]
+    },
+    "speedup": 4.56,
+    "saved_ms": 15.398,
+    "plan": [
+      {
+        "Node Type": "Limit",
+        "Plan Rows": 20,
+        "Actual Rows": 20.0,
+        "Actual Total Time": 4.875,
+        "Total Cost": 2581.46,
+        "Shared Hit Blocks": 1016,
+        "Shared Read Blocks": 0,
+        "depth": 0
+      },
+      {
+        "Node Type": "Sort",
+        "Plan Rows": 20,
+        "Actual Rows": 20.0,
+        "Actual Total Time": 4.873,
+        "Total Cost": 2581.46,
+        "Shared Hit Blocks": 1016,
+        "Shared Read Blocks": 0,
+        "Sort Method": "quicksort",
+        "depth": 1
+      },
+      {
+        "Node Type": "Nested Loop",
+        "Plan Rows": 20,
+        "Actual Rows": 20.0,
+        "Actual Total Time": 4.868,
+        "Total Cost": 2580.98,
+        "Shared Hit Blocks": 1016,
+        "Shared Read Blocks": 0,
+        "depth": 2
+      },
+      {
+        "Node Type": "Seq Scan",
+        "Relation Name": "orders",
+        "Plan Rows": 10,
+        "Actual Rows": 10.0,
+        "Actual Total Time": 4.817,
+        "Total Cost": 2466.0,
+        "Rows Removed by Filter": 119990,
+        "Shared Hit Blocks": 966,
+        "Shared Read Blocks": 0,
+        "depth": 3
+      },
+      {
+        "Node Type": "Index Scan",
+        "Relation Name": "items",
+        "Index Name": "idx_items_order_id",
+        "Plan Rows": 2,
+        "Actual Rows": 2.0,
+        "Actual Total Time": 0.004,
+        "Total Cost": 11.48,
+        "Shared Hit Blocks": 50,
+        "Shared Read Blocks": 0,
+        "depth": 3
+      }
+    ],
+    "index_build_ms": 70.4,
+    "index_bytes": 4890624,
+    "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
+  },
+  "original": {
+    "median_ms": 19.722,
+    "min_ms": 19.337,
+    "max_ms": 20.962,
+    "mad_ms": 0.385,
+    "samples_ms": [
+      19.337,
+      20.201,
+      19.56,
+      19.722,
+      19.666,
+      20.962,
+      20.318
+    ]
+  },
+  "plan_before": [
+    {
+      "Node Type": "Limit",
+      "Plan Rows": 20,
+      "Actual Rows": 20.0,
+      "Actual Total Time": 20.668,
+      "Total Cost": 7261.63,
+      "Shared Hit Blocks": 2731,
+      "Shared Read Blocks": 0,
+      "depth": 0
+    },
+    {
+      "Node Type": "Sort",
+      "Plan Rows": 20,
+      "Actual Rows": 20.0,
+      "Actual Total Time": 20.666,
+      "Total Cost": 7261.63,
+      "Shared Hit Blocks": 2731,
+      "Shared Read Blocks": 0,
+      "Sort Method": "quicksort",
+      "depth": 1
+    },
+    {
+      "Node Type": "Hash Join",
+      "Plan Rows": 20,
+      "Actual Rows": 20.0,
+      "Actual Total Time": 20.656,
+      "Total Cost": 7261.15,
+      "Shared Hit Blocks": 2731,
+      "Shared Read Blocks": 0,
+      "depth": 2
+    },
+    {
+      "Node Type": "Seq Scan",
+      "Relation Name": "items",
+      "Plan Rows": 240000,
+      "Actual Rows": 240000.0,
+      "Actual Total Time": 7.759,
+      "Total Cost": 4165.0,
+      "Shared Hit Blocks": 1765,
+      "Shared Read Blocks": 0,
+      "depth": 3
+    },
+    {
+      "Node Type": "Hash",
+      "Plan Rows": 10,
+      "Actual Rows": 10.0,
+      "Actual Total Time": 4.436,
+      "Total Cost": 2466.0,
+      "Shared Hit Blocks": 966,
+      "Shared Read Blocks": 0,
+      "depth": 3
+    },
+    {
+      "Node Type": "Seq Scan",
+      "Relation Name": "orders",
+      "Plan Rows": 10,
+      "Actual Rows": 10.0,
+      "Actual Total Time": 4.433,
+      "Total Cost": 2466.0,
+      "Rows Removed by Filter": 119990,
+      "Shared Hit Blocks": 966,
+      "Shared Read Blocks": 0,
+      "depth": 4
+    }
+  ],
+  "schema": {
+    "columns": [
+      [
+        "customers",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "customers",
+        "name",
+        "text",
+        "NO"
+      ],
+      [
+        "customers",
+        "city",
+        "text",
+        "YES"
+      ],
+      [
+        "items",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "items",
+        "order_id",
+        "integer",
+        "YES"
+      ],
+      [
+        "items",
+        "quantity",
+        "integer",
+        "YES"
+      ],
+      [
+        "items",
+        "product",
+        "text",
+        "YES"
+      ],
+      [
+        "orders",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "orders",
+        "customer_id",
+        "integer",
+        "YES"
+      ],
+      [
+        "orders",
+        "status",
+        "text",
+        "YES"
+      ],
+      [
+        "orders",
+        "total",
+        "numeric",
+        "YES"
+      ],
+      [
+        "orders",
+        "created_at",
+        "timestamp without time zone",
+        "NO"
+      ]
+    ],
+    "indexes": [
+      [
+        "customers",
+        "CREATE UNIQUE INDEX customers_pkey ON qot_568de7e5b6164133.customers USING btree (id)"
+      ],
+      [
+        "orders",
+        "CREATE UNIQUE INDEX orders_pkey ON qot_568de7e5b6164133.orders USING btree (id)"
+      ],
+      [
+        "items",
+        "CREATE UNIQUE INDEX items_pkey ON qot_568de7e5b6164133.items USING btree (id)"
+      ]
+    ],
+    "constraints": [
+      [
+        "customers",
+        "NOT NULL id"
+      ],
+      [
+        "customers",
+        "NOT NULL name"
+      ],
+      [
+        "customers",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "orders",
+        "NOT NULL id"
+      ],
+      [
+        "orders",
+        "NOT NULL created_at"
+      ],
+      [
+        "orders",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "orders",
+        "FOREIGN KEY (customer_id) REFERENCES customers(id)"
+      ],
+      [
+        "items",
+        "NOT NULL id"
+      ],
+      [
+        "items",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "items",
+        "FOREIGN KEY (order_id) REFERENCES orders(id)"
+      ]
+    ],
+    "statistics": [
+      [
+        "customers",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "customers",
+        "name",
+        0.0,
+        -1.0,
+        0.81865406
+      ],
+      [
+        "customers",
+        "city",
+        0.1,
+        2.0,
+        0.9168176
+      ],
+      [
+        "orders",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "orders",
+        "customer_id",
+        0.0144,
+        9944.0,
+        0.022574225
+      ],
+      [
+        "orders",
+        "status",
+        0.08906667,
+        2.0,
+        0.980377
+      ],
+      [
+        "orders",
+        "total",
+        0.0348,
+        5003.0,
+        0.003281663
+      ],
+      [
+        "orders",
+        "created_at",
+        0.0,
+        -0.5496917,
+        0.01995927
+      ],
+      [
+        "items",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "items",
+        "order_id",
+        0.0,
+        -0.48952916,
+        0.49415427
+      ],
+      [
+        "items",
+        "quantity",
+        0.0,
+        4.0,
+        0.25982255
+      ],
+      [
+        "items",
+        "product",
+        0.0,
+        1.0,
+        1.0
+      ]
+    ],
+    "version": "18.4"
+  },
+  "conditions": {
+    "postgresql": "18.4",
+    "rows": {
+      "customers": 10000,
+      "orders": 120000,
+      "items": 240000
+    },
+    "seed": 17,
+    "cache": "warm cache; no cold-cache control",
+    "repetitions": 7,
+    "warmup_rounds": 2,
+    "execution_order": "Alternating original/candidate index states; equal per-state warmups",
+    "parallel_workers": 0,
+    "statement_timeout_ms": 3000,
+    "lock_timeout_ms": 500,
+    "comparison_row_cap": 20000,
+    "equivalence": "Empirical result equality on four fixtures; not a mathematical proof. Types and duplicate counts preserved; sequence compared when ordered.",
+    "index_isolation": "Each candidate uses transaction rollback in a disposable schema.",
+    "database_time_definition": "Client time in SQL execute calls including seeding and metadata, excluding model; streaming fetch and connection setup excluded."
+  },
+  "usage": {
+    "provider": "Groq / OpenAI-compatible",
+    "model": "openai/gpt-oss-120b",
+    "calls": 1,
+    "input_tokens": 1463,
+    "output_tokens": 903,
+    "seconds": 2.22,
+    "estimated_cost_usd": null,
+    "tool_calls": 635,
+    "runtime_seconds": 8.78,
+    "database_seconds": 6.08
+  },
+  "migration": [
+    "CREATE INDEX idx_items_order_id ON items (order_id)"
+  ],
+  "limitations": [
+    "Synthetic workload; verify against representative sanitized data.",
+    "CPU/cache state and index construction can affect benchmark variability.",
+    "Write overhead and cold-cache latency not measured.",
+    "Sample equality does not prove equivalence on all possible databases."
+  ]
+}

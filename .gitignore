@@ -1,0 +1,12 @@
+node_modules/
+.venv/
+.env
+.env.*
+!.env.example
+.data/
+__pycache__/
+.pytest_cache/
+dist/
+artifacts/*.tar.gz
+.vercel/
+*.log

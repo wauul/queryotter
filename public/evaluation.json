@@ -1,0 +1,402 @@
+{
+  "generated_at": "2026-09-30",
+  "summary": {
+    "cases": 15,
+    "verified_optimizations": 8,
+    "regressions": 0,
+    "inconclusive": 2,
+    "rejected_inputs": 3,
+    "errors": 0,
+    "empirical_correctness_pass_rate": "9/10 checked cases",
+    "verified_optimization_rate": "8/12 supported cases"
+  },
+  "cases": [
+    {
+      "id": "customer-orders",
+      "title": "A customer's recent orders",
+      "category": "Missing index",
+      "original_ms": 4.483,
+      "best_ms": 0.027,
+      "baseline_ms": 0.026,
+      "correctness": true,
+      "outcome": "verified improvement",
+      "agent_usage": {
+        "provider": "Groq / OpenAI-compatible",
+        "model": "openai/gpt-oss-120b",
+        "calls": 1,
+        "input_tokens": 1230,
+        "output_tokens": 619,
+        "seconds": 1.65,
+        "estimated_cost_usd": null,
+        "tool_calls": 229,
+        "runtime_seconds": 4.84,
+        "database_seconds": 2.925
+      },
+      "candidate_outcomes": [
+        "verified improvement"
+      ],
+      "speedup": 166.04,
+      "index_bytes": 4898816,
+      "index_build_ms": 46.85,
+      "baseline_outcome": "verified improvement"
+    },
+    {
+      "id": "rare-status",
+      "title": "Find the rare refunds",
+      "category": "Selective filter",
+      "original_ms": 0.657,
+      "best_ms": 0.032,
+      "baseline_ms": 0.042,
+      "correctness": true,
+      "outcome": "verified improvement",
+      "agent_usage": {
+        "provider": "Groq / OpenAI-compatible",
+        "model": "openai/gpt-oss-120b",
+        "calls": 1,
+        "input_tokens": 1158,
+        "output_tokens": 625,
+        "seconds": 1.72,
+        "estimated_cost_usd": null,
+        "tool_calls": 432,
+        "runtime_seconds": 5.22,
+        "database_seconds": 3.262
+      },
+      "candidate_outcomes": [
+        "verified improvement",
+        "verified improvement"
+      ],
+      "speedup": 20.53,
+      "index_bytes": 57344,
+      "index_build_ms": 8.89,
+      "baseline_outcome": "verified improvement"
+    },
+    {
+      "id": "common-status",
+      "title": "Most orders are completed",
+      "category": "Nonselective filter",
+      "original_ms": 12.766,
+      "best_ms": null,
+      "baseline_ms": 13.227,
+      "correctness": null,
+      "outcome": "no justified candidate",
+      "agent_usage": {
+        "provider": "Groq / OpenAI-compatible",
+        "model": "openai/gpt-oss-120b",
+        "calls": 1,
+        "input_tokens": 1162,
+        "output_tokens": 621,
+        "seconds": 1.92,
+        "estimated_cost_usd": null,
+        "tool_calls": 62,
+        "runtime_seconds": 4.24,
+        "database_seconds": 2.295
+      },
+      "candidate_outcomes": [],
+      "speedup": null,
+      "index_bytes": null,
+      "index_build_ms": null,
+      "baseline_outcome": "inconclusive or no gain"
+    },
+    {
+      "id": "sort-total",
+      "title": "Highest value purchases",
+      "category": "Expensive sorting",
+      "original_ms": 14.188,
+      "best_ms": 0.025,
+      "baseline_ms": 0.03,
+      "correctness": true,
+      "outcome": "verified improvement",
+      "agent_usage": {
+        "provider": "Groq / OpenAI-compatible",
+        "model": "openai/gpt-oss-120b",
+        "calls": 1,
+        "input_tokens": 1207,
+        "output_tokens": 587,
+        "seconds": 1.73,
+        "estimated_cost_usd": null,
+        "tool_calls": 229,
+        "runtime_seconds": 5.15,
+        "database_seconds": 3.167
+      },
+      "candidate_outcomes": [
+        "verified improvement"
+      ],
+      "speedup": 567.52,
+      "index_bytes": 3809280,
+      "index_build_ms": 57.29,
+      "baseline_outcome": "verified improvement"
+    },
+    {
+      "id": "join-city",
+      "title": "Orders from Paris",
+      "category": "Join",
+      "original_ms": 2.692,
+      "best_ms": null,
+      "baseline_ms": 2.875,
+      "correctness": true,
+      "outcome": "inconclusive",
+      "agent_usage": {
+        "provider": "Groq / OpenAI-compatible",
+        "model": "openai/gpt-oss-120b",
+        "calls": 1,
+        "input_tokens": 1402,
+        "output_tokens": 880,
+        "seconds": 2.05,
+        "estimated_cost_usd": null,
+        "tool_calls": 635,
+        "runtime_seconds": 6.18,
+        "database_seconds": 3.716
+      },
+      "candidate_outcomes": [
+        "inconclusive",
+        "inconclusive",
+        "inconclusive"
+      ],
+      "speedup": null,
+      "index_bytes": null,
+      "index_build_ms": null,
+      "baseline_outcome": "inconclusive or no gain"
+    },
+    {
+      "id": "join-items",
+      "title": "A customer's line items",
+      "category": "Join cardinality",
+      "original_ms": 19.722,
+      "best_ms": 4.324,
+      "baseline_ms": 0.042,
+      "correctness": true,
+      "outcome": "verified improvement",
+      "agent_usage": {
+        "provider": "Groq / OpenAI-compatible",
+        "model": "openai/gpt-oss-120b",
+        "calls": 1,
+        "input_tokens": 1463,
+        "output_tokens": 903,
+        "seconds": 2.22,
+        "estimated_cost_usd": null,
+        "tool_calls": 635,
+        "runtime_seconds": 8.78,
+        "database_seconds": 6.08
+      },
+      "candidate_outcomes": [
+        "verified improvement",
+        "verified improvement",
+        "verified improvement"
+      ],
+      "speedup": 4.56,
+      "index_bytes": 4890624,
+      "index_build_ms": 70.4,
+      "baseline_outcome": "verified improvement"
+    },
+    {
+      "id": "aggregate",
+      "title": "Revenue by customer",
+      "category": "Aggregation",
+      "original_ms": 4.177,
+      "best_ms": 0.11,
+      "baseline_ms": 0.124,
+      "correctness": true,
+      "outcome": "verified improvement",
+      "agent_usage": {
+        "provider": "Groq / OpenAI-compatible",
+        "model": "openai/gpt-oss-120b",
+        "calls": 1,
+        "input_tokens": 1246,
+        "output_tokens": 649,
+        "seconds": 1.7,
+        "estimated_cost_usd": null,
+        "tool_calls": 432,
+        "runtime_seconds": 4.95,
+        "database_seconds": 2.912
+      },
+      "candidate_outcomes": [
+        "verified improvement",
+        "verified improvement"
+      ],
+      "speedup": 37.97,
+      "index_bytes": 16384,
+      "index_build_ms": 7.18,
+      "baseline_outcome": "verified improvement"
+    },
+    {
+      "id": "pagination",
+      "title": "Deep pagination",
+      "category": "Pagination",
+      "original_ms": 30.673,
+      "best_ms": 9.827,
+      "baseline_ms": 9.89,
+      "correctness": true,
+      "outcome": "verified improvement",
+      "agent_usage": {
+        "provider": "Groq / OpenAI-compatible",
+        "model": "openai/gpt-oss-120b",
+        "calls": 1,
+        "input_tokens": 1212,
+        "output_tokens": 482,
+        "seconds": 1.37,
+        "estimated_cost_usd": null,
+        "tool_calls": 229,
+        "runtime_seconds": 5.12,
+        "database_seconds": 3.553
+      },
+      "candidate_outcomes": [
+        "verified improvement"
+      ],
+      "speedup": 3.12,
+      "index_bytes": 3801088,
+      "index_build_ms": 29.61,
+      "baseline_outcome": "verified improvement"
+    },
+    {
+      "id": "cte",
+      "title": "Recent orders, through a CTE",
+      "category": "CTE",
+      "original_ms": 4.294,
+      "best_ms": 0.023,
+      "baseline_ms": 0.023,
+      "correctness": true,
+      "outcome": "verified improvement",
+      "agent_usage": {
+        "provider": "Groq / OpenAI-compatible",
+        "model": "openai/gpt-oss-120b",
+        "calls": 1,
+        "input_tokens": 1254,
+        "output_tokens": 900,
+        "seconds": 2.07,
+        "estimated_cost_usd": null,
+        "tool_calls": 432,
+        "runtime_seconds": 5.89,
+        "database_seconds": 3.536
+      },
+      "candidate_outcomes": [
+        "verified improvement",
+        "verified improvement"
+      ],
+      "speedup": 186.7,
+      "index_bytes": 2736128,
+      "index_build_ms": 32.2,
+      "baseline_outcome": "verified improvement"
+    },
+    {
+      "id": "already-fast",
+      "title": "An indexed primary key lookup",
+      "category": "Already optimized",
+      "original_ms": 0.009,
+      "best_ms": null,
+      "baseline_ms": 0.01,
+      "correctness": null,
+      "outcome": "no justified candidate",
+      "agent_usage": {
+        "provider": "Groq / OpenAI-compatible",
+        "model": "openai/gpt-oss-120b",
+        "calls": 1,
+        "input_tokens": 1065,
+        "output_tokens": 183,
+        "seconds": 0.7,
+        "estimated_cost_usd": null,
+        "tool_calls": 62,
+        "runtime_seconds": 2.87,
+        "database_seconds": 2.138
+      },
+      "candidate_outcomes": [],
+      "speedup": null,
+      "index_bytes": null,
+      "index_build_ms": null,
+      "baseline_outcome": "inconclusive or no gain"
+    },
+    {
+      "id": "null-trap",
+      "title": "NULLs and an anti-join",
+      "category": "Semantic trap",
+      "original_ms": 16.745,
+      "best_ms": null,
+      "baseline_ms": 17.633,
+      "correctness": false,
+      "outcome": "inconclusive",
+      "agent_usage": {
+        "provider": "Groq / OpenAI-compatible",
+        "model": "openai/gpt-oss-120b",
+        "calls": 1,
+        "input_tokens": 1240,
+        "output_tokens": 1052,
+        "seconds": 2.72,
+        "estimated_cost_usd": null,
+        "tool_calls": 114,
+        "runtime_seconds": 5.11,
+        "database_seconds": 2.294
+      },
+      "candidate_outcomes": [
+        "rejected",
+        "rejected"
+      ],
+      "speedup": null,
+      "index_bytes": null,
+      "index_build_ms": null,
+      "baseline_outcome": "inconclusive or no gain"
+    },
+    {
+      "id": "duplicates",
+      "title": "Keep every repeated purchase",
+      "category": "Duplicate semantics",
+      "original_ms": 4.224,
+      "best_ms": 0.018,
+      "baseline_ms": 0.018,
+      "correctness": true,
+      "outcome": "verified improvement",
+      "agent_usage": {
+        "provider": "Groq / OpenAI-compatible",
+        "model": "openai/gpt-oss-120b",
+        "calls": 1,
+        "input_tokens": 1080,
+        "output_tokens": 412,
+        "seconds": 2.18,
+        "estimated_cost_usd": null,
+        "tool_calls": 229,
+        "runtime_seconds": 5.11,
+        "database_seconds": 2.684
+      },
+      "candidate_outcomes": [
+        "verified improvement"
+      ],
+      "speedup": 234.67,
+      "index_bytes": 3809280,
+      "index_build_ms": 31.74,
+      "baseline_outcome": "verified improvement"
+    },
+    {
+      "id": "unsafe",
+      "title": "A write hidden inside a CTE",
+      "category": "Unsafe \u00b7 rejected",
+      "original_ms": null,
+      "best_ms": null,
+      "baseline_ms": null,
+      "correctness": null,
+      "outcome": "rejected",
+      "reason": "Writes, set operations, commands and window functions are outside supported scope."
+    },
+    {
+      "id": "volatile",
+      "title": "Random ordering cannot be verified",
+      "category": "Volatile \u00b7 rejected",
+      "original_ms": null,
+      "best_ms": null,
+      "baseline_ms": null,
+      "correctness": null,
+      "outcome": "rejected",
+      "reason": "Function RAND is not on the safe immutable-function allowlist."
+    },
+    {
+      "id": "ambiguous",
+      "title": "Pagination needs a tie-breaker",
+      "category": "Ambiguous \u00b7 rejected",
+      "original_ms": null,
+      "best_ms": null,
+      "baseline_ms": null,
+      "correctness": null,
+      "outcome": "rejected",
+      "reason": "ORDER BY does not establish a supported unique tie-breaker; add a primary key."
+    }
+  ],
+  "runtime_seconds": 222.16,
+  "methodology": "Full fixed suite; no favorable-case selection. Original versus Groq-chosen candidates and independent fixed index baseline. PostgreSQL execution time, warm cache only. Seven repetitions after two warm-up rounds with alternating index states and equal warmups. A win must exceed 10% original median, 3\u00d7 maximum MAD, and 0.05 ms. Empirical equality on empty, two edge fixtures and full synthetic data does not prove equivalence. Regressions count tested candidates; selected recommendations cannot be regressions. Pricing and database operation time unavailable in this run."
+}

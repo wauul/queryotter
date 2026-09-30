@@ -1,0 +1,357 @@
+{
+  "query": "SELECT\n  id\nFROM customers\nWHERE\n  NOT id IN (\n    SELECT\n      customer_id\n    FROM orders\n  )\nORDER BY\n  id\nLIMIT 100",
+  "diagnosis": "The query uses NOT IN with a subquery on orders.customer_id, which is nullable and lacks an index. PostgreSQL falls back to a sequential scan of orders and an index\u2011only scan of customers, then filters rows, causing high cost. Adding an index on orders(customer_id) enables an efficient anti\u2011join, and rewriting the predicate to NOT EXISTS (or adding a IS NOT NULL filter) preserves correct NULL semantics while allowing index usage.",
+  "candidates": [
+    {
+      "name": "Add index on orders.customer_id and rewrite to NOT EXISTS",
+      "hypothesis": "A plain btree index on orders.customer_id lets PostgreSQL turn the anti\u2011join into an indexed semi/anti join. Rewriting to NOT EXISTS (with the same NULL handling) lets the planner use the index, reducing the sequential scan on orders.",
+      "query": "SELECT id FROM customers WHERE NOT EXISTS (SELECT 1 FROM orders WHERE orders.customer_id = customers.id) ORDER BY id LIMIT 100",
+      "indexes": [
+        "CREATE INDEX idx_orders_customer_id ON orders (customer_id)"
+      ],
+      "correctness": {
+        "passed": false,
+        "datasets": []
+      },
+      "status": "rejected",
+      "reason": "Function EXISTS is not on the safe immutable-function allowlist."
+    },
+    {
+      "name": "Add index on orders.customer_id with NULL filter in NOT IN",
+      "hypothesis": "Keeping the original NOT IN but filtering out NULLs in the subquery allows the planner to use the new index while preserving the exact NOT IN semantics (NULLs in orders.customer_id make the whole predicate UNKNOWN).",
+      "query": "SELECT id FROM customers WHERE id NOT IN (SELECT customer_id FROM orders WHERE customer_id IS NOT NULL) ORDER BY id LIMIT 100",
+      "indexes": [
+        "CREATE INDEX idx_orders_customer_id ON orders (customer_id)"
+      ],
+      "correctness": {
+        "passed": false,
+        "datasets": [
+          {
+            "size": 0,
+            "seed": 17,
+            "edges": false,
+            "passed": true
+          },
+          {
+            "size": 300,
+            "seed": 17,
+            "edges": true,
+            "passed": false
+          }
+        ]
+      },
+      "status": "rejected",
+      "reason": "Candidate changed values, types, multiplicities or ordered output on an edge fixture."
+    }
+  ],
+  "best": null,
+  "original": {
+    "median_ms": 16.745,
+    "min_ms": 15.586,
+    "max_ms": 17.598,
+    "mad_ms": 0.499,
+    "samples_ms": [
+      17.598,
+      17.244,
+      15.746,
+      15.586,
+      16.741,
+      16.981,
+      16.745
+    ]
+  },
+  "plan_before": [
+    {
+      "Node Type": "Limit",
+      "Plan Rows": 100,
+      "Actual Rows": 0.0,
+      "Actual Total Time": 17.742,
+      "Total Cost": 2473.52,
+      "Shared Hit Blocks": 1059,
+      "Shared Read Blocks": 0,
+      "depth": 0
+    },
+    {
+      "Node Type": "Index Only Scan",
+      "Relation Name": "customers",
+      "Index Name": "customers_pkey",
+      "Plan Rows": 5000,
+      "Actual Rows": 0.0,
+      "Actual Total Time": 17.741,
+      "Total Cost": 2828.28,
+      "Rows Removed by Filter": 10000,
+      "Shared Hit Blocks": 1059,
+      "Shared Read Blocks": 0,
+      "depth": 1
+    },
+    {
+      "Node Type": "Seq Scan",
+      "Relation Name": "orders",
+      "Plan Rows": 120000,
+      "Actual Rows": 120000.0,
+      "Actual Total Time": 6.249,
+      "Total Cost": 2166.0,
+      "Shared Hit Blocks": 966,
+      "Shared Read Blocks": 0,
+      "depth": 2
+    }
+  ],
+  "schema": {
+    "columns": [
+      [
+        "customers",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "customers",
+        "name",
+        "text",
+        "NO"
+      ],
+      [
+        "customers",
+        "city",
+        "text",
+        "YES"
+      ],
+      [
+        "items",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "items",
+        "order_id",
+        "integer",
+        "YES"
+      ],
+      [
+        "items",
+        "quantity",
+        "integer",
+        "YES"
+      ],
+      [
+        "items",
+        "product",
+        "text",
+        "YES"
+      ],
+      [
+        "orders",
+        "id",
+        "integer",
+        "NO"
+      ],
+      [
+        "orders",
+        "customer_id",
+        "integer",
+        "YES"
+      ],
+      [
+        "orders",
+        "status",
+        "text",
+        "YES"
+      ],
+      [
+        "orders",
+        "total",
+        "numeric",
+        "YES"
+      ],
+      [
+        "orders",
+        "created_at",
+        "timestamp without time zone",
+        "NO"
+      ]
+    ],
+    "indexes": [
+      [
+        "customers",
+        "CREATE UNIQUE INDEX customers_pkey ON qot_e56f227944614c64.customers USING btree (id)"
+      ],
+      [
+        "orders",
+        "CREATE UNIQUE INDEX orders_pkey ON qot_e56f227944614c64.orders USING btree (id)"
+      ],
+      [
+        "items",
+        "CREATE UNIQUE INDEX items_pkey ON qot_e56f227944614c64.items USING btree (id)"
+      ]
+    ],
+    "constraints": [
+      [
+        "customers",
+        "NOT NULL id"
+      ],
+      [
+        "customers",
+        "NOT NULL name"
+      ],
+      [
+        "customers",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "orders",
+        "NOT NULL id"
+      ],
+      [
+        "orders",
+        "NOT NULL created_at"
+      ],
+      [
+        "orders",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "orders",
+        "FOREIGN KEY (customer_id) REFERENCES customers(id)"
+      ],
+      [
+        "items",
+        "NOT NULL id"
+      ],
+      [
+        "items",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "items",
+        "FOREIGN KEY (order_id) REFERENCES orders(id)"
+      ]
+    ],
+    "statistics": [
+      [
+        "customers",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "customers",
+        "name",
+        0.0,
+        -1.0,
+        0.81865406
+      ],
+      [
+        "customers",
+        "city",
+        0.1,
+        2.0,
+        0.9168176
+      ],
+      [
+        "orders",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "orders",
+        "customer_id",
+        0.013833334,
+        9951.0,
+        0.025750017
+      ],
+      [
+        "orders",
+        "status",
+        0.0892,
+        2.0,
+        0.9805532
+      ],
+      [
+        "orders",
+        "total",
+        0.034933332,
+        5000.0,
+        0.0047180476
+      ],
+      [
+        "orders",
+        "created_at",
+        0.0,
+        -0.557975,
+        0.013214615
+      ],
+      [
+        "items",
+        "id",
+        0.0,
+        -1.0,
+        1.0
+      ],
+      [
+        "items",
+        "order_id",
+        0.0,
+        -0.5009958,
+        0.4966467
+      ],
+      [
+        "items",
+        "quantity",
+        0.0,
+        4.0,
+        0.25707796
+      ],
+      [
+        "items",
+        "product",
+        0.0,
+        1.0,
+        1.0
+      ]
+    ],
+    "version": "18.4"
+  },
+  "conditions": {
+    "postgresql": "18.4",
+    "rows": {
+      "customers": 10000,
+      "orders": 120000,
+      "items": 240000
+    },
+    "seed": 17,
+    "cache": "warm cache; no cold-cache control",
+    "repetitions": 7,
+    "warmup_rounds": 2,
+    "execution_order": "Alternating original/candidate index states; equal per-state warmups",
+    "parallel_workers": 0,
+    "statement_timeout_ms": 3000,
+    "lock_timeout_ms": 500,
+    "comparison_row_cap": 20000,
+    "equivalence": "Empirical result equality on four fixtures; not a mathematical proof. Types and duplicate counts preserved; sequence compared when ordered.",
+    "index_isolation": "Each candidate uses transaction rollback in a disposable schema.",
+    "database_time_definition": "Client time in SQL execute calls including seeding and metadata, excluding model; streaming fetch and connection setup excluded."
+  },
+  "usage": {
+    "provider": "Groq / OpenAI-compatible",
+    "model": "openai/gpt-oss-120b",
+    "calls": 1,
+    "input_tokens": 1240,
+    "output_tokens": 1052,
+    "seconds": 2.72,
+    "estimated_cost_usd": null,
+    "tool_calls": 114,
+    "runtime_seconds": 5.11,
+    "database_seconds": 2.294
+  },
+  "migration": [],
+  "limitations": [
+    "Synthetic workload; verify against representative sanitized data.",
+    "CPU/cache state and index construction can affect benchmark variability.",
+    "Write overhead and cold-cache latency not measured.",
+    "Sample equality does not prove equivalence on all possible databases."
+  ]
+}

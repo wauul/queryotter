@@ -1,0 +1,92 @@
+[
+  {
+    "id": "customer-orders",
+    "title": "A customer's recent orders",
+    "category": "Missing index",
+    "sql": "SELECT\n  id,\n  customer_id,\n  total,\n  created_at\nFROM orders\nWHERE\n  customer_id = 42\nORDER BY\n  created_at DESC,\n  id DESC\nLIMIT 50"
+  },
+  {
+    "id": "rare-status",
+    "title": "Find the rare refunds",
+    "category": "Selective filter",
+    "sql": "SELECT\n  id,\n  total\nFROM orders\nWHERE\n  status = 'refunded'\nORDER BY\n  id\nLIMIT 100"
+  },
+  {
+    "id": "common-status",
+    "title": "Most orders are completed",
+    "category": "Nonselective filter",
+    "sql": "SELECT\n  status,\n  COUNT(*) AS n,\n  SUM(total) AS revenue\nFROM orders\nWHERE\n  status = 'completed'\nGROUP BY\n  status"
+  },
+  {
+    "id": "sort-total",
+    "title": "Highest value purchases",
+    "category": "Expensive sorting",
+    "sql": "SELECT\n  id,\n  total\nFROM orders\nORDER BY\n  total DESC NULLS LAST,\n  id DESC\nLIMIT 50"
+  },
+  {
+    "id": "join-city",
+    "title": "Orders from Paris",
+    "category": "Join",
+    "sql": "SELECT\n  o.id,\n  c.name,\n  o.total\nFROM customers AS c\nJOIN orders AS o\n  ON o.customer_id = c.id\nWHERE\n  c.city = 'Paris'\nORDER BY\n  o.id\nLIMIT 100"
+  },
+  {
+    "id": "join-items",
+    "title": "A customer's line items",
+    "category": "Join cardinality",
+    "sql": "SELECT\n  o.id,\n  i.id AS item_id,\n  i.quantity\nFROM orders AS o\nJOIN items AS i\n  ON i.order_id = o.id\nWHERE\n  o.customer_id = 42\nORDER BY\n  o.id,\n  i.id\nLIMIT 100"
+  },
+  {
+    "id": "aggregate",
+    "title": "Revenue by customer",
+    "category": "Aggregation",
+    "sql": "SELECT\n  customer_id,\n  COUNT(*) AS n,\n  SUM(total) AS revenue\nFROM orders\nWHERE\n  customer_id < 20\nGROUP BY\n  customer_id\nORDER BY\n  customer_id"
+  },
+  {
+    "id": "pagination",
+    "title": "Deep pagination",
+    "category": "Pagination",
+    "sql": "SELECT\n  id,\n  created_at\nFROM orders\nORDER BY\n  created_at DESC,\n  id DESC\nLIMIT 50\nOFFSET 50000"
+  },
+  {
+    "id": "cte",
+    "title": "Recent orders, through a CTE",
+    "category": "CTE",
+    "sql": "WITH recent AS (\n  SELECT\n    id,\n    customer_id,\n    total\n  FROM orders\n  WHERE\n    customer_id = 42\n)\nSELECT\n  id,\n  total\nFROM recent\nORDER BY\n  id\nLIMIT 50"
+  },
+  {
+    "id": "already-fast",
+    "title": "An indexed primary key lookup",
+    "category": "Already optimized",
+    "sql": "SELECT\n  id,\n  total\nFROM orders\nWHERE\n  id = 42"
+  },
+  {
+    "id": "null-trap",
+    "title": "NULLs and an anti-join",
+    "category": "Semantic trap",
+    "sql": "SELECT\n  id\nFROM customers\nWHERE\n  NOT id IN (\n    SELECT\n      customer_id\n    FROM orders\n  )\nORDER BY\n  id\nLIMIT 100"
+  },
+  {
+    "id": "duplicates",
+    "title": "Keep every repeated purchase",
+    "category": "Duplicate semantics",
+    "sql": "SELECT\n  customer_id,\n  total\nFROM orders\nWHERE\n  customer_id = 42"
+  },
+  {
+    "id": "unsafe",
+    "title": "A write hidden inside a CTE",
+    "category": "Unsafe \u00b7 rejected",
+    "sql": "WITH removed AS (\n  DELETE FROM orders\n  RETURNING id\n)\nSELECT\n  id\nFROM removed"
+  },
+  {
+    "id": "volatile",
+    "title": "Random ordering cannot be verified",
+    "category": "Volatile \u00b7 rejected",
+    "sql": "SELECT\n  id\nFROM orders\nORDER BY\n  RANDOM()\nLIMIT 10"
+  },
+  {
+    "id": "ambiguous",
+    "title": "Pagination needs a tie-breaker",
+    "category": "Ambiguous \u00b7 rejected",
+    "sql": "SELECT\n  id\nFROM orders\nORDER BY\n  status\nLIMIT 50"
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "url": "https://queryotter.vercel.app",
+  "deployment_id": "dpl_BCJLfv9nARe5HGHegw26TyX9qic4",
+  "deployment_url": "https://queryotter-opwckkttk-wauuls-projects.vercel.app",
+  "commit": "bac662ad7519ab1d04faaeaed97e57f2a043159e",
+  "status": "READY",
+  "target": "production",
+  "framework": "Vite + Node.js API proxy",
+  "plan": "Hobby",
+  "build_seconds": 16,
+  "verified_at": "2026-09-30T12:08:57.625434+00:00",
+  "ci_url": "https://github.com/wauul/queryotter/actions/runs/36712494814",
+  "checks": [
+    "Fresh Groq/PostgreSQL job completed",
+    "History, cancellation, isolation, idempotency and report export",
+    "Owner authentication and redacted connection errors",
+    "Nested API routes return JSON",
+    "Secure session cookie and cross-origin write rejection",
+    "Browser renders measured reports and downloads valid JSON",
+    "No credentials in tracked files or deployed frontend assets",
+    "No Vercel error logs returned during verification"
+  ],
+  "limitation": "Live jobs require the separate local worker, PostgreSQL and HTTPS tunnel to remain online.",
+  "deployment_method": "Authenticated Vercel CLI; GitHub automatic deployment is not connected."
+}

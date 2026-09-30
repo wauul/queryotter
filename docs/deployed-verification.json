@@ -1,5 +1,5 @@
 {
-  "url": "https://queryotter.wauul.chatgpt.site",
+  "url": "https://queryotter.vercel.app",
   "checks": [
     "Hosted page and connector healthy",
     "Duplicate submission and cross-session isolation",
@@ -7,14 +7,15 @@
     "Cancellation reaches persisted terminal state",
     "Unsafe SQL refused, owner auth and redacted invalid connection"
   ],
-  "job_id": "44e2b5d750f54049a845fa8b1710385f",
+  "submission_mode": "owner",
+  "job_id": "6cf0a40d381f4526a110cc64f9a458a8",
   "report": {
     "query": "SELECT\n  id,\n  customer_id,\n  total,\n  created_at\nFROM orders\nWHERE\n  customer_id = 42\nORDER BY\n  created_at DESC,\n  id DESC\nLIMIT 50",
-    "diagnosis": "The plan uses a sequential scan on orders, then a separate sort to satisfy ORDER BY created_at DESC, id DESC. Although the filter customer_id = 42 is selective (~1.4%), the planner cannot use the primary\u2011key index because it does not match the WHERE clause or the required ordering, so the whole table (\u2248120k rows) is read and sorted before the LIMIT. This is the main bottleneck.",
+    "diagnosis": "Seq Scan on orders filters 119,990 rows then sorts to satisfy ORDER BY, causing high cost. No index supports the equality on customer_id combined with the required ordering (created_at DESC, id DESC).",
     "candidates": [
       {
-        "name": "customer_created_order_idx",
-        "hypothesis": "A composite index on (customer_id, created_at DESC, id DESC) lets PostgreSQL satisfy the WHERE clause and produce rows already ordered, eliminating the sequential scan and the explicit sort.",
+        "name": "Composite index on orders (customer_id, created_at DESC, id DESC)",
+        "hypothesis": "An index on (customer_id, created_at DESC, id DESC) lets PostgreSQL use an Index Scan that both filters by customer_id and returns rows already ordered, eliminating the Seq Scan and Sort nodes and reducing I/O for the LIMIT 50.",
         "query": "SELECT\n  id,\n  customer_id,\n  total,\n  created_at\nFROM orders\nWHERE\n  customer_id = 42\nORDER BY\n  created_at DESC,\n  id DESC\nLIMIT 50",
         "indexes": [
           "CREATE INDEX idx_orders_customer_created_id ON orders (customer_id, created_at DESC, id DESC)"
@@ -50,43 +51,43 @@
         },
         "status": "verified improvement",
         "original": {
-          "median_ms": 4.452,
-          "min_ms": 4.23,
-          "max_ms": 5.163,
-          "mad_ms": 0.114,
+          "median_ms": 4.357,
+          "min_ms": 4.145,
+          "max_ms": 4.481,
+          "mad_ms": 0.101,
           "samples_ms": [
-            5.163,
-            4.496,
-            4.669,
-            4.338,
-            4.23,
-            4.452,
-            4.347
+            4.271,
+            4.425,
+            4.145,
+            4.481,
+            4.157,
+            4.458,
+            4.357
           ]
         },
         "optimized": {
-          "median_ms": 0.025,
-          "min_ms": 0.024,
+          "median_ms": 0.027,
+          "min_ms": 0.023,
           "max_ms": 0.028,
           "mad_ms": 0.001,
           "samples_ms": [
-            0.028,
-            0.024,
-            0.026,
-            0.024,
-            0.025,
             0.027,
-            0.024
+            0.027,
+            0.028,
+            0.027,
+            0.024,
+            0.023,
+            0.026
           ]
         },
-        "speedup": 178.08,
-        "saved_ms": 4.427,
+        "speedup": 161.37,
+        "saved_ms": 4.33,
         "plan": [
           {
             "Node Type": "Limit",
             "Plan Rows": 10,
             "Actual Rows": 10.0,
-            "Actual Total Time": 0.017,
+            "Actual Total Time": 0.019,
             "Total Cost": 41.76,
             "Shared Hit Blocks": 13,
             "Shared Read Blocks": 0,
@@ -96,7 +97,7 @@
             "Node Type": "Sort",
             "Plan Rows": 10,
             "Actual Rows": 10.0,
-            "Actual Total Time": 0.016,
+            "Actual Total Time": 0.019,
             "Total Cost": 41.76,
             "Shared Hit Blocks": 13,
             "Shared Read Blocks": 0,
@@ -108,7 +109,7 @@
             "Relation Name": "orders",
             "Plan Rows": 10,
             "Actual Rows": 10.0,
-            "Actual Total Time": 0.012,
+            "Actual Total Time": 0.015,
             "Total Cost": 41.57,
             "Shared Hit Blocks": 13,
             "Shared Read Blocks": 0,
@@ -126,14 +127,14 @@
             "depth": 3
           }
         ],
-        "index_build_ms": 41.87,
+        "index_build_ms": 42.75,
         "index_bytes": 4898816,
         "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
       }
     ],
     "best": {
-      "name": "customer_created_order_idx",
-      "hypothesis": "A composite index on (customer_id, created_at DESC, id DESC) lets PostgreSQL satisfy the WHERE clause and produce rows already ordered, eliminating the sequential scan and the explicit sort.",
+      "name": "Composite index on orders (customer_id, created_at DESC, id DESC)",
+      "hypothesis": "An index on (customer_id, created_at DESC, id DESC) lets PostgreSQL use an Index Scan that both filters by customer_id and returns rows already ordered, eliminating the Seq Scan and Sort nodes and reducing I/O for the LIMIT 50.",
       "query": "SELECT\n  id,\n  customer_id,\n  total,\n  created_at\nFROM orders\nWHERE\n  customer_id = 42\nORDER BY\n  created_at DESC,\n  id DESC\nLIMIT 50",
       "indexes": [
         "CREATE INDEX idx_orders_customer_created_id ON orders (customer_id, created_at DESC, id DESC)"
@@ -169,43 +170,43 @@
       },
       "status": "verified improvement",
       "original": {
-        "median_ms": 4.452,
-        "min_ms": 4.23,
-        "max_ms": 5.163,
-        "mad_ms": 0.114,
+        "median_ms": 4.357,
+        "min_ms": 4.145,
+        "max_ms": 4.481,
+        "mad_ms": 0.101,
         "samples_ms": [
-          5.163,
-          4.496,
-          4.669,
-          4.338,
-          4.23,
-          4.452,
-          4.347
+          4.271,
+          4.425,
+          4.145,
+          4.481,
+          4.157,
+          4.458,
+          4.357
         ]
       },
       "optimized": {
-        "median_ms": 0.025,
-        "min_ms": 0.024,
+        "median_ms": 0.027,
+        "min_ms": 0.023,
         "max_ms": 0.028,
         "mad_ms": 0.001,
         "samples_ms": [
-          0.028,
-          0.024,
-          0.026,
-          0.024,
-          0.025,
           0.027,
-          0.024
+          0.027,
+          0.028,
+          0.027,
+          0.024,
+          0.023,
+          0.026
         ]
       },
-      "speedup": 178.08,
-      "saved_ms": 4.427,
+      "speedup": 161.37,
+      "saved_ms": 4.33,
       "plan": [
         {
           "Node Type": "Limit",
           "Plan Rows": 10,
           "Actual Rows": 10.0,
-          "Actual Total Time": 0.017,
+          "Actual Total Time": 0.019,
           "Total Cost": 41.76,
           "Shared Hit Blocks": 13,
           "Shared Read Blocks": 0,
@@ -215,7 +216,7 @@
           "Node Type": "Sort",
           "Plan Rows": 10,
           "Actual Rows": 10.0,
-          "Actual Total Time": 0.016,
+          "Actual Total Time": 0.019,
           "Total Cost": 41.76,
           "Shared Hit Blocks": 13,
           "Shared Read Blocks": 0,
@@ -227,7 +228,7 @@
           "Relation Name": "orders",
           "Plan Rows": 10,
           "Actual Rows": 10.0,
-          "Actual Total Time": 0.012,
+          "Actual Total Time": 0.015,
           "Total Cost": 41.57,
           "Shared Hit Blocks": 13,
           "Shared Read Blocks": 0,
@@ -245,23 +246,23 @@
           "depth": 3
         }
       ],
-      "index_build_ms": 41.87,
+      "index_build_ms": 42.75,
       "index_bytes": 4898816,
       "tradeoff": "Index maintenance adds write work and storage; write overhead was not measured."
     },
     "original": {
-      "median_ms": 4.452,
-      "min_ms": 4.23,
-      "max_ms": 5.163,
-      "mad_ms": 0.114,
+      "median_ms": 4.357,
+      "min_ms": 4.145,
+      "max_ms": 4.481,
+      "mad_ms": 0.101,
       "samples_ms": [
-        5.163,
-        4.496,
-        4.669,
-        4.338,
-        4.23,
-        4.452,
-        4.347
+        4.271,
+        4.425,
+        4.145,
+        4.481,
+        4.157,
+        4.458,
+        4.357
       ]
     },
     "plan_before": [
@@ -269,7 +270,7 @@
         "Node Type": "Limit",
         "Plan Rows": 10,
         "Actual Rows": 10.0,
-        "Actual Total Time": 5.14,
+        "Actual Total Time": 4.712,
         "Total Cost": 2466.19,
         "Shared Hit Blocks": 966,
         "Shared Read Blocks": 0,
@@ -279,7 +280,7 @@
         "Node Type": "Sort",
         "Plan Rows": 10,
         "Actual Rows": 10.0,
-        "Actual Total Time": 5.138,
+        "Actual Total Time": 4.711,
         "Total Cost": 2466.19,
         "Shared Hit Blocks": 966,
         "Shared Read Blocks": 0,
@@ -291,7 +292,7 @@
         "Relation Name": "orders",
         "Plan Rows": 10,
         "Actual Rows": 10.0,
-        "Actual Total Time": 5.126,
+        "Actual Total Time": 4.699,
         "Total Cost": 2466.0,
         "Rows Removed by Filter": 119990,
         "Shared Hit Blocks": 966,
@@ -377,15 +378,15 @@
       "indexes": [
         [
           "customers",
-          "CREATE UNIQUE INDEX customers_pkey ON qot_ed8ccacb91a942cc.customers USING btree (id)"
+          "CREATE UNIQUE INDEX customers_pkey ON qot_8d9a94f96c984656.customers USING btree (id)"
         ],
         [
           "orders",
-          "CREATE UNIQUE INDEX orders_pkey ON qot_ed8ccacb91a942cc.orders USING btree (id)"
+          "CREATE UNIQUE INDEX orders_pkey ON qot_8d9a94f96c984656.orders USING btree (id)"
         ],
         [
           "items",
-          "CREATE UNIQUE INDEX items_pkey ON qot_ed8ccacb91a942cc.items USING btree (id)"
+          "CREATE UNIQUE INDEX items_pkey ON qot_8d9a94f96c984656.items USING btree (id)"
         ]
       ],
       "constraints": [
@@ -462,30 +463,30 @@
         [
           "orders",
           "customer_id",
-          0.0137,
-          9929.0,
-          0.029383186
+          0.015166666,
+          9941.0,
+          0.024113668
         ],
         [
           "orders",
           "status",
-          0.089833334,
+          0.08753333,
           2.0,
-          0.97693723
+          0.9778234
         ],
         [
           "orders",
           "total",
-          0.0342,
-          5003.0,
-          0.0040103155
+          0.034,
+          5005.0,
+          -0.0023546214
         ],
         [
           "orders",
           "created_at",
           0.0,
-          -0.547675,
-          0.020050965
+          -0.551725,
+          0.019490022
         ],
         [
           "items",
@@ -498,15 +499,15 @@
           "items",
           "order_id",
           0.0,
-          -0.5061833,
-          0.5021516
+          -0.49985832,
+          0.5039742
         ],
         [
           "items",
           "quantity",
           0.0,
           4.0,
-          0.2560465
+          0.25828934
         ],
         [
           "items",
@@ -542,13 +543,13 @@
       "provider": "Groq / OpenAI-compatible",
       "model": "openai/gpt-oss-120b",
       "calls": 1,
-      "input_tokens": 1235,
-      "output_tokens": 554,
-      "seconds": 2.43,
+      "input_tokens": 1241,
+      "output_tokens": 508,
+      "seconds": 1.41,
       "estimated_cost_usd": null,
       "tool_calls": 237,
-      "runtime_seconds": 6.49,
-      "database_seconds": 3.846
+      "runtime_seconds": 5.17,
+      "database_seconds": 3.549
     },
     "migration": [
       "CREATE INDEX idx_orders_customer_created_id ON orders (customer_id, created_at DESC, id DESC)"

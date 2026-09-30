@@ -7,6 +7,6 @@ node_modules/
 __pycache__/
 .pytest_cache/
 dist/
-artifacts/*.tar.gz
+artifacts/
 .vercel/
 *.log

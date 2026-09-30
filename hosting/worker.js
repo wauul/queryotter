@@ -1,7 +1,15 @@
+const assets=globalThis.__QUERYOTTER_ASSETS||{};
+function serveAsset(request){
+ const path=new URL(request.url).pathname;
+ const item=assets[path==='/'?'/index.html':path];
+ if(!item)return new Response('Not found',{status:404});
+ if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405});
+ return new Response(request.method==='HEAD'?null:item.body,{headers:{'content-type':item.type,'cache-control':path.startsWith('/assets/')?'public, max-age=31536000, immutable':'no-cache','x-content-type-options':'nosniff','referrer-policy':'same-origin','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"}});
+}
 export default {
  async fetch(request,env){
   const url=new URL(request.url);
-  if(!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
+  if(!url.pathname.startsWith('/api/')) return serveAsset(request);
   if(!env.CONNECTOR_URL||!env.SERVICE_TOKEN)return Response.json({detail:'Worker connector is offline. Published measured reports remain available.'},{status:503});
   if(!['GET','POST'].includes(request.method))return new Response('Method not allowed',{status:405});
   const origin=request.headers.get('origin');

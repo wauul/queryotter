@@ -1,4 +1,4 @@
-"""Create a tiny disposable read-only fixture and verify authenticated hosted plan-only work."""
+"""Verify hosted plan-only work against the Neon demo or a local disposable fixture."""
 
 import os, secrets, time, json, sys
 from pathlib import Path
@@ -8,10 +8,12 @@ from psycopg import sql
 from dotenv import load_dotenv
 
 load_dotenv()
-BASE = sys.argv[1] if len(sys.argv) > 1 else "https://queryotter.vercel.app"
+BASE = next(
+    (v for v in sys.argv[1:] if v.startswith("http")), "https://queryotter.vercel.app"
+)
 
 
-def main():
+def local_fixture():
     parsed = urlparse(os.environ["EXPERIMENT_DATABASE_URL"])
     assert parsed.hostname in {"127.0.0.1", "localhost"}, (
         "Only local disposable test clusters are supported."
@@ -62,9 +64,18 @@ def main():
     live_url = (
         f"postgresql://{role}:{password}@{parsed.hostname}:{parsed.port or 5432}/{db}"
     )
-    with httpx.Client(
-        base_url=BASE, timeout=20
-    ) as client:
+    return live_url
+
+
+def main():
+    if "--neon" in sys.argv:
+        load_dotenv(".data/cloud.env", override=True)
+        live_url = os.environ["LIVE_DEMO_DATABASE_URL"]
+        label = "Neon read-only demo"
+    else:
+        live_url = local_fixture()
+        label = "Verified read-only fixture"
+    with httpx.Client(base_url=BASE, timeout=20) as client:
         assert client.get("/api/session").status_code == 200
         assert (
             client.post(
@@ -72,17 +83,23 @@ def main():
             ).status_code
             == 200
         )
-        conn = client.post(
-            "/api/connections",
-            json={"label": "Verified read-only fixture", "url": live_url},
+        saved = client.get("/api/connections")
+        assert saved.status_code == 200
+        connection_id = next(
+            (c["id"] for c in saved.json() if c["label"] == label), None
         )
-        assert conn.status_code == 200, conn.text
+        if not connection_id:
+            conn = client.post(
+                "/api/connections", json={"label": label, "url": live_url}
+            )
+            assert conn.status_code == 200, conn.text
+            connection_id = conn.json()["id"]
         query = "SELECT id, total FROM orders WHERE customer_id=42 ORDER BY id LIMIT 50"
         created = client.post(
             "/api/jobs",
             json={
                 "query": query,
-                "connection_id": conn.json()["id"],
+                "connection_id": connection_id,
                 "request_key": secrets.token_hex(16),
             },
         )
@@ -104,6 +121,7 @@ def main():
         evidence = {
             "url": BASE,
             "mode": "authenticated live plan-only",
+            "database_host": urlparse(live_url).hostname,
             "job_id": id,
             "checks": [
                 "Least-privilege read-only fixture accepted",

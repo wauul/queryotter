@@ -1,4 +1,4 @@
-import { defineRailway, project, service } from "railway/iac";
+import { defineRailway, preserve, project, service } from "railway/iac";
 
 export const partial = "api-worker";
 
@@ -8,8 +8,15 @@ export default defineRailway(() => {
     healthcheckTimeout: 90,
     replicas: 1,
     build: { builder: "DOCKERFILE", dockerfilePath: "Dockerfile" },
+    env: Object.fromEntries([
+      "ADMIN_PASSWORD", "DEMO_DAILY_LIMIT", "ENCRYPTION_KEY",
+      "EXPERIMENT_DATABASE_URL", "JOB_DATABASE_URL", "JOB_SECONDS",
+      "MODEL_API_KEY", "MODEL_BASE_URL", "MODEL_NAME", "MODEL_PROVIDER",
+      "PORT", "SERVICE_TOKEN", "SESSION_SECRET",
+    ].map((key) => [key, preserve()])),
     deploy: {
       region: "europe-west4-drams3a",
+      multiRegionConfig: { "europe-west4-drams3a": { numReplicas: 1 } },
       sleepApplication: true,
       restartPolicyType: "ON_FAILURE",
       restartPolicyMaxRetries: 5,

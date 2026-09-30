@@ -7,7 +7,9 @@ QueryOtter investigates slow PostgreSQL SELECTs using a real Groq model and a de
 
 ![QueryOtter measured investigation](docs/queryotter-desktop.png)
 
-The hosted frontend includes published measurements and a capped live demo. New investigations use a separately running connector on the developer's computer. This free deployment is a portfolio demonstration, not an always-on hosted database service. Published reports remain usable when the connector is offline. Live database access is owner-authenticated and **plan-only**: metadata and EXPLAIN without ANALYZE; no records, experimental indexes or performance claims on connected databases.
+The hosted frontend includes published measurements and a capped live demo. Cloud deployment runs the API and a separate investigation process on Railway, with durable PostgreSQL storage on Neon. Published reports remain available while the service wakes or is unavailable. Live database access is owner-authenticated and **plan-only**: metadata and EXPLAIN without ANALYZE; no records, experimental indexes or performance claims on connected databases.
+
+**Deployment status:** Neon is provisioned and saved history is migrated. Railway is configured and tested; starting its metered service awaits owner approval. The current public app still uses the original connector until the cloud cutover is verified.
 
 ## Local setup
 
@@ -37,7 +39,7 @@ npm run build
 uv run python -m scripts.evaluate
 ```
 
-Evaluation makes real model calls; use the free Groq tier and its existing rate limits. It waits between supported cases and retries once on transient provider errors. No credits or paid hosting were purchased. Unit/integration tests do not call the model. Run evaluations with the worker idle for comparable resource conditions.
+Evaluation makes real model calls; use the free Groq tier and its existing rate limits. It waits between supported cases and retries once on transient provider errors. Unit/integration tests do not call the model. Run evaluations with the worker idle for comparable resource conditions. Local development uses SQLite when `JOB_DATABASE_URL` is unset; the cloud configuration requires a PostgreSQL job store.
 
 ## Scope and decisions
 
@@ -52,21 +54,24 @@ The loop is **inspect → explain → hypothesize → experiment → validate �
 ```mermaid
 flowchart LR
   UI[React + TypeScript on Vercel] --> Edge[Vercel Node.js API proxy]
-  Edge -->|Service-authenticated HTTPS connector| API[FastAPI]
-  API --> Jobs[(SQLite WAL jobs and events)]
-  Worker[Separate Python worker, concurrency 1] --> Jobs
+  Edge -->|Service-authenticated HTTPS| API[FastAPI on Railway]
+  API --> Jobs[(Neon queryotter_app)]
+  API -->|Wake after commit| Worker[Separate Python process on Railway, concurrency 1]
+  Worker --> Jobs
   Worker --> Groq[Groq structured JSON proposals]
-  Worker --> PG[(Disposable PostgreSQL schemas)]
+  Worker --> PG[(Neon queryotter_experiments)]
   UI --> Reports[Published reports and evaluation]
 ```
 
-HTTP handlers enqueue work and return. SQLite stores owner-scoped jobs, events, idempotency keys, quotas and encrypted connection URLs. The worker uses an OS lock for single ownership, safe cancellation checkpoints, and at most two attempts after recovery from interruption. Requests with the same owner and idempotency key return the existing job. Report export and cancellation enforce the same owner check as retrieval. Reusing a request key with changed SQL or connection is rejected: use a fresh key.
+HTTP handlers enqueue work and return. Neon stores owner-scoped jobs, events, idempotency keys, quotas and encrypted connection URLs in the `queryotter_app` database, under schema `qot_app`. Atomic claims use `FOR UPDATE SKIP LOCKED`; a PostgreSQL advisory lock prevents overlapping Railway deployments from executing experiments concurrently. Safe cancellation checkpoints and at most two attempts handle interruption. Requests with the same owner and idempotency key return the existing job. Report export and cancellation enforce the same owner check as retrieval. Reusing a request key with changed SQL or connection is rejected: use a fresh key.
+
+`python -m backend.cloud` supervises the API and a separate worker process in one Railway container. Committed jobs wake the worker through an interprocess event. It drains the durable queue and releases its connections while idle, allowing Railway and Neon to sleep. Worker failure terminates the container so Railway can restart and recover queued work. No local database files or volume are required in cloud mode; the local SQLite store remains a development option and migration backup.
 
 ## Dataset and isolation
 
-Each investigation creates a random `qot_…` disposable schema with **10,000 customers, 120,000 orders and 240,000 items** (370,000 rows total), using deterministic arithmetic and seed 17. Every candidate also runs against empty tables and 300-/900-order edge fixtures with seeds 17 and 31, including NULLs, duplicate projected rows, an orphan customer, skew and boundary timestamps. See `backend/db.py` for exact seed SQL. Schemas are removed in a `finally` block; indexes are built only inside rollback transactions. An interrupted OS process can leave a schema; inspect and remove only abandoned `qot_` schemas in the designated disposable cluster before restarting evaluations.
+Each investigation creates a random `qot_…` disposable schema with **10,000 customers, 120,000 orders and 240,000 items** (370,000 rows total), using deterministic arithmetic and seed 17. Every candidate also runs against empty tables and 300-/900-order edge fixtures with seeds 17 and 31, including NULLs, duplicate projected rows, an orphan customer, skew and boundary timestamps. See `backend/db.py` for exact seed SQL. Schemas are removed in a `finally` block; indexes are built only inside rollback transactions. On cloud startup, the worker removes abandoned schemas owned by the experiment role whose names match the exact generated prefix, while holding its global execution lock.
 
-The experiment URL must point to a **dedicated disposable cluster**. Its provisioning role creates the test schemas. SELECT/EXPLAIN run under `qot_reader`, a NOLOGIN, non-superuser role with SELECT grants. Standalone SELECTs also use read-only transactions; inside an index experiment transaction, restrictive role permissions protect execution while permitting the provisioning role to create disposable indexes. SQL comments are stripped and untrusted input cannot alter the system prompt.
+The experiment URL must point to a **dedicated disposable database**. On Neon, `qot_experiment_runtime` owns `queryotter_experiments`; `qot_app_runtime` owns the separate `queryotter_app` database. Neither login can connect to the other's database. Both are non-superuser roles without database/role creation, replication or RLS bypass privileges. The experiment role creates test schemas. SELECT/EXPLAIN run under `qot_reader`, a NOLOGIN, non-superuser role with SELECT grants. Standalone SELECTs also use read-only transactions; inside an index experiment transaction, restrictive role permissions protect execution while permitting the provisioning role to create disposable indexes. SQL comments are stripped and untrusted input cannot alter the system prompt. Remote database connections verify TLS certificates using the bundled CA certificates.
 
 Timeouts: statements 3 seconds, locks 500 ms, jobs 180 seconds with cooperative checkpoints. Model HTTP calls are limited to 45 seconds, with one bounded retry. Cancellation can wait for the current statement or provider request to finish. Comparisons stream at most 20,001 rows and reject results above 20,000 rows or 4 MB. One active run per session, 10 submitted jobs/hour/session, six anonymous model runs/day globally; cached reports cost nothing. Login attempts are limited. Quotas persist across restarts.
 
@@ -100,15 +105,24 @@ Index build latency and storage are reported separately. Index maintenance/write
 
 ## Deployment
 
-The primary hosted app uses Vercel Hobby with `vercel.json`, static Vite `dist` assets, and the Node.js function `api/proxy.js`. The function forwards approved API requests to the separate worker connector; long-running investigations and durable SQLite/PostgreSQL storage remain on that host. `CONNECTOR_URL` and sensitive `SERVICE_TOKEN` belong in Vercel's Production and Preview environments. The Groq key, experiment URL, owner password, session secret and encryption key stay on the connector host. `.vercelignore` excludes local secrets, PostgreSQL files, Python environments and backend source from the web deployment.
+The web app uses Vercel Hobby with `vercel.json`, static Vite `dist` assets, and the Node.js function `api/proxy.js`. The function forwards approved requests to the Railway service; investigations run in its separate process. `CONNECTOR_URL` and sensitive `SERVICE_TOKEN` belong in Vercel's Production and Preview environments. The Groq key, database URLs, owner password, session secret and encryption key belong only in Railway's service variables. `.vercelignore` and `.dockerignore` exclude credentials and local data from deployments.
 
-For the current free demonstration, the official Cloudflare client runs:
+The Neon project is **queryotter**, ID `quiet-rice-58196279`, PostgreSQL 18, production branch `br-misty-truth-b1lldsfk`, in **AWS Frankfurt (`eu-central-1`)**, on the Free plan. Open its [dashboard](https://console.neon.tech/app/projects/quiet-rice-58196279/branches/br-misty-truth-b1lldsfk). The databases are `queryotter_app` and `queryotter_experiments`. The read-only `qot_live_reader` role accesses only the synthetic public fixture. Connection credentials are private and are not documented here.
+
+Railway project **queryotter**, ID `fae90a5c-25a7-4a7d-aedb-7942bfcbae8b`, has one **api-worker** service in Amsterdam. Its [dashboard](https://railway.com/project/fae90a5c-25a7-4a7d-aedb-7942bfcbae8b) shows health, logs and resource usage. The service has one replica, a 512 MiB memory limit and 0.5 vCPU limit, with serverless sleeping enabled. Railway is on the owner's existing metered Hobby workspace; these limits reduce usage but are not a dollar cap. Neon and Vercel remain on their free plans. Sleeping services can make the first request slower; retry after a short delay if the initial wake exceeds the proxy timeout.
+
+The container is built from `Dockerfile` and starts `backend.cloud`. Infrastructure is defined by `.railway/railway.ts`; secret variables use `preserve()` and are entered separately. Initial provisioning uses `scripts/provision_neon.py` and migration uses `scripts/migrate_job_store.py`, with private bootstrap credentials in ignored `.data` files. Migration preserves signing/encryption keys and IDs and copies jobs, events, connections and quotas. Never rotate encryption keys without migrating stored encrypted connections.
+
+After authenticated CLI linking and private environment setup, deploy the worker:
 
 ```powershell
-.data/bin/cloudflared.exe tunnel --url http://127.0.0.1:8000 --no-autoupdate
+railway config plan
+railway config apply --yes
+railway up --detach --service api-worker --environment production
+railway domain --service api-worker
 ```
 
-Use the returned URL for `CONNECTOR_URL`. The connector requires the service token, so visiting its tunnel directly cannot start jobs. The proxy removes caller-supplied service headers, forwards only approved API routes, refuses cross-origin writes, and never redirects credentials. [Cloudflare Quick Tunnels](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/trycloudflare/) are development-only, have no uptime guarantee, and get a new hostname on restart. Use a named tunnel and persistent machine, or a dedicated worker host, for durable availability. Neither was provisioned as a paid resource.
+Use the service's HTTPS Railway domain for `CONNECTOR_URL`. Direct API requests require the service token; `/healthz` exposes only readiness. The Vercel proxy removes caller-supplied service headers, forwards only approved routes, refuses cross-origin writes, and never redirects credentials. Deployments are manual through authenticated CLIs; automatic GitHub deployment is not connected. On Windows, the current Railway SDK may need the `_` environment variable set to the actual `railway.exe` path when planning/applying, rather than the npm PowerShell shim.
 
 Build and deploy from this repository:
 
@@ -121,33 +135,34 @@ vercel env add SERVICE_TOKEN production,preview --sensitive
 vercel deploy --prod --yes
 ```
 
-Run the two `env add` commands only during initial setup, entering the connector URL and the matching service token from the private worker environment. Use `vercel env update CONNECTOR_URL production,preview` and redeploy if the tunnel changes. Never pass credentials as command-line arguments or commit them. Deployment uses the authenticated Vercel CLI; automatic GitHub deployment is not connected for this project. Future updates require `vercel deploy --prod --yes` after validation.
+Run the two `env add` commands only during initial setup, entering the Railway URL and the matching service token from the private worker environment. Use `vercel env update CONNECTOR_URL production,preview` and redeploy when changing the backend URL. Never pass credentials as command-line arguments or commit them. Future updates require `railway up` for backend changes and `vercel deploy --prod --yes` for frontend/proxy changes after validation.
 
 The previous Sites deployment remains available; its optional build is `npm run build` followed by `uv run python scripts/package-site.py`, using `.openai/hosting.json` and `hosting/worker.js`. Vercel uses `build:web` and does not package the Sites Worker.
 
 ## Troubleshooting and limits
 
-- **Worker offline:** published reports still render. Start PostgreSQL, API, worker and tunnel; update the hosted connector URL after tunnel restart.
+- **Worker unavailable:** published reports still render. Allow a sleeping service to wake, then check Railway deployment health and Neon availability. No desktop processes are required after cloud cutover.
 - **Groq 429:** free-tier quota exhausted. Wait for reset; the worker retries once, then reports failure without provider secrets. No paid fallback.
 - **Invalid connection:** check credentials, TLS verification, port, read-only grants and supported schema size. Detailed driver errors are suppressed to avoid disclosing URLs or records.
 - **Comparison rejected:** supply a smaller deterministic result or supported ordering. The app will retain the original query.
-- **Restart recovery:** a running job requeues once; a second interruption fails safely. Clean up only orphan disposable schemas when no jobs are active.
-- **Owner account:** one configured owner login; anonymous sessions have isolated histories. Multi-user signup/OIDC and hosted always-on workers are not implemented.
+- **Restart recovery:** a running job requeues once; a second interruption fails safely. The cloud worker cleans owned abandoned experiment schemas under its global lock before recovery.
+- **Owner account:** one configured owner login; anonymous sessions have isolated histories. Multi-user signup/OIDC is not implemented.
 - **Metadata cache:** per-job schema snapshot only; no cross-job cache because disposable schemas are recreated. Statistics are refreshed after seeding.
 - **Model budget:** at most three candidates, one model decision plus one transient retry. No iterative follow-up decision or plateau-search loop.
 
-CI builds the frontend and runs deterministic API/SQL/database tests against embedded PostgreSQL plus the Vercel proxy security checks; it does not consume model credits. Node and Python dependency lockfiles are committed. See the published evaluation for actual model/SQL usage and outcomes, and `tests/` for reproducible safety, semantic and operations checks.
+CI builds the frontend and Docker image, starts the Linux cloud container against disposable PostgreSQL, checks readiness and unauthenticated API rejection, and runs deterministic API/SQL/database and Vercel proxy tests. It does not consume model credits. Node and Python dependency lockfiles are committed. See the published evaluation for actual model/SQL usage and outcomes, and `tests/` for reproducible safety, semantic and operations checks.
 
 ## Verification evidence
 
-Authenticated live plan-only work was also verified against a dedicated local read-only fixture: encrypted connection storage, a real Groq proposal from metadata and non-executing EXPLAIN, no record reads, no measured latency claims and no experimental indexes. See `docs/live-verification.json`. The fixture remains available as an owner-only saved connection. `scripts/verify-live.py` reproduces it on a local disposable cluster.
+The original authenticated live plan-only verification used a dedicated local read-only fixture: encrypted connection storage, a real Groq proposal from metadata and non-executing EXPLAIN, no record reads, no measured latency claims and no experimental indexes. Its saved connection is migrated to the Neon read-only fixture. `scripts/verify-live.py --neon` verifies it after cloud cutover; omitting that flag uses the local fixture. See `docs/live-verification.json` for the latest deployed evidence.
 
-**46 Python tests and three Vercel proxy tests passed**; GitHub CI also passed on Linux, covering parsing, unsafe functions/writes, NULL/duplicate/type/order traps, experiment role restoration, actual statement timeout, cancellation, persisted jobs, cross-session isolation, idempotency, encrypted-connection setup errors, CSRF and report export. Proxy tests cover protected headers, secure session cookies, report downloads, actual body-size limits, redirects and redacted connector failures. Production build passes TypeScript and Vite. There is a dependency deprecation warning from Starlette's TestClient/httpx combination; it does not affect test results.
+**49 Python tests and three Vercel proxy tests passed**; GitHub CI also passed on Linux, including the Docker startup check. Coverage includes parsing, unsafe functions/writes, NULL/duplicate/type/order traps, experiment role restoration, actual statement timeout, cancellation, persisted jobs, cross-session isolation, idempotency, encrypted-connection setup errors, CSRF and report export. PostgreSQL store tests exercise concurrent quota increments, atomic claims, one active job per owner, recovery, advisory worker locking and wake-after-commit behavior. Proxy tests cover protected headers, secure session cookies, report downloads, actual body-size limits, redirects and redacted connector failures. Production build passes TypeScript and Vite. There is a dependency deprecation warning from Starlette's TestClient/httpx combination; it does not affect test results.
 
 The Vercel production flow was tested with real Groq/SQL work: **4.357 ms → 0.027 ms** in a fresh customer-orders investigation. Job history persisted; duplicate submission returned the same job; a separate browser session could not read, cancel or export it. Cancellation reached a persisted terminal state. Unsafe SQL was refused before execution. Owner authentication, secure session cookies, cross-origin write rejection and redacted invalid connection errors were verified. The browser rendered the published measurements with a connected worker and downloaded a valid JSON report. Full job evidence is in `docs/deployed-verification.json` (synthetic SQL and metadata only; no credentials or records).
 
-To repeat deployed verification (requires the worker and tunnel online; uses the private owner password to avoid exhausting the public demo quota; makes one model run and one cancellable submission):
+To repeat deployed verification (uses the private owner password to avoid exhausting the public demo quota; makes one model run and one cancellable submission):
 
 ```powershell
 uv run python scripts/verify-deployed.py https://queryotter.vercel.app --owner
+uv run python scripts/verify-live.py https://queryotter.vercel.app --neon
 ```

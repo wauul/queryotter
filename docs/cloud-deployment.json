@@ -1,0 +1,49 @@
+{
+  "status": "Railway deployment awaiting approval for metered usage",
+  "web_url": "https://queryotter.vercel.app",
+  "neon": {
+    "project": "queryotter",
+    "project_id": "quiet-rice-58196279",
+    "branch": "production",
+    "branch_id": "br-misty-truth-b1lldsfk",
+    "region": "AWS Frankfurt, eu-central-1",
+    "plan": "Free",
+    "postgresql": "18.6",
+    "databases": {
+      "queryotter_app": "Durable jobs, events, history, quotas and encrypted connections under qot_app schema",
+      "queryotter_experiments": "Disposable synthetic SQL experiments and an owner-only read-only demo fixture"
+    },
+    "migration": { "jobs": 8, "events": 33, "connections": 1, "limits": 11 },
+    "checks": [
+      "TLS certificate and channel binding verified",
+      "Non-superuser runtime roles isolated between app and experiment databases",
+      "Sandbox SQL executes under restricted NOLOGIN qot_reader role",
+      "Read-only live fixture accepted",
+      "Real Groq investigation completed on Neon through the cloud API and worker process"
+    ]
+  },
+  "railway": {
+    "project": "queryotter",
+    "project_id": "fae90a5c-25a7-4a7d-aedb-7942bfcbae8b",
+    "service": "api-worker",
+    "service_id": "4df2ae9d-b765-455b-8699-c438b3c5283c",
+    "environment": "production",
+    "region": "EU West, Amsterdam",
+    "plan": "Existing usage-based Hobby workspace",
+    "deployed": false,
+    "replicas": 1,
+    "cpu_limit": 0.5,
+    "memory_limit_bytes": 536870912,
+    "serverless_sleeping": true,
+    "cost_limit": "Resource limits only; no project-specific dollar cap",
+    "architecture": "API and supervised separate on-demand worker process in one container; durable Neon queue; no idle database polling"
+  },
+  "checks": {
+    "python_tests": 49,
+    "proxy_tests": 3,
+    "linux_docker_startup": "passed",
+    "ci_url": "https://github.com/wauul/queryotter/actions/runs/36719798666",
+    "configured_credentials_in_source_or_frontend": false
+  },
+  "cutover": "Vercel retains the original connector until Railway is approved, deployed and verified. Local data is preserved as a backup."
+}

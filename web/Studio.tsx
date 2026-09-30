@@ -180,6 +180,8 @@ export default function Studio() {
     const change = () => {
       setPage(location.hash.slice(1) || "home");
       setMobileMenu(false);
+      setAuth(false);
+      window.scrollTo(0, 0);
     };
     addEventListener("hashchange", change);
     void refresh();

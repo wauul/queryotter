@@ -31,11 +31,15 @@ Timing uses one warm-up and seven warm client-wall-time samples before and after
 
 The [actual deployed SQLite copy report](../public/deployed-copy-benchmark.json) measured 0.010071 ms baseline vs 0.007581 ms candidate median (MAD 0.000592 / 0.000350 ms), 1.3285× on six complete ordered rows, with 4,096 extra allocated bytes. These tiny warm-cache timings are a narrow fixture observation, not a practical production latency prediction.
 
+A [second deployed copy report](../public/deployed-copy-benchmark-no-gain.json), downloaded through the authorized server export, passed the same six-row result comparison but found no verified gain. This is retained separately: tiny timings can vary enough to change the observed outcome, and the application does not label every proposed index an improvement.
+
 ## Preserved PostgreSQL portfolio
 
 The original suite creates isolated PostgreSQL schemas, seeded orders/customers, independent edge datasets and controlled indexes. It uses actual EXPLAIN ANALYZE/BUFFERS, seven timing samples, median/MAD, full empirical correctness checks and a conservative win threshold. The published 15-case regression report includes refused/unsupported cases, 12 supported cases and eight measured wins. The historical README and [suite artifact](../public/evaluation.json) describe the exact fixtures and outcomes.
 
-The separately published deployed report in [deployed-verification.json](deployed-verification.json) observed 4.357 ms baseline vs 0.027 ms candidate median (MAD 0.101 / 0.001 ms) for its recorded synthetic 120,000-row experiment, with four correctness scopes. [Cloud deployment evidence](cloud-deployment.json) records the subsequent Neon experiment. These observations do not describe arbitrary connected production queries.
+The [fresh expanded-application PostgreSQL report](../public/deployed-postgresql-benchmark.json), exported through production on September 30, measured 6.294 ms baseline vs 0.086 ms candidate median (MAD 0.215 / 0.007 ms), 73.19×, across seven warm-cache repetitions. It passed all four correctness fixtures, including the 120,000-order dataset. The hosted Neon PostgreSQL 18.6 investigation used one Groq call, 1,254 input and 241 output tokens, 237 tracked database tool calls and 13.02 seconds end-to-end; estimated model cost was $0.0003327. Index experiments used transaction rollback in a disposable synthetic schema. These observations do not describe arbitrary connected production queries.
+
+The earlier [deployed-verification.json](deployed-verification.json) report remains as historical evidence. [Cloud deployment evidence](cloud-deployment.json) records the current infrastructure and checks.
 
 ## Reproduction and practical limits
 

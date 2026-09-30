@@ -20,6 +20,8 @@ Nine engines passed connection, discovery, native validation and bounded executi
 
 The Python suite has **76 passing tests** and the Vercel proxy has **4**. Separate engine integration and actual in-flight timeout fixtures provide additional evidence. See [evaluation methodology](docs/evaluation.md), [support matrix](docs/support-matrix.md) and the public JSON artifacts. All unsupported features remain explicit.
 
+[Deployed UI verification](public/deployed-ui-verification.json) covers all three personal-account sign-in flows, connection rotation/discovery, real generation/refinement, explicit execution, pagination, saved queries/history, cancellation, exports, controlled benchmarks and approved disposable-account deletion. The fresh hosted PostgreSQL report measured 6.294 ms versus 0.086 ms (73.19×) on the synthetic fixture with all four correctness checks passing; copy reports also preserve a separate no-gain outcome. See the actual reports and their methodology before interpreting either measurement.
+
 ## Run locally
 
 Requires Node 22+, Python 3.12+ and [uv](https://docs.astral.sh/uv/). Docker is used for optional multi-engine fixtures.

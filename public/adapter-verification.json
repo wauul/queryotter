@@ -135,7 +135,7 @@
       "Actual in-flight aggregate timeout verified on disposable local fixture; see execution-boundaries.json"
     ],
     "generation": "Real Groq schema-grounded generation, validation and expected-result semantics verified on the published synthetic case",
-    "hosted_provider": "Requires user credentials",
+    "hosted_provider": "Verified deployed copies on Railway SQLite 3.46.1 through Vercel UI: discovery, real Groq generation, bounded expected-result execution, pagination and controlled-copy benchmark. See deployed-copy-benchmark.json.",
     "capabilities": {
       "connection_testing": true,
       "discovery": true,

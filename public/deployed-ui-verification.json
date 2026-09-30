@@ -1,0 +1,65 @@
+{
+  "checked": "2026-09-30",
+  "origin": "https://queryotter.vercel.app",
+  "infrastructure": "Vercel frontend and approved-route proxy; Railway Python API and separate supervised worker; durable Neon databases",
+  "authentication": {
+    "github": "Actual production authorization-code login, isolated workspace, onboarding and logout passed",
+    "google": "Actual published Google consent, signed ID-token callback, isolated workspace, onboarding and logout passed",
+    "microsoft": "Actual personal-account consent, signed ID-token callback, isolated workspace, onboarding and logout passed",
+    "microsoft_organization_limit": "No organization account tested; unverified publisher or tenant consent policies may require owner action"
+  },
+  "connections": {
+    "sqlite": "Deployed synthetic uploaded-copy discovery and execution passed on SQLite 3.46.1",
+    "neon": "Pasted native string parsed, encrypted and masked; read-only PostgreSQL 18.6 connection discovered actual tables, fields and foreign key",
+    "credential_error": "Invalid synthetic password rejected with actionable masked error; valid credential restored and revalidated",
+    "rotation": "Changing configuration cleared validation and schema metadata immediately; Test & discover restored actual metadata",
+    "tls": "Actual hosted verified-certificate connection and unrelated-valid-CA failure passed; see neon-verification.json"
+  },
+  "generation_and_execution": {
+    "sqlite_top_five": "Real Groq draft validated without execution; explicit Run returned customer IDs 6, 8, 1, 3, 5 with paid totals 700, 700, 560, 560, 560",
+    "neon_refinement": "Real Groq generation then top-three refinement retained the selected connection, paid filter, UTC month boundaries and tie ordering; explicit Run returned IDs 6, 8, 1 and totals 700, 700, 560",
+    "native_editor": "Read-only native SQL executed through deployed UI; duplicate-preserving 125-row snapshot paginated in 50-row pages",
+    "cancellation": "Queued deployed operation reached persisted cancelled terminal state through UI; immediate native in-flight interruption is not claimed",
+    "saved_queries": "Save, persisted list and Review restored query without execution",
+    "history": "Persisted test, benchmark and run entries appeared with duration and model-call counts"
+  },
+  "optimization": {
+    "sqlite": "Actual plan and real Groq ranked recommendations shown as unmeasured; controlled second-copy benchmark passed six complete ordered typed rows",
+    "first_copy_report": "deployed-copy-benchmark.json: narrow observed 1.3285x improvement",
+    "second_copy_report": "deployed-copy-benchmark-no-gain.json: correctness passed, no verified gain reported honestly",
+    "postgresql": "Fresh hosted synthetic investigation: four correctness fixtures passed, seven warm-cache repetitions, 6.294 ms baseline versus 0.086 ms candidate median, 73.19x observed; see deployed-postgresql-benchmark.json"
+  },
+  "downloads": [
+    "Neon result CSV",
+    "SQLite result JSON",
+    "Hosted PostgreSQL experiment JSON report",
+    "Authorized server-backed SQLite operation JSON report",
+    "Account JSON export with one connection, one saved query and three history entries; credentials excluded"
+  ],
+  "deletion": {
+    "workspace": "Disposable deployment verification",
+    "authorization": "Explicit action-time user approval received",
+    "ui": "Permanent deletion returned signed-out landing page and access-revoked success notice",
+    "database": "Direct Neon check found zero remaining account, workspace, session, identity, model-ledger, job, connection, cached-schema, saved-query, history and result records for that disposable account",
+    "oauth_accounts": "GitHub, Google and Microsoft identities remained active",
+    "backups_and_exports": "Provider backups and downloaded copies have independent retention; no deletion claim is made for them"
+  },
+  "responsive_and_accessible": {
+    "workspace": "390x844 viewport: no page overflow, usable mobile navigation",
+    "landing_and_modal": "360x800 viewport: no page overflow; Shift-Tab remained inside sign-in dialog, Escape closed it, focus returned to Sign in",
+    "temporary_viewport": "Reset after testing"
+  },
+  "verification_limits": [
+    "Nine-engine native and real-model fixtures are separate local-service/emulator evidence, not hosted verification of every provider",
+    "Only Neon PostgreSQL and deployed SQLite copies have hosted engine verification",
+    "Remote libSQL transport and managed-identity renewal remain unverified or limited",
+    "Measured synthetic improvements and result comparisons do not establish arbitrary production performance or all-input equivalence"
+  ],
+  "ci": {
+    "python_tests": 76,
+    "proxy_tests": 4,
+    "build_and_linux_cloud_container": "passed",
+    "application_run": "https://github.com/wauul/queryotter/actions/runs/36746137276",
+    "engine_fixture_run": "https://github.com/wauul/queryotter/actions/runs/36743946074"
+  }
+}

@@ -10,7 +10,8 @@
     "actual discovery and foreign-key metadata",
     "native SQL validation",
     "bounded execution compared to independently defined expected rows",
-    "actual non-executing JSON plan"
+    "actual non-executing JSON plan",
+    "actual hosted TLS certificate verification rejects a valid unrelated CA with sanitized TLS error"
   ],
   "seconds": 0.917,
   "capabilities": {

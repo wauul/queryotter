@@ -26,7 +26,7 @@ The expanded user request is the acceptance contract. PostgreSQL-only support is
 - [x] Model/tool/token/duration/database usage and per-user budgets
 - [x] Product documentation, FAQ, support, privacy and terms
 - [x] Accessible responsive loading, empty, error and success states
-- [ ] Deployed UI verification for authentication through deletion: authentication, generation, execution, save/reload, pagination and copy benchmark passed; final deletion/cancellation/exports still being verified.
+- [x] Deployed UI verification: all three OAuth personal-account flows and logout, isolated onboarding/workspaces, Neon/SQLite connections, schema discovery/rotation, real Groq generation/refinement, explicit execution, pagination, save/reload/history, queued cancellation, CSV/JSON/report/account exports, controlled SQLite/PostgreSQL benchmarks and approved disposable-account deletion. Direct Neon checks confirmed deletion of active data and preservation of OAuth identities. See public/deployed-ui-verification.json.
 - [x] Comprehensive setup, seeded data, operations, actual evaluation and limitations
 
 ## Known external dependencies

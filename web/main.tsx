@@ -1,5 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { Analytics } from "@vercel/analytics/react";
 import Studio from "./Studio";
 import { ThemeProvider } from "./Theme";
 import { LanguageProvider } from "./Language";
@@ -16,5 +17,6 @@ createRoot(document.getElementById("root")!).render(
         <Studio />
       </ThemeProvider>
     </LanguageProvider>
+    <Analytics />
   </React.StrictMode>,
 );

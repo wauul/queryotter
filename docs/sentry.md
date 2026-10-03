@@ -112,7 +112,21 @@ Inspect existing projects, alerts, available plan features and notification
 actions first. Reuse an existing approved team/channel rather than inventing a
 recipient. Do not enable paid performance features or upgrade a plan.
 
-Recommended starting configuration:
+Three metric monitors are enabled on the existing plan, all in `production`:
+
+| Monitor                 | Filter                                                                | Medium / High count | ID      |
+| ----------------------- | --------------------------------------------------------------------- | ------------------- | ------- |
+| Proxy sustained latency | `span.duration:>5000ms` in the proxy project                          | >5 / >20            | 2349336 |
+| API sustained latency   | `span.duration:>5000ms span.description:/api/*` in the Python project | >5 / >20            | 2349408 |
+| Sustained slow jobs     | `span.duration:>120000ms span.description:job` in the Python project  | >1 / >3             | 2349363 |
+
+Each counts slow sampled spans over 15 minutes and resolves at or below its
+Medium threshold. Medium issues are visible warnings; High issues use the existing
+project email alert and its 30-minute cooldown. These are count thresholds, not
+p95 alerts. Tune against observed traffic and the 10% trace sampling rate before
+changing thresholds or sampling. No plan upgrade was enabled.
+
+Additional tuning options:
 
 - Error issue rule: production only, new issue or regression, 30-minute action
   cooldown, using the organization's
@@ -202,3 +216,72 @@ Official references: [React setup](https://docs.sentry.io/platforms/javascript/g
 [Vite maps](https://docs.sentry.io/platforms/javascript/guides/react/sourcemaps/uploading/vite/),
 [Python options](https://docs.sentry.io/platforms/python/configuration/options/),
 [custom queue propagation](https://docs.sentry.io/platforms/python/tracing/distributed-tracing/custom-trace-propagation/).
+
+## Verified deployment, October 3, 2026
+
+The deployed application revision is
+`661b805c749002810cd0b8662d629dd8c772e75b`; the shared release is that SHA prefixed
+with `queryotter@`. Vercel deployment `dpl_8opm7jFDSMjyVaPNC9qngNt6sjv9` is Ready
+at https://queryotter.vercel.app. Railway deployment
+`0ff74f07-24d9-4c01-849f-b723251c5643` succeeded for `api-worker`; its health endpoint
+returned `{"status":"ok"}`. Vercel lists only the intended `/api/proxy` function.
+
+- [Production browser smoke](https://queryotter.sentry.io/issues/151112472/):
+  event `a1d64fb1470e4aff89552f6c79281175` visibly resolves to
+  `web/monitoring.ts:90:28` and other original TypeScript frames, with environment
+  `production`, component `frontend` and release `661b805`. Private map upload
+  succeeded; debug ID is `a85cc09c-89b0-4704-9cb7-7e76d2c91fb6`.
+  `/assets/index-BecXC3or.js.map` returned 404. The production CSP keeps its exact
+  Sentry ingestion origin and restrictive script policy.
+- [Complete production trace](https://queryotter.sentry.io/explore/traces/trace/6561af73dd4193cb7a4a4f61391602dc/?statsPeriod=24h):
+  49 spans including browser, proxy, API, queued job and discovery. Sentry visibly
+  confirms the job's parent API span `ae92f8cef1d3d7fa`, whose parent is proxy span
+  `a80b0e95e1bf1e75`, whose parent is browser request span `93970fa3b5dedca9`.
+  Worker span `a19cf4b0a1dd2b10` has component `worker`; all server segments show
+  the same production release. The disposable discovery job completed and its
+  own demo account was removed.
+- [Deployed serverless proxy failure](https://queryotter.sentry.io/issues/151115113/):
+  event `4406fd627efd4b5fa74e13794ec9b54d` arrived with component `proxy`, environment
+  `test`, trace `c49cbec0c6554a8db4d3aafef33a1aaa`, and the prior revision `24c0546`.
+  This used an isolated preview with an invalid synthetic upstream, preserving
+  the existing 503 response. The temporary preview was removed afterward.
+- Real local operator smokes arrived for API and supervisor (events
+  `9e55ccde8a7646e5a9c6d859c9349b7c` and `5180b064c7f94b8994a573de88da3ccc`,
+  [Python issue 1](https://queryotter.sentry.io/issues/151111568/)), and worker
+  (`33d43580aeb54645af4afce435178768`,
+  [Python issue 2](https://queryotter.sentry.io/issues/151111572/), original
+  `backend/worker.py:48`). These are `test` events from a local disposable store,
+  not injected Railway exceptions. Confirmed synthetic smoke issues were resolved
+  without deleting their event evidence.
+
+Checks passed: full Python 3.12 suite (86 tests); Node telemetry (7),
+proxy (4), theme (11), translations (4), real Chromium telemetry/fallback tests
+in English and French, source-map/package checks (2), TypeScript, local no-DSN
+builds, private-map release builds and provider builds. No test endpoint or
+browser interception remains in deployed application code. Local screenshots
+are under ignored `artifacts/sentry-*.jpg`.
+
+Remaining verification/setup:
+
+1. Railway CLI SSH reports `no SSH keys found`. To additionally verify controlled
+   exception injection inside the deployed API/worker/supervisor, an operator
+   with existing Railway SSH access can run the synthetic operator smokes there
+   with `--send`, then inspect and resolve those specific events. Do not expose
+   a crash route. Deployed API/worker trace ingestion is already verified.
+2. GitHub Actions configuration is committed, but its live Sentry secret/variables
+   were not provisioned: install the org:ci build token as `SENTRY_AUTH_TOKEN` and
+   set `VITE_SENTRY_DSN`, `SENTRY_ORG=queryotter`, `SENTRY_PROJECT=queryotter-web`.
+   Configured monitored CI builds fail if uploads cannot run. Integration commits
+   are local; the approved deployments used the provider CLIs.
+3. [QUERYOTTER-WEB-3](https://queryotter.sentry.io/issues/151115922/) captured one
+   non-deliberate malformed JSON response during the synthetic production trace
+   (`f138ebc931274c33976d649018a93e26`, `web/monitoring.ts:95`). It remains open
+   for investigation. A subsequent deployed catalog check returned valid JSON
+   with HTTP 200; the discovery job completed. Telemetry omits response content.
+4. One earlier targeted test run passed but Windows fixture shutdown hung after
+   PostgreSQL stopped. Its Node runner was interrupted. The harness now avoids
+   waiting for another exit event from an already finished child; the complete
+   86-test run exited successfully and cleaned up its new fixture. Automatic
+   approval review blocked deletion of the earlier disposable directory
+   `C:\Users\Waul\AppData\Local\Temp\queryotter-verify-2jSCDa`; only those temporary
+   files remain, with no PostgreSQL process running.

@@ -57,6 +57,14 @@ try {
   });
   if (exitCode) process.exitCode = exitCode;
 } finally {
+  // embedded-postgres 18.4 waits for a future exit event even if its child has
+  // already exited. Clear only that finished child to avoid a Windows hang and
+  // prevent its exit hook from trying to terminate a potentially reused PID.
+  if (
+    pg.process &&
+    (pg.process.exitCode !== null || pg.process.signalCode !== null)
+  )
+    pg.process = undefined;
   await pg.stop();
   const target = resolve(directory);
   const root = resolve(tmpdir());

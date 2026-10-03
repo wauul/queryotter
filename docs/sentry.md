@@ -102,6 +102,12 @@ delivery. Existing deadline and recovery semantics continue to apply.
 
 ## Alerts (requires authenticated organization access)
 
+Configured in this organization: the existing high-priority issue alerts for
+all three projects now filter to `production` and throttle notifications to
+30 minutes per issue. They retain the approved default email action: suggested
+assignees, falling back to recently active organization members. Rule IDs:
+web `1328548`, proxy `1328554`, Python `1328562`. No new recipient was added.
+
 Inspect existing projects, alerts, available plan features and notification
 actions first. Reuse an existing approved team/channel rather than inventing a
 recipient. Do not enable paid performance features or upgrade a plan.
@@ -169,6 +175,12 @@ a local SDK flush alone does not prove receipt or successful symbolication.
 breaks only local API requests, and sends real browser events using its configured
 DSN. No smoke code enters the production bundle. Use a `test` environment build
 and verify the printed event IDs/debug IDs in Sentry.
+Add `--url https://queryotter.vercel.app` to exercise the deployed browser bundle
+in an isolated browser context; only that browser's API traffic is interrupted.
+`node scripts/sentry-deployed-trace.mjs` runs a real synthetic SQLite discovery
+job with sampled trace metadata in one isolated browser page and deletes its
+own disposable demo account afterward. It makes no model calls and changes no
+deployed HTML or SDK sampling defaults.
 
 For a deployed verification after credentials and deployment are authorized:
 

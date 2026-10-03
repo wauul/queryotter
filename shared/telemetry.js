@@ -38,7 +38,7 @@ const files = new Set([
   "web/monitoring.ts",
   "web/MonitoringBoundary.tsx",
   "api/proxy.js",
-  "api/monitoring.js",
+  "shared/proxy-monitoring.js",
   "scripts/sentry-smoke.mjs",
 ]);
 const hex = (value, size) =>
@@ -272,7 +272,6 @@ export function sanitizeEvent(event, hint) {
     out.tags.component = event.tags.component;
   if (operations.has(event.tags?.operation))
     out.tags.operation = event.tags.operation;
-  if (hex(event.user?.id, 32)) out.user = { id: event.user.id };
   out.contexts = { trace: traceContext(event.contexts?.trace) };
   if (event.exception)
     out.exception = {

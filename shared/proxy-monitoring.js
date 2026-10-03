@@ -9,7 +9,7 @@ import {
   sampleRate,
   releaseName,
   environmentName,
-} from "../shared/telemetry.js";
+} from "./telemetry.js";
 
 export function proxyOptions(env = process.env) {
   return {
@@ -47,12 +47,18 @@ export function captureProxy(error) {
   }
 }
 export function upstreamTraceHeaders(incoming) {
-  return traceHeaders(
-    Sentry.isEnabled() ? Sentry.getTraceData() : traceHeaders(incoming),
-  );
+  try {
+    return traceHeaders(
+      Sentry.isEnabled() ? Sentry.getTraceData() : traceHeaders(incoming),
+    );
+  } catch {
+    return traceHeaders(incoming);
+  }
 }
 export async function monitoredProxy(request, work) {
   if (!Sentry.isEnabled()) return work();
+  let pending;
+  const run = () => (pending ??= Promise.resolve().then(work));
   try {
     return await Sentry.withIsolationScope((scope) => {
       scope.setUser(null);
@@ -65,8 +71,12 @@ export async function monitoredProxy(request, work) {
             { name: routeName(request.url), op: "http.server" },
             async (span) => {
               try {
-                const response = await work();
-                Sentry.setHttpStatus(span, response.status);
+                const response = await run();
+                try {
+                  Sentry.setHttpStatus(span, response.status);
+                } catch {
+                  /* best effort */
+                }
                 return response;
               } catch (error) {
                 captureProxy(error);
@@ -76,6 +86,10 @@ export async function monitoredProxy(request, work) {
           ),
       );
     });
+  } catch {
+    // SDK setup/span failures cannot skip or repeat the actual proxy operation.
+    // A rejected work promise still preserves the application's original error.
+    return pending ? await pending : work();
   } finally {
     try {
       await Sentry.flush(1500);

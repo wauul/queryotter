@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/node";
-import { proxyOptions } from "../api/monitoring.js";
+import { proxyOptions } from "../shared/proxy-monitoring.js";
 import { proxy } from "../api/proxy.js";
 const send = process.argv.includes("--send");
 if (send && !process.env.SENTRY_PROXY_DSN)

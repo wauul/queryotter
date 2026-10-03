@@ -2,7 +2,7 @@ import {
   monitoredProxy,
   captureProxy,
   upstreamTraceHeaders,
-} from "./monitoring.js";
+} from "../shared/proxy-monitoring.js";
 
 const approvedRoute =
   /^\/api\/(session|health|login|logout|examples|jobs(?:\/[a-f0-9]{32}(?:\/(?:cancel|report))?)?|connections|reports\/[a-z-]+|assistant\/(?:catalog|session|settings|logout|parse-connection|demo\/start|auth\/(?:github|google|microsoft)\/(?:start|callback)|auth\/owner|connections(?:\/demo|\/[a-f0-9]{32}\/(?:remove|rotate|prisma|schema))?|jobs(?:\/[a-f0-9]{32}(?:\/cancel)?)?|results\/[a-f0-9]{32}(?:\/export)?|history(?:\/clear|\/[a-f0-9]{32}\/export)?|saved(?:\/[a-f0-9]{32}\/remove)?|account\/(?:export|delete)|connectors(?:\/[a-f0-9]{32}\/(?:remove|poll|complete))?))$/;

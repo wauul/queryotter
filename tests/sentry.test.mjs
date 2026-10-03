@@ -1,7 +1,7 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import * as Sentry from "@sentry/node";
-import { proxyOptions } from "../api/monitoring.js";
+import { proxyOptions } from "../shared/proxy-monitoring.js";
 import { proxy } from "../api/proxy.js";
 import {
   sanitizeEvent,
@@ -39,6 +39,26 @@ Sentry.init({
 after(async () => {
   await Sentry.close(100);
 });
+test("an SDK span failure cannot skip or repeat proxy work", async () => {
+  const unsubscribe = Sentry.getClient().on("spanStart", () => {
+    throw new Error("synthetic SDK failure");
+  });
+  let calls = 0;
+  try {
+    const response = await proxy(
+      new Request("https://queryotter.example/api/session"),
+      env,
+      async () => {
+        calls += 1;
+        return new Response("{}", { status: 200 });
+      },
+    );
+    assert.equal(response.status, 200);
+    assert.equal(calls, 1);
+  } finally {
+    unsubscribe();
+  }
+});
 function payloads(type) {
   return envelopes.flatMap((e) =>
     e[1].filter((item) => item[0].type === type).map((item) => item[1]),
@@ -46,6 +66,11 @@ function payloads(type) {
 }
 
 test("privacy allowlist strips realistic content from errors, requests, breadcrumbs, frames, spans and debug metadata", () => {
+  assert.equal(
+    sanitizeEvent({ user: { id: "a".repeat(32) } }).user,
+    undefined,
+    "opaque credentials must not be mistaken for user identities",
+  );
   const event = sanitizeEvent({
     message: secret,
     logentry: { message: secret },

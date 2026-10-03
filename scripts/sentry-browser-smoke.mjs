@@ -52,7 +52,11 @@ try {
       envelopes.push(request.postData());
   });
   // Only the synthetic local API is broken. Sentry requests use real transport.
-  const origin = `http://127.0.0.1:${server.address().port}`;
+  const urlIndex = process.argv.indexOf("--url");
+  const origin =
+    urlIndex >= 0
+      ? new URL(process.argv[urlIndex + 1]).origin
+      : `http://127.0.0.1:${server.address().port}`;
   await page.route(`${origin}/api/**`, (route) => route.abort("failed"));
   await page.goto(origin + "/");
   await page.getByText("Failed to fetch", { exact: true }).waitFor();

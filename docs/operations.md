@@ -12,6 +12,18 @@ Railway's existing Hobby deployment was explicitly approved as metered. One slee
 
 ## Provision and deploy
 
+Vercel Web Analytics and Speed Insights are mounted once in `web/main.tsx` using
+their React SDKs. Both remove query strings and fragments from page URLs before
+sending events. Production scripts and collection endpoints use the same origin
+under `/_vercel/insights/*` and `/_vercel/speed-insights/*`, which are permitted by
+the existing CSP and do not use the backend API proxy. Web Analytics records page
+visits; Speed Insights reports real browser performance measurements. Enable both
+features in the Vercel project's dashboard if they are not already enabled, then
+deploy. Dashboard data requires actual visits and may take time to appear.
+
+Setup references: [Web Analytics](https://vercel.com/docs/analytics/quickstart)
+and [Speed Insights](https://vercel.com/docs/speed-insights/quickstart).
+
 1. Provision two PostgreSQL databases and separate restricted runtime roles. The application role owns only application tables in `qot_app`; the experiment role owns only the experiment database. Deny cross-database CONNECT. Use verified TLS and the direct endpoint for worker session behavior. `store.initialize()` creates/migrates application tables transactionally under its initialization lock.
 2. Generate server SERVICE_TOKEN, SESSION_SECRET, ENCRYPTION_KEY and ADMIN_PASSWORD independently. Configure JOB_DATABASE_URL, EXPERIMENT_DATABASE_URL, Groq endpoint/model/key and the approved APP_ORIGIN from `.env.example`. Keep the encryption key in provider secret configuration separately from DB data/backups. No .env is committed.
 3. Deploy the repository's non-root Python 3.12 Dockerfile to Railway. `backend.cloud` supervises FastAPI and a separate on-demand worker; the worker uses a PostgreSQL advisory lock to enforce one queue consumer, recovers interrupted work and closes connections while idle. Health check `/healthz`, target port 8000, one replica, bounded restart attempts. Do not set QOT_TEST_NETWORKS in cloud; the entrypoint rejects it.

@@ -104,6 +104,11 @@ export default function StudioDocs({
         <h2>{tr("Error and performance monitoring")}</h2>
         <p>
           {tr(
+            "QueryOtter uses Vercel Web Analytics for page visits and Vercel Speed Insights for browser performance metrics. Query strings and URL fragments are removed before sending page URLs. These integrations do not receive account identifiers, prompts, queries or database records from the application.",
+          )}
+        </p>
+        <p>
+          {tr(
             "When configured, QueryOtter uses Sentry to receive sanitized error stack locations and sampled operation timings from the browser, proxy, API and worker. Telemetry includes component, operation, release, deployment environment and random trace identifiers. Request bodies, cookies, authorization, credentials, OAuth codes, prompts, queries, schema names, model output and record values are excluded. Error messages and breadcrumbs are removed. Session Replay, telemetry logs and profiling are disabled. Sentry receives ingestion network information as the service provider; application telemetry does not attach account identity or IP addresses. Sentry retention follows the operator's project settings and is separate from query-history retention.",
           )}
         </p>

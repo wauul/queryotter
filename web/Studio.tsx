@@ -1,4 +1,5 @@
 import { useLanguage } from "./Language";
+import { clearMonitoringUser } from "./monitoring";
 import React, { useState, useEffect, useRef } from "react";
 import {
   ArrowUpRight,
@@ -214,6 +215,7 @@ export default function Studio() {
     };
   }, []);
   async function refresh() {
+    clearMonitoringUser();
     setLoading(true);
     try {
       const [c, s] = await Promise.all([
@@ -241,6 +243,7 @@ export default function Studio() {
     }
   }
   async function refreshData() {
+    clearMonitoringUser();
     if (!session?.user) return;
     const [cs, s] = await Promise.all([
       api<Connection[]>("/connections"),
@@ -306,6 +309,7 @@ export default function Studio() {
     setError("");
   }
   function clearWorkspace() {
+    clearMonitoringUser();
     sessionRevision.current += 1;
     choose("");
     setSession(null);

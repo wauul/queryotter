@@ -1,13 +1,14 @@
 import os, json, time
 import psycopg
 from cryptography.fernet import Fernet
-from backend import store
+from backend import store, monitoring
 from backend.db import metadata, compact
 from backend.model import propose
 from backend.safety import validate_query
 from backend.connections import tls_options
 
 
+@monitoring.instrument("discovery")
 def inspect_connection(url):
     conn = psycopg.connect(url, connect_timeout=10, autocommit=True, **tls_options(url))
     try:

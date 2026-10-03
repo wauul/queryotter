@@ -34,21 +34,10 @@ import type { Example, Report, Job, Latency, PlanNode } from "./types";
 import { SQLDiff } from "./SQLDiff";
 import "./style.css";
 import { Otter } from "./Otter";
+import { monitoredFetch } from "./monitoring";
 
 async function api<T>(path: string, body?: unknown): Promise<T> {
-  const r = await fetch("/api" + path, {
-    method: body === undefined ? "GET" : "POST",
-    headers: body === undefined ? {} : { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  let d = await r.json();
-  if (!r.ok)
-    throw new Error(
-      typeof d.detail === "string"
-        ? d.detail
-        : "Please check your input and try again.",
-    );
-  return d;
+  return monitoredFetch("/api" + path, body) as Promise<T>;
 }
 const ms = (v?: number | null) =>
   v === undefined || v === null

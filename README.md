@@ -113,6 +113,10 @@ Connected engines provide non-executing plans when available and observed Run la
 
 ## Deployment and operations
 
+Optional Sentry integration covers the browser, Vercel proxy, FastAPI, supervisor
+and worker with private error stacks and sampled distributed traces. Replay and
+telemetry logs are disabled. See [setup, privacy, alerts and verification](docs/sentry.md).
+
 - Frontend: https://queryotter.vercel.app, Vercel Hobby, project queryotter in wauuls-projects.
 - API/worker: https://api-worker-production-7d0a.up.railway.app, Railway project queryotter, Amsterdam, one sleeping replica capped at 0.5 CPU / 512 MiB. Metered usage was approved; resource limits are not a dollar cap.
 - Durable database: Neon project queryotter (quiet-rice-58196279), production branch br-misty-truth-b1lldsfk, **AWS Frankfurt, eu-central-1**. queryotter_app stores application data in qot_app; queryotter_experiments holds disposable/synthetic experiments.

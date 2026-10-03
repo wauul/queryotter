@@ -65,7 +65,7 @@ export default function StudioDocs({
     return (
       <article className="q-prose" id="q-main" tabIndex={-1}>
         <span className="q-doc-meta">
-          {tr("Privacy · updated 30 September 2026")}
+          {tr("Privacy · updated 3 October 2026")}
         </span>
         <h1>{tr("Privacy policy")}</h1>
         <p>
@@ -99,6 +99,12 @@ export default function StudioDocs({
         <p>
           {tr(
             "The deployed application uses Vercel for the web application, Neon for durable application and disposable experiment databases, Railway for the Python API and worker, and Groq for model inference. Your chosen database provider and GitHub, Google or Microsoft also process their respective requests. See the visible deployment and support status for what is currently active. Standard operational logs record job IDs, stages, timings and error categories; provider response bodies and database credentials are excluded.",
+          )}
+        </p>
+        <h2>{tr("Error and performance monitoring")}</h2>
+        <p>
+          {tr(
+            "When configured, QueryOtter uses Sentry to receive sanitized error stack locations and sampled operation timings from the browser, proxy, API and worker. Telemetry includes component, operation, release, deployment environment and random trace identifiers. Request bodies, cookies, authorization, credentials, OAuth codes, prompts, queries, schema names, model output and record values are excluded. Error messages and breadcrumbs are removed. Session Replay, telemetry logs and profiling are disabled. Sentry receives ingestion network information as the service provider; application telemetry does not attach account identity or IP addresses. Sentry retention follows the operator's project settings and is separate from query-history retention.",
           )}
         </p>
         <h2>{tr("Choices and support")}</h2>

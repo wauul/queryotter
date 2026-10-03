@@ -1,5 +1,11 @@
 # Deployment and operations
 
+Sentry configuration, privacy controls, source-map uploads, sampling, alert setup
+and synthetic verification are documented in [Sentry operations](sentry.md).
+Monitoring DSNs are optional; configured browser release builds require private
+source-map uploads and an exact ingestion-origin CSP entry. Deploy both services
+with the same Git-based release. Never install the build auth token on Railway.
+
 The frontend is https://queryotter.vercel.app on Vercel. Its approved-route Node proxy uses server-only CONNECTOR_URL and SERVICE_TOKEN. The API/worker is https://api-worker-production-7d0a.up.railway.app on Railway, Amsterdam. Neon project queryotter (`quiet-rice-58196279`), branch `br-misty-truth-b1lldsfk`, AWS Frankfurt (`eu-central-1`) holds `queryotter_app` and separate `queryotter_experiments` databases.
 
 Railway's existing Hobby deployment was explicitly approved as metered. One sleeping replica is capped at 0.5 CPU and 512 MiB; these resource limits are **not a dollar spending cap**. Cold starts and Neon scale-to-zero can delay the first operation. `/healthz` is public readiness; all application routes on the worker require the private service token. Never expose that token through a browser or VITE variable.

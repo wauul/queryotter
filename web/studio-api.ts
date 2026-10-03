@@ -178,18 +178,7 @@ export const when = (seconds?: number, locale = "en-GB") =>
   seconds
     ? new Date(seconds * 1000).toLocaleString(locale)
     : "Not yet validated";
+import { monitoredFetch } from "./monitoring";
 export async function api<T>(path: string, body?: unknown): Promise<T> {
-  const response = await fetch("/api/assistant" + path, {
-    method: body === undefined ? "GET" : "POST",
-    headers: body === undefined ? {} : { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  const data = await response.json();
-  if (!response.ok)
-    throw new Error(
-      typeof data.detail === "string"
-        ? data.detail
-        : "Please check your input and try again.",
-    );
-  return data as T;
+  return monitoredFetch("/api/assistant" + path, body) as Promise<T>;
 }

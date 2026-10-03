@@ -12,11 +12,20 @@ from backend.assistant_api import router as assistant_router
 from backend.cases import CASES, BY_ID
 from backend.safety import validate_query, Unsupported
 from dotenv import load_dotenv
+from backend import monitoring
+from contextlib import asynccontextmanager
 
 load_dotenv()
+monitoring.init("api")
 store.init()
 workspaces.init()
-app = FastAPI(title="QueryOtter", docs_url=None, redoc_url=None)
+@asynccontextmanager
+async def lifespan(app):
+    yield
+    monitoring.flush()
+
+
+app = FastAPI(title="QueryOtter", docs_url=None, redoc_url=None, lifespan=lifespan)
 app.include_router(assistant_router)
 
 
@@ -389,3 +398,8 @@ def connections(request: Request):
                 "SELECT id,label FROM connections WHERE owner=?", (owner(request),)
             )
         ]
+
+
+# Outer wrapper validates metadata before the SDK's automatically installed ASGI
+# middleware. Route behavior, auth, body limits and responses are unchanged.
+app = monitoring.TraceIngress(app)

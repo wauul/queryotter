@@ -16,10 +16,22 @@ jobs:
           npm run postgres > /tmp/queryotter-postgres.log 2>&1 &
           for i in $(seq 1 30); do test -f .data/postgres/postmaster.pid && break; sleep 1; done
       - run: uv run pytest -q
-      - run: npm run build
+      - name: Build (configured release uploads are mandatory)
+        run: npm run build
+        env:
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          SENTRY_RELEASE: queryotter@${{ github.sha }}
+          SENTRY_ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
       - run: npm run test:proxy
       - run: npm run test:theme
       - run: npm run test:i18n
+      - run: npm run test:sentry
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:sentry:browser
+      - run: npm run test:sentry:maps
       - name: Build and exercise cloud container
         run: |
           docker build -t queryotter-worker .

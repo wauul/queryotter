@@ -3,6 +3,7 @@ from collections import Counter
 from backend.db import sandbox, explain, result, compact, metadata, METRICS
 from backend.safety import validate_query, validate_index
 from backend.model import propose
+from backend import monitoring
 
 
 class Cancelled(Exception):
@@ -40,6 +41,7 @@ def decide(a, b):
     )
 
 
+@monitoring.instrument('benchmark')
 def run(query, event=lambda stage, message: None, check=lambda: None, baseline=None, model_user=None):
     start = time.monotonic()
     db_seconds = 0
@@ -232,6 +234,8 @@ def run(query, event=lambda stage, message: None, check=lambda: None, baseline=N
             except (ValueError, Exception) as exc:
                 if isinstance(exc, (Cancelled, TimeoutError)):
                     raise
+                if not isinstance(exc, ValueError):
+                    monitoring.capture(exc, "benchmark")
                 # SQL/provider errors may contain SQL but never DSN or raw values; only safe classification exported.
                 record["reason"] = (
                     str(exc)

@@ -19,6 +19,7 @@ dependencies = [
     "authlib>=1.6,<2",
     "dnspython>=2.8,<3",
     "pyopenssl>=25,<27",
+    "sentry-sdk[fastapi]>=2.55,<3",
 ]
 [dependency-groups]
 dev = [

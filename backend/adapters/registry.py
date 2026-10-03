@@ -1,15 +1,17 @@
 from contextlib import contextmanager
+
+from backend import monitoring
 from backend.adapters.base import AdapterError
+from backend.adapters.documents import Firestore, MongoDB, RealtimeDatabase
 from backend.adapters.network import network_scope
 from backend.adapters.relational import (
-    PostgreSQL,
-    MySQL,
+    CockroachDB,
     MariaDB,
+    MySQL,
+    PostgreSQL,
     SQLite,
     SQLServer,
-    CockroachDB,
 )
-from backend.adapters.documents import MongoDB, Firestore, RealtimeDatabase
 
 ADAPTERS = {
     a.engine: a
@@ -52,19 +54,22 @@ def open_adapter(engine, config, check=lambda: None):
         except AdapterError:
             raise
         except Exception as error:
-            from backend.investigate import Cancelled
             from backend.adapters.errors import sanitized
+            from backend.investigate import Cancelled
             if isinstance(error, Cancelled):
                 raise
-            raise sanitized(error) from None
+            failure = sanitized(error)
+            if failure.code == "connection":
+                monitoring.capture(error, "connection")
+            raise failure from None
         finally:
             if hasattr(adapter, "temporary_files"):
                 adapter.close()
 
 
 def catalog():
-    from pathlib import Path
     import json
+    from pathlib import Path
 
     path = Path("public/adapter-verification.json")
     verified = json.loads(path.read_text()) if path.exists() else {}

@@ -5,6 +5,7 @@ import re
 import psycopg
 from psycopg import sql
 from backend.connections import tls_options
+from backend import monitoring
 
 DB = Path(os.environ.get("JOB_STORE", ".data/jobs.sqlite3"))
 
@@ -107,12 +108,15 @@ def init():
                 "CREATE UNIQUE INDEX IF NOT EXISTS jobs_one_active_owner ON jobs(owner) WHERE state IN ('queued','running')",
             ]:
                 c.execute(statement)
+            c.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS trace_context TEXT")
         return
     with connect() as c:
         c.executescript("""CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY, owner TEXT NOT NULL, request_key TEXT NOT NULL, case_id TEXT, query TEXT, state TEXT NOT NULL, created REAL NOT NULL, updated REAL NOT NULL, attempts INTEGER NOT NULL DEFAULT 0, cancel INTEGER NOT NULL DEFAULT 0, report TEXT, error TEXT, UNIQUE(owner,request_key));
         CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY AUTOINCREMENT, job TEXT NOT NULL, stage TEXT, message TEXT, at REAL);
         CREATE TABLE IF NOT EXISTS connections(id TEXT PRIMARY KEY, owner TEXT NOT NULL, label TEXT NOT NULL, secret TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS limits(bucket TEXT PRIMARY KEY, n INTEGER NOT NULL, reset REAL NOT NULL);""")
+        if "trace_context" not in {row[1] for row in c.execute("PRAGMA table_info(jobs)")}:
+            c.execute("ALTER TABLE jobs ADD COLUMN trace_context TEXT")
 
 
 def job(row):
@@ -130,6 +134,7 @@ def job(row):
         ]
     d.pop("request_key", None)
     d.pop("owner", None)
+    d.pop("trace_context", None)
     return d
 
 
@@ -145,7 +150,7 @@ def create(owner, key, case_id, query):
     try:
         with connect() as c:
             c.execute(
-                "INSERT INTO jobs(id,owner,request_key,case_id,query,state,created,updated) VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(owner,request_key) DO NOTHING",
+                "INSERT INTO jobs(id,owner,request_key,case_id,query,state,created,updated,trace_context) VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(owner,request_key) DO NOTHING",
                 (
                     uuid.uuid4().hex,
                     owner,
@@ -155,6 +160,7 @@ def create(owner, key, case_id, query):
                     "queued",
                     time.time(),
                     time.time(),
+                    json.dumps(monitoring.queued_trace()),
                 ),
             )
             row = c.execute(

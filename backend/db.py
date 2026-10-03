@@ -4,6 +4,7 @@ import psycopg
 from psycopg import sql
 from dotenv import load_dotenv
 from backend.connections import tls_options
+from backend import monitoring
 
 load_dotenv()
 METRICS = contextvars.ContextVar("database_metrics", default=None)
@@ -120,6 +121,7 @@ def sandbox(size=120000, seed_value=17, edge=False):
             )
 
 
+@monitoring.instrument('execution')
 def explain(conn, query, analyze=False):
     prefix = (
         "EXPLAIN (FORMAT JSON, COSTS TRUE"
@@ -194,6 +196,7 @@ def compact(plan):
     return out[:30]
 
 
+@monitoring.instrument("discovery")
 def metadata(conn):
     tables = conn.execute(
         "SELECT table_name,column_name,data_type,is_nullable FROM information_schema.columns WHERE table_schema=current_schema() ORDER BY table_name,ordinal_position LIMIT 101"

@@ -8,6 +8,8 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --locked --no-dev
 COPY backend ./backend
 COPY public ./public
+ARG QOT_GIT_SHA
+ENV QOT_GIT_SHA=${QOT_GIT_SHA}
 RUN mkdir .data && chown -R queryotter:queryotter /app
 USER queryotter
 CMD ["uv", "run", "--no-sync", "python", "-m", "backend.cloud"]

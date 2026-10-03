@@ -13,6 +13,7 @@ export default defineRailway(() => {
       "EXPERIMENT_DATABASE_URL", "JOB_DATABASE_URL", "JOB_SECONDS",
       "MODEL_API_KEY", "MODEL_BASE_URL", "MODEL_NAME", "MODEL_PROVIDER",
       "PORT", "SERVICE_TOKEN", "SESSION_SECRET",
+      "SENTRY_PYTHON_DSN", "SENTRY_RELEASE", "SENTRY_ENVIRONMENT", "SENTRY_TRACES_SAMPLE_RATE",
     ].map((key) => [key, preserve()])),
     deploy: {
       region: "europe-west4-drams3a",

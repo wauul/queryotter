@@ -1,3 +1,9 @@
+import {
+  monitoredProxy,
+  captureProxy,
+  upstreamTraceHeaders,
+} from "./monitoring.js";
+
 const approvedRoute =
   /^\/api\/(session|health|login|logout|examples|jobs(?:\/[a-f0-9]{32}(?:\/(?:cancel|report))?)?|connections|reports\/[a-z-]+|assistant\/(?:catalog|session|settings|logout|parse-connection|demo\/start|auth\/(?:github|google|microsoft)\/(?:start|callback)|auth\/owner|connections(?:\/demo|\/[a-f0-9]{32}\/(?:remove|rotate|prisma|schema))?|jobs(?:\/[a-f0-9]{32}(?:\/cancel)?)?|results\/[a-f0-9]{32}(?:\/export)?|history(?:\/clear|\/[a-f0-9]{32}\/export)?|saved(?:\/[a-f0-9]{32}\/remove)?|account\/(?:export|delete)|connectors(?:\/[a-f0-9]{32}\/(?:remove|poll|complete))?))$/;
 
@@ -16,8 +22,18 @@ function json(detail, status) {
 
 // A short-lived HTTP proxy only. Investigations stay in the durable Python worker.
 export async function proxy(request, env = process.env, fetchUpstream = fetch) {
+  return monitoredProxy(request, () => forward(request, env, fetchUpstream));
+}
+
+async function forward(request, env, fetchUpstream) {
   const url = new URL(request.url);
-  const bodyLimit = url.pathname.startsWith("/api/assistant/connections") || /\/connectors\/[a-f0-9]{32}\/complete$/.test(url.pathname) ? 3000000 : url.pathname.startsWith("/api/assistant/") ? 65536 : 18000;
+  const bodyLimit =
+    url.pathname.startsWith("/api/assistant/connections") ||
+    /\/connectors\/[a-f0-9]{32}\/complete$/.test(url.pathname)
+      ? 3000000
+      : url.pathname.startsWith("/api/assistant/")
+        ? 65536
+        : 18000;
   if (!approvedRoute.test(url.pathname)) return json("Not found", 404);
   if (!["GET", "POST"].includes(request.method))
     return json("Method not allowed", 405);
@@ -61,7 +77,11 @@ export async function proxy(request, env = process.env, fetchUpstream = fetch) {
   const headers = new Headers();
   for (const key of ["content-type", "cookie", "origin"])
     if (request.headers.has(key)) headers.set(key, request.headers.get(key));
-  if (/\/connectors\/[a-f0-9]{32}\/(poll|complete)$/.test(url.pathname) && request.headers.has("authorization")) headers.set("authorization", request.headers.get("authorization"));
+  if (
+    /\/connectors\/[a-f0-9]{32}\/(poll|complete)$/.test(url.pathname) &&
+    request.headers.has("authorization")
+  )
+    headers.set("authorization", request.headers.get("authorization"));
   headers.set("x-service-token", env.SERVICE_TOKEN);
   headers.set("x-app-origin", url.origin);
   headers.set("x-forwarded-proto", "https");
@@ -73,26 +93,44 @@ export async function proxy(request, env = process.env, fetchUpstream = fetch) {
       upstream.password
     )
       return json("Worker connector configuration is invalid.", 503);
-    const response = await fetchUpstream(new URL(url.pathname + url.search, upstream), {
-      method: request.method,
-      headers,
-      body,
-      redirect: "manual",
-      signal: AbortSignal.timeout(url.pathname.endsWith("/callback") ? 50000 : 10000),
-    });
+    // CONNECTOR_URL is the operator-approved destination. Never follow redirects
+    // or propagate third-party baggage to arbitrary user-selected databases.
+    for (const [key, value] of Object.entries(
+      upstreamTraceHeaders(request.headers),
+    ))
+      headers.set(key, value);
+    const response = await fetchUpstream(
+      new URL(url.pathname + url.search, upstream),
+      {
+        method: request.method,
+        headers,
+        body,
+        redirect: "manual",
+        signal: AbortSignal.timeout(
+          url.pathname.endsWith("/callback") ? 50000 : 10000,
+        ),
+      },
+    );
     if (response.status >= 300 && response.status < 400)
       return json("Worker connector returned an unexpected redirect.", 502);
     const out = new Headers();
-    for (const key of ["content-type", "content-disposition", "content-security-policy", "referrer-policy"])
+    for (const key of [
+      "content-type",
+      "content-disposition",
+      "content-security-policy",
+      "referrer-policy",
+    ])
       if (response.headers.has(key)) out.set(key, response.headers.get(key));
-    for (const cookie of response.headers.getSetCookie()) out.append("set-cookie", cookie);
+    for (const cookie of response.headers.getSetCookie())
+      out.append("set-cookie", cookie);
     out.set("cache-control", "no-store");
     out.set("x-content-type-options", "nosniff");
     return new Response(response.body, {
       status: response.status,
       headers: out,
     });
-  } catch {
+  } catch (error) {
+    captureProxy(error);
     return json(
       "The investigation service is unavailable. Published reports can still be explored.",
       503,

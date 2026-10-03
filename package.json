@@ -11,11 +11,17 @@
     "test:theme": "node --test tests/theme-init.test.mjs",
     "postgres": "node scripts/postgres.mjs",
     "test:web": "playwright test",
-    "test:i18n": "node --test tests/i18n.test.mjs"
+    "test:i18n": "node --test tests/i18n.test.mjs",
+    "test:sentry": "node --test tests/sentry.test.mjs",
+    "test:sentry:browser": "node --test tests/sentry-browser.test.mjs",
+    "test:sentry:maps": "node --test tests/sentry-sourcemaps.test.mjs",
+    "test:backend": "node scripts/verify-backend.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",
     "@fontsource/ibm-plex-sans": "^5.3.0",
+    "@sentry/node": "^10.76.0",
+    "@sentry/react": "^10.76.0",
     "@vercel/analytics": "^2.0.1",
     "diff": "^9.0.0",
     "lucide-react": "^0.468.0",
@@ -23,7 +29,9 @@
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
+    "@jridgewell/trace-mapping": "^0.3.31",
     "@playwright/test": "^1.55.0",
+    "@sentry/vite-plugin": "^5.4.0",
     "@types/diff": "^7.0.2",
     "@types/react": "^19.1.1",
     "@types/react-dom": "^19.1.1",

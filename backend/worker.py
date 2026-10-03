@@ -2,11 +2,13 @@ import time, os, json, logging
 from backend import store
 from backend.investigate import run, Cancelled
 from backend.safety import Unsupported
+from backend import monitoring
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
+@monitoring.worker_job
 def execute(job):
     id = job["id"]
     last_check = 0.0
@@ -73,6 +75,7 @@ def execute(job):
             if isinstance(e, AdapterError):
                 store.finish(id, "rejected", error=str(e))
             else:
+                monitoring.capture(e, "job", "worker")
                 store.finish(
                     id,
                     "failed",
@@ -89,6 +92,7 @@ def execute(job):
     )
 
 
+@monitoring.process("worker")
 def main():
     store.init()
     with store.worker_lock():
@@ -102,6 +106,7 @@ def main():
                 time.sleep(0.5)
 
 
+@monitoring.process("worker")
 def on_demand(wake):
     """Railway child process: no DB polling or connections while idle."""
     store.init()

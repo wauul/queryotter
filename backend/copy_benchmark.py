@@ -14,6 +14,7 @@ import sqlglot
 from sqlglot import exp
 from backend.adapters.base import AdapterError
 from backend.adapters.sql import validate_sql, bind_literals
+from backend import monitoring
 
 
 def canonical(rows, ordered):
@@ -28,6 +29,7 @@ def canonical(rows, ordered):
     return entries if ordered else collections.Counter(entries)
 
 
+@monitoring.instrument('benchmark')
 def measure(config, original, candidate, indexes, metadata, check=lambda: None):
     if len(indexes) > 2 or any(
         not isinstance(i, str) or len(i) > 1500 for i in indexes

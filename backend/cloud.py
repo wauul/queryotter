@@ -7,8 +7,10 @@ import uvicorn
 from dotenv import load_dotenv
 from backend import store
 from backend.worker import on_demand
+from backend import monitoring
 
 
+@monitoring.process("supervisor")
 def main():
     load_dotenv()
     if os.environ.get("QOT_TEST_NETWORKS"):
@@ -31,6 +33,8 @@ def main():
     def supervise():
         worker.join()
         if not stopping.is_set():
+            monitoring.capture(RuntimeError("worker_exit"), "supervision", "supervisor")
+            monitoring.flush()
             os._exit(1)
 
     threading.Thread(target=supervise, daemon=True).start()

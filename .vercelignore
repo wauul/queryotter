@@ -18,7 +18,8 @@ __pycache__/
 *.log
 pyproject.toml
 uv.lock
-scripts/
+scripts/*
+!scripts/sentry-build.mjs
 Dockerfile
 .dockerignore
 railway.json

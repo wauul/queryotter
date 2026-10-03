@@ -3,7 +3,7 @@ import { join, relative } from "node:path";
 const map = {};
 function collect(dir) {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
-    if (e.name === "server" || e.name === ".openai") continue;
+    if (e.name === "server" || e.name === ".openai" || e.name.endsWith('.map')) continue;
     const p = join(dir, e.name);
     if (e.isDirectory()) collect(p);
     else {

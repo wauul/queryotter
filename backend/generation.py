@@ -8,7 +8,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import httpx
 from pydantic import BaseModel, Field, ConfigDict
-from backend import usage
+from backend import usage, monitoring
 from backend.adapters.base import AdapterError
 
 
@@ -94,6 +94,7 @@ def date_context(timezone="UTC", reference=None):
     }
 
 
+@monitoring.instrument('generation')
 def call(user, system, data, check=lambda: None, max_tokens=3200):
     check()
     from backend.accounts import is_demo
@@ -222,6 +223,8 @@ def call(user, system, data, check=lambda: None, max_tokens=3200):
         error.measured = metrics
         raise
     except (httpx.HTTPError, ValueError, KeyError) as error:
+        from backend import monitoring
+        monitoring.capture(error, "generation")
         failure = AdapterError(
             f"The model response was unavailable or invalid ({type(error).__name__}). Try a narrower request; no provider response body is logged.",
             "model_response",

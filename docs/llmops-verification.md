@@ -30,5 +30,18 @@ provider request so observation latency brackets the actual operation.
 Local sanitized run evidence is at `artifacts/langfuse-validation.json`; it is
 ignored by Git. Reproduce it with `uv run python scripts/verify-langfuse.py`.
 These four fixtures are narrow regressions, not general model accuracy or
-verification of all engines. Production deployment and hosted checks must be
-confirmed separately through provider status and a fresh synthetic hosted job.
+verification of all engines.
+
+Railway deployment `dd31afd0-66ef-4724-a8f1-0a24c60a4f01` reached SUCCESS with
+application code commit `844ba36`. The first two repository uploads failed with
+HTTP 500; uploading a clean Docker/backend/public/locked-dependency bundle
+succeeded. The existing resource limits and durable Neon store were preserved.
+
+At 16:51 Paris time, a fresh job through `https://queryotter.vercel.app` completed
+real Groq generation with the new workflow version and returned a draft requiring
+Run. The verification harness explicitly ran it only against a synthetic SQLite
+copy. Its production Langfuse observation
+`27cbde79173f6297f49c475cbcfdf498` arrived with matching usage (1,329 input / 178
+output tokens), workflow metadata and no input/output content. Sanitized local
+evidence is `artifacts/hosted-llmops.json`. These checks establish this hosted
+workflow and telemetry ingestion; they do not establish every engine's behavior.

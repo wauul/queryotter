@@ -14,6 +14,8 @@ export default defineRailway(() => {
       "MODEL_API_KEY", "MODEL_BASE_URL", "MODEL_NAME", "MODEL_PROVIDER",
       "PORT", "SERVICE_TOKEN", "SESSION_SECRET",
       "SENTRY_PYTHON_DSN", "SENTRY_RELEASE", "SENTRY_ENVIRONMENT", "SENTRY_TRACES_SAMPLE_RATE",
+      "QOT_LANGFUSE_ENABLED", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY",
+      "LANGFUSE_BASE_URL", "LANGFUSE_TRACING_ENVIRONMENT",
     ].map((key) => [key, preserve()])),
     deploy: {
       region: "europe-west4-drams3a",

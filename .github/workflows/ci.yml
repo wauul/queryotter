@@ -3,6 +3,9 @@ on: [push, pull_request]
 jobs:
   verify:
     runs-on: ubuntu-latest
+    env:
+      QOT_LANGFUSE_ENABLED: "0"
+      LANGSMITH_TRACING: "false"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,6 +19,17 @@ jobs:
           npm run postgres > /tmp/queryotter-postgres.log 2>&1 &
           for i in $(seq 1 30); do test -f .data/postgres/postmaster.pid && break; sleep 1; done
       - run: uv run pytest -q
+      - name: LLMOps offline regression gate
+        run: uv run pytest tests/test_llmops.py tests/test_assistant.py -q --junitxml=artifacts/llmops-regression.xml
+        env:
+          QOT_LANGFUSE_ENABLED: "0"
+          LANGSMITH_TRACING: "false"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: llmops-regression
+          path: artifacts/llmops-regression.xml
+          if-no-files-found: ignore
       - name: Build (configured release uploads are mandatory)
         run: npm run build
         env:

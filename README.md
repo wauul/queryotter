@@ -77,6 +77,11 @@ They use seeded synthetic databases and independent expected results. Keep produ
 
 ## Architecture and safety
 
+LangChain supplies the model request pipeline; LangGraph orchestrates draft,
+validation and one bounded repair. Optional content-free Langfuse telemetry and
+CI regression gates provide the LLMOps workflow. See [setup and verification
+boundaries](docs/llmops.md). Groq and explicit Run remain the provider/execution flow.
+
 React/TypeScript/Vite is hosted by Vercel. Its Node proxy forwards only approved routes to FastAPI with a private service token. FastAPI commits durable jobs and returns; backend.cloud supervises a **separate** on-demand Python worker in the Railway container. The worker drains the Neon queue with concurrency one and closes database connections while idle.
 
 ```mermaid

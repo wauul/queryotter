@@ -11,7 +11,7 @@ from collections import Counter
 from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from backend import generation, store, workspaces
+from backend import generation, store, workspaces, llmops
 from backend.adapters.registry import open_adapter
 from integration.fixtures import seed, DATA
 
@@ -47,6 +47,8 @@ def main():
     report = {
         "checked": time.strftime("%Y-%m-%d", time.gmtime()),
         "model": os.environ.get("MODEL_NAME"),
+        "prompt_revision": llmops.prompt_revision(generation.SYSTEM),
+        "workflow_version": llmops.WORKFLOW_VERSION,
         "reference_clock": "2026-09-30 UTC",
         "records_shared": False,
         "cases": [],

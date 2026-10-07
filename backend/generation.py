@@ -8,7 +8,10 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import httpx
 from pydantic import BaseModel, Field, ConfigDict
-from backend import usage, monitoring
+from backend import usage, monitoring, llmops
+from typing import Any, TypedDict
+from langgraph.graph import StateGraph, START, END
+from langsmith import tracing_context
 from backend.adapters.base import AdapterError
 
 
@@ -94,7 +97,7 @@ def date_context(timezone="UTC", reference=None):
     }
 
 
-@monitoring.instrument('generation')
+@monitoring.instrument("generation")
 def call(user, system, data, check=lambda: None, max_tokens=3200):
     check()
     from backend.accounts import is_demo
@@ -152,15 +155,11 @@ def call(user, system, data, check=lambda: None, max_tokens=3200):
         "estimated_cost_usd": None,
         "records_shared": False,
     }
+    outcome = "failed"
+    observation = llmops.start_model_observation(llmops.prompt_revision(system))
     try:
-        response = httpx.post(
-            os.environ.get("MODEL_BASE_URL", "https://api.groq.com/openai/v1").rstrip(
-                "/"
-            )
-            + "/chat/completions",
-            headers={"Authorization": "Bearer " + api_key},
-            timeout=45,
-            json={
+        response = llmops.completion(
+            {
                 "model": model,
                 "messages": [
                     {"role": "system", "content": system},
@@ -175,6 +174,7 @@ def call(user, system, data, check=lambda: None, max_tokens=3200):
                 "max_completion_tokens": max_tokens,
                 "response_format": response_format,
             },
+            api_key,
         )
         if response.status_code != 200:
             raise AdapterError(
@@ -218,12 +218,14 @@ def call(user, system, data, check=lambda: None, max_tokens=3200):
             "pricing_checked": "2026-09-30",
             "records_shared": False,
         }
+        outcome = "invalid_json" if "response_error" in value else "completed"
         return value, metrics
     except AdapterError as error:
         error.measured = metrics
         raise
     except (httpx.HTTPError, ValueError, KeyError) as error:
         from backend import monitoring
+
         monitoring.capture(error, "generation")
         failure = AdapterError(
             f"The model response was unavailable or invalid ({type(error).__name__}). Try a narrower request; no provider response body is logged.",
@@ -233,6 +235,12 @@ def call(user, system, data, check=lambda: None, max_tokens=3200):
         raise failure from None
     finally:
         metrics["seconds"] = round(time.monotonic() - start, 3)
+        metrics.update(
+            prompt_version=llmops.PROMPT_VERSION,
+            prompt_revision=llmops.prompt_revision(system),
+            workflow_version=llmops.WORKFLOW_VERSION,
+        )
+        llmops.record_model(metrics, outcome, observation)
         usage.record(user, metrics)
 
 
@@ -273,21 +281,37 @@ def generate(
         "previous_query": previous,
         "limits": adapter.limitations,
     }
-    value, measured = call(user, SYSTEM, context, check)
-    for attempt in range(2):
+
+    class State(TypedDict, total=False):
+        value: Any
+        measured: dict
+        attempt: int
+        error: str
+        report: dict
+
+    def draft_node(state):
+        check()
+        value, measured = call(user, SYSTEM, context, check)
+        return {"value": value, "measured": measured, "attempt": 0}
+
+    def validate_node(state):
+        check()
+        value, attempt = state["value"], state["attempt"]
         try:
             draft = Draft.model_validate(value)
             if draft.clarification:
                 draft.query = None
                 return {
-                    **draft.model_dump(),
-                    "validation": {
-                        "syntactically_valid": False,
-                        "executable": None,
-                        "business_meaning_verified": False,
-                    },
-                    "repair_attempts": attempt,
-                    "usage": measured,
+                    "report": {
+                        **draft.model_dump(),
+                        "validation": {
+                            "syntactically_valid": False,
+                            "executable": None,
+                            "business_meaning_verified": False,
+                        },
+                        "repair_attempts": attempt,
+                        "usage": state["measured"],
+                    }
                 }
             if not draft.query:
                 raise AdapterError(
@@ -301,41 +325,70 @@ def generate(
             )
             validated = adapter.validate(query, metadata)
             return {
-                **draft.model_dump(),
-                "query": validated,
-                "validation": {
-                    "syntactically_valid": True,
-                    "executable": None,
-                    "business_meaning_verified": False,
-                },
-                "repair_attempts": attempt,
-                "usage": measured,
+                "report": {
+                    **draft.model_dump(),
+                    "query": validated,
+                    "validation": {
+                        "syntactically_valid": True,
+                        "executable": None,
+                        "business_meaning_verified": False,
+                    },
+                    "repair_attempts": attempt,
+                    "usage": state["measured"],
+                }
             }
         except (ValueError, AdapterError) as error:
             if attempt == 1:
                 return {
-                    "query": None,
-                    "clarification": None,
-                    "explanation": "The draft failed validation after one repair. Review the discovered metadata or refine the request.",
-                    "validation_error": str(error)[:600],
-                    "validation": {
-                        "syntactically_valid": False,
-                        "executable": None,
-                        "business_meaning_verified": False,
-                    },
-                    "repair_attempts": 1,
-                    "usage": measured,
+                    "report": {
+                        "query": None,
+                        "clarification": None,
+                        "explanation": "The draft failed validation after one repair. Review the discovered metadata or refine the request.",
+                        "validation_error": str(error)[:600],
+                        "validation": {
+                            "syntactically_valid": False,
+                            "executable": None,
+                            "business_meaning_verified": False,
+                        },
+                        "repair_attempts": 1,
+                        "usage": state["measured"],
+                    }
                 }
-            value, more = call(
-                user,
-                SYSTEM,
-                {
-                    **context,
-                    "invalid_draft": value,
-                    "validation_error": str(error)[:600],
-                    "repair": "Repair once, or ask a focused clarification. Do not execute.",
-                },
-                check,
-            )
-            measured = add_usage(measured, more)
-    raise AssertionError("bounded repair")
+            return {"error": str(error)[:600]}
+
+    def repair_node(state):
+        check()
+        value, more = call(
+            user,
+            SYSTEM,
+            {
+                **context,
+                "invalid_draft": state["value"],
+                "validation_error": state["error"],
+                "repair": "Repair once, or ask a focused clarification. Do not execute.",
+            },
+            check,
+        )
+        return {
+            "value": value,
+            "measured": add_usage(state["measured"], more),
+            "attempt": 1,
+        }
+
+    graph = StateGraph(State)
+    graph.add_node("draft", draft_node)
+    graph.add_node("validate", validate_node)
+    graph.add_node("repair", repair_node)
+    graph.add_edge(START, "draft")
+    graph.add_edge("draft", "validate")
+    graph.add_conditional_edges(
+        "validate",
+        lambda state: "done" if state.get("report") else "repair",
+        {"done": END, "repair": "repair"},
+    )
+    graph.add_edge("repair", "validate")
+    # Durable jobs remain in the owner-scoped store. No model context is checkpointed.
+    with tracing_context(enabled=False):
+        return graph.compile().invoke(
+            {}, config={"callbacks": [], "recursion_limit": 8}
+        )["report"]
